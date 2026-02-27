@@ -78,7 +78,7 @@ function drawAnimatedLineChart(containerSelector, data, xKey, yKey, colorStr) {
     if (!container) return;
     
     const totalWidth = container.clientWidth || 600;
-    const totalHeight = 300;
+    const totalHeight = 500;
     const width = totalWidth - margin.left - margin.right;
     const height = totalHeight - margin.top - margin.bottom;
 
@@ -171,7 +171,7 @@ window.drawMultiLineChart = function(containerSelector, multiSeriesData, xKey, y
     if (!container || !multiSeriesData || multiSeriesData.length === 0) return;
     
     const totalWidth = container.clientWidth || 800;
-    const totalHeight = 400;
+    const totalHeight = 500;
     const width = totalWidth - margin.left - margin.right;
     const height = totalHeight - margin.top - margin.bottom;
 
