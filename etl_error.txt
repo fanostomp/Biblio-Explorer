@@ -1,0 +1,71 @@
+Loading venue mappings...
+Loading author name->id map...
+  1,394,785 authors in DB
+
+Loading conference papers...
+Traceback (most recent call last):
+  File "C:\Users\public.LAPTOP-17PSCTIQ\AppData\Local\Programs\Python\Python313\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+    ~~~~~~~~~~~~~~~~~~^
+        query,
+        ^^^^^^
+    ...<3 lines>...
+        query_attrs=self.query_attrs,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+_mysql_connector.MySQLInterfaceError: CONSTRAINT `chk_paper_venue` failed for `biblio_db`.`papers`
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\public.LAPTOP-17PSCTIQ\Desktop\MATHIMATA\proxorimena\project\etl\07_load_papers.py", line 241, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\Desktop\MATHIMATA\proxorimena\project\etl\07_load_papers.py", line 224, in main
+    process_papers(conn, INPROC_CSV, INPROC_AUTH,
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   paper_type="conference",
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+                   venue_map=conf_map,
+                   ^^^^^^^^^^^^^^^^^^^
+                   venue_key_col="booktitle",
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   author_name_to_id=author_map)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\Desktop\MATHIMATA\proxorimena\project\etl\07_load_papers.py", line 142, in process_papers
+    _flush_papers(cur, conn, paper_rows, raw_to_db)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\Desktop\MATHIMATA\proxorimena\project\etl\07_load_papers.py", line 197, in _flush_papers
+    insert_papers_batch(cur, db_rows)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\Desktop\MATHIMATA\proxorimena\project\etl\07_load_papers.py", line 58, in insert_papers_batch
+    cursor.executemany("""
+    ~~~~~~~~~~~~~~~~~~^^^^
+        INSERT INTO papers
+        ^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """, rows)
+    ^^^^^^^^^^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\AppData\Local\Programs\Python\Python313\Lib\site-packages\mysql\connector\cursor_cext.py", line 473, in executemany
+    return self.execute(cast(str, stmt))
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\AppData\Local\Programs\Python\Python313\Lib\site-packages\mysql\connector\cursor_cext.py", line 353, in execute
+    self._connection.cmd_query(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._stmt_partition["mappable_stmt"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        raw_as_string=self._raw_as_string,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\public.LAPTOP-17PSCTIQ\AppData\Local\Programs\Python\Python313\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+  File "C:\Users\public.LAPTOP-17PSCTIQ\AppData\Local\Programs\Python\Python313\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.IntegrityError: 4025 (23000): CONSTRAINT `chk_paper_venue` failed for `biblio_db`.`papers`

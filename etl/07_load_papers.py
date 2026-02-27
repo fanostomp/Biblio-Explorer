@@ -1,0 +1,233 @@
+"""
+07_load_papers.py
+──────────────────
+Final ETL step: loads papers and paper_authors into the database
+using the cleaned CSVs and the venue mapping files produced by
+scripts 05 and 06.
+
+Run AFTER: 02, 03, 04, 05, 06
+Run: python 07_load_papers.py
+"""
+
+import csv
+import os
+import sys
+
+import mysql.connector
+
+sys.path.insert(0, os.path.dirname(__file__))
+from config import DB_CONFIG
+
+CLEANED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "cleaned")
+MATCHED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "matched")
+
+INPROC_CSV    = os.path.join(CLEANED_DIR, "cleaned_inproceedings.csv")
+INPROC_AUTH   = os.path.join(CLEANED_DIR, "cleaned_inproceedings_authors.csv")
+ARTICLES_CSV  = os.path.join(CLEANED_DIR, "cleaned_articles.csv")
+ARTICLES_AUTH = os.path.join(CLEANED_DIR, "cleaned_articles_authors.csv")
+
+CONF_MAP_CSV  = os.path.join(MATCHED_DIR, "booktitle_to_conf_id.csv")
+JOUR_MAP_CSV  = os.path.join(MATCHED_DIR, "journal_name_to_id.csv")
+
+
+def load_mapping(path, key_col, val_col):
+    """Load a CSV mapping into a dict. val is int or None."""
+    mapping = {}
+    if not os.path.exists(path):
+        print(f"  WARNING: mapping file not found: {path}")
+        return mapping
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            key = row.get(key_col, "").strip()
+            val = row.get(val_col, "").strip()
+            mapping[key] = int(val) if val else None
+    return mapping
+
+
+def load_author_map(conn):
+    """Fetch author name → author_id from DB."""
+    cur = conn.cursor()
+    cur.execute("SELECT author_id, name FROM authors")
+    m = {name: aid for aid, name in cur.fetchall()}
+    cur.close()
+    return m
+
+
+def insert_papers_batch(cursor, rows):
+    cursor.executemany("""
+        INSERT INTO papers
+            (title, year, pages, type, conf_id, journal_id,
+             volume, number, dblp_key, ee, url, raw_id)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    """, rows)
+
+
+def insert_authors_batch(cursor, rows):
+    cursor.executemany("""
+        INSERT IGNORE INTO paper_authors (paper_id, author_id, author_order)
+        VALUES (%s, %s, %s)
+    """, rows)
+
+
+def process_papers(conn, paper_csv, author_csv, paper_type,
+                   venue_map, venue_key_col,
+                   author_name_to_id,
+                   BATCH=1000):
+    """
+    Generic loader for both conference papers and journal articles.
+    paper_type: 'conference' | 'journal'
+    venue_key_col: column in paper_csv that holds the venue name (booktitle or journal)
+    """
+    cur = conn.cursor()
+
+    # Build a temp map: raw_paper_id_from_csv → db paper_id
+    # We need this to link author rows to the right paper_id
+    raw_to_db = {}
+
+    paper_rows  = []
+    skipped     = 0
+    written     = 0
+
+    with open(paper_csv, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            raw_id  = row.get("id", "").strip()
+            title   = row.get("title", "").strip()
+            year_s  = row.get("year", "").strip()
+            venue   = row.get(venue_key_col, "").strip()
+
+            if not raw_id or not title or not year_s:
+                skipped += 1
+                continue
+            try:
+                year = int(year_s)
+            except ValueError:
+                skipped += 1
+                continue
+
+            venue_id = venue_map.get(venue)  # may be None if unmatched
+
+            if paper_type == "conference":
+                conf_id    = venue_id
+                journal_id = None
+                volume = number = None
+            else:
+                conf_id    = None
+                journal_id = venue_id
+                volume  = row.get("volume", "").strip() or None
+                number  = row.get("number", "").strip() or None
+
+            # If both venue FKs would be NULL we can still insert —
+            # the paper exists even if we couldn't rank its venue.
+            # But CHECK constraint requires exactly one non-NULL.
+            # Handle unmatched: if journal/conf_id is None we must
+            # insert a placeholder (None with the correct type column).
+            paper_rows.append((
+                title,
+                year,
+                row.get("pages", "").strip() or None,
+                paper_type,
+                conf_id,
+                journal_id,
+                volume if paper_type == "journal" else None,
+                number if paper_type == "journal" else None,
+                row.get("dblp_key", "").strip() or None,
+                row.get("ee", "").strip() or None,
+                row.get("url", "").strip() or None,
+                raw_id
+            ))
+
+            if len(paper_rows) >= BATCH:
+                _flush_papers(cur, conn, paper_rows)
+                written += len(paper_rows)
+                print(f"  [{paper_type}] {written:,} written...", flush=True)
+                paper_rows = []
+
+    if paper_rows:
+        written += len(paper_rows)
+        _flush_papers(cur, conn, paper_rows)
+
+    print(f"  [{paper_type}] papers done: {written:,} written, {skipped:,} skipped")
+
+    print(f"  [{paper_type}] fetching IDs to build author mapping...")
+    cur.execute(f"SELECT raw_id, paper_id FROM papers WHERE type='{paper_type}' AND raw_id IS NOT NULL")
+    for r_id, p_id in cur.fetchall():
+        if r_id:
+            raw_to_db[str(r_id)] = p_id
+
+    # Now load paper_authors
+    auth_rows = []
+    auth_written = 0
+    with open(author_csv, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            raw_id  = row.get("paper_id", "").strip()
+            name    = row.get("author_name", "").strip()
+            order_s = row.get("author_order", "1").strip()
+
+            db_paper_id = raw_to_db.get(raw_id)
+            db_author_id = author_name_to_id.get(name)
+
+            if not db_paper_id or not db_author_id:
+                continue
+            try:
+                order = int(order_s)
+            except ValueError:
+                order = 1
+
+            auth_rows.append((db_paper_id, db_author_id, order))
+
+            if len(auth_rows) >= BATCH:
+                insert_authors_batch(cur, auth_rows)
+                conn.commit()
+                auth_written += len(auth_rows)
+                auth_rows = []
+                print(f"  [{paper_type}] {auth_written:,} author links written...", flush=True)
+
+    if auth_rows:
+        insert_authors_batch(cur, auth_rows)
+        conn.commit()
+        auth_written += len(auth_rows)
+
+    print(f"  [{paper_type}] author links done: {auth_written:,}")
+    cur.close()
+
+
+def _flush_papers(cur, conn, rows):
+    """Insert paper rows."""
+    insert_papers_batch(cur, rows)
+    conn.commit()
+
+
+def main():
+    conn = mysql.connector.connect(**DB_CONFIG)
+    conn.autocommit = False
+
+    print("Loading venue mappings...")
+    conf_map   = load_mapping(CONF_MAP_CSV, "booktitle", "conf_id")
+    journal_map = load_mapping(JOUR_MAP_CSV, "dblp_journal_name", "journal_id")
+
+    print("Loading author name->id map...")
+    author_map = load_author_map(conn)
+    print(f"  {len(author_map):,} authors in DB")
+
+    print("\nLoading conference papers...")
+    process_papers(conn, INPROC_CSV, INPROC_AUTH,
+                   paper_type="conference",
+                   venue_map=conf_map,
+                   venue_key_col="booktitle",
+                   author_name_to_id=author_map)
+
+    print("\nLoading journal articles...")
+    process_papers(conn, ARTICLES_CSV, ARTICLES_AUTH,
+                   paper_type="journal",
+                   venue_map=journal_map,
+                   venue_key_col="journal",
+                   author_name_to_id=author_map)
+
+    conn.close()
+    print("\nAll papers and author links loaded.")
+
+if __name__ == "__main__":
+    main()

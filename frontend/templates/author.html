@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="profile-header">
+    <div class="search-section">
+        <input type="text" id="authorSearch" placeholder="Search author by exact name (e.g., 'Michael Stonebraker')" autocomplete="off">
+        <!-- We use a database query to search since there are 1.4M authors -->
+    </div>
+    <div id="authorDetails" style="display: none;">
+        <h1 id="authorName">Author Name</h1>
+        <div class="badges">
+            <span class="badge" id="authorTotalPapers">Total Papers: 0</span>
+            <span class="badge" id="authorYearsActive">Active: YYYY - YYYY</span>
+            <span class="badge category-badge" id="authorAvgPapers">Avg Papers/Year: 0.0</span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" id="dashboardGrid" style="display: none;">
+    <div class="chart-container full-width">
+        <h3>Publications by Type</h3>
+        <div id="papersChart"></div>
+    </div>
+    
+    <div class="table-container full-width">
+        <h3>Bibliography</h3>
+        <div class="table-responsive">
+            <table id="papersTable">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Type</th>
+                        <th>Title</th>
+                        <th>Venue (Conf/Journal)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

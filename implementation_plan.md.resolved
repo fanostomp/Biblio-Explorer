@@ -1,0 +1,238 @@
+# Bibliographic Data Integration & Visualization Project
+
+**Course**: MYE030/PLE045 — Spring 2026 | **Team**: AM 4855 & AM 5381 | **Deadline**: 26-05-2026
+
+---
+
+## Data Sources
+
+| Source | File | Description | Size |
+|--------|------|-------------|------|
+| DBLP | [input_inproceedings.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/dblp_dataset/input_inproceedings.csv) | Conference papers (`;`-delimited) | ~411 MB, ~823K rows |
+| DBLP | [input_article.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/dblp_dataset/input_article.csv) | Journal articles (`;`-delimited) | ~339 MB, ~679K rows |
+| iCORE26 | [iCore26_KilledColumnsForLoading.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/icore26_data/iCore26_KilledColumnsForLoading.csv) | Conference rankings (A*, A, B, C) | ~123 KB |
+| iCORE26 | [icoreCategories.xlsx](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/icore26_data/icoreCategories.xlsx) | FoR code → text descriptions | ~13 KB |
+| Kaggle | [journal_ranking_data_raw.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/journal_ranking_data_raw/journal_ranking_data_raw.csv) | Journal rankings (tab-delimited!) | ~5.5 MB |
+| Kaggle | [bestSubjectArea.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/journal_ranking_data_raw/bestSubjectArea.csv) | 28 subject area categories | ~596 B |
+
+### Key Data Challenges
+- Authors are `|`-separated lists → need N:M table with **author order**
+- Conference papers vs journal articles: similar but NOT identical schemas
+- DBLP `journal` field doesn't exactly match Kaggle titles → **regex matching needed**
+- DBLP `booktitle` field doesn't always exactly match iCORE26 `Acronym` → **conference matching needed**
+- Journal ranking CSV has commas inside titles → it is **tab-delimited**, not comma-delimited
+- NULL values and invalid rows → must clean **before** loading
+- String PKs are unacceptable → **integer surrogate keys** everywhere
+
+---
+
+## Phase I: Database Design & ETL (Milestone: 10 March)
+
+### Database Schema (MySQL 8.0, InnoDB)
+
+```
+LOOKUP TABLES
+─────────────────────────────────────────────────────────────────
+primary_for              best_subject_area
+────────────             ─────────────────
+for_code     PK (INT)    area_id   PK (INT AUTO_INCREMENT)
+description  VARCHAR     area_name VARCHAR
+                         (NOTE: for_code is mostly INT but some
+                          entries are text — store as VARCHAR, be careful)
+
+conferences                          journals
+───────────                          ────────
+conf_id      PK (INT AUTO_INCREMENT) journal_id   PK (INT AUTO_INCREMENT)
+title        VARCHAR                 title        VARCHAR
+acronym      VARCHAR                 country      VARCHAR
+rank         ENUM('A*','A','B','C')  publisher    VARCHAR
+primary_for  INT  FK→primary_for     sjr_index    DECIMAL
+dblp_key     VARCHAR (nullable)      cite_score   DECIMAL
+                                     h_index      INT
+                                     best_quartile ENUM('Q1','Q2','Q3','Q4')
+                                     best_subject_area INT FK→best_subject_area
+                                     total_docs   INT
+                                     total_refs   INT
+                                     total_cites_3y INT
+                                     citable_docs_3y INT
+                                     cites_per_doc_2y DECIMAL
+                                     refs_per_doc DECIMAL
+
+authors
+───────
+author_id    PK (INT AUTO_INCREMENT)
+name         VARCHAR
+
+FACTUAL TABLES
+─────────────────────────────────────────────────────────────────
+papers                               paper_authors
+──────                               ─────────────
+paper_id     PK (INT AUTO_INCREMENT) paper_id     FK→papers   ┐ composite PK
+title        VARCHAR                 author_id    FK→authors  ┘
+year         INT                     author_order INT  ← position in author list
+pages        VARCHAR
+type         ENUM('conference','journal')
+conf_id      INT FK→conferences  (NULL if journal)
+journal_id   INT FK→journals     (NULL if conference)
+volume       VARCHAR (nullable, journals only)
+number       VARCHAR (nullable)
+dblp_key     VARCHAR
+ee           VARCHAR
+url          VARCHAR
+
+CHECK CONSTRAINT: (conf_id IS NOT NULL) XOR (journal_id IS NOT NULL)
+```
+
+### Design Trade-offs: Single `papers` Table vs Two Tables
+
+> [!IMPORTANT]
+> **Decision: Single `papers` table** with a `type` column and nullable FKs.
+>
+> | | Single table | Two tables (`conf_papers` + `journal_articles`) |
+> |---|---|---|
+> | Cross-type queries (e.g. all papers by an author) | ✅ Simple JOIN | ❌ UNION needed |
+> | Author profile (conf + journal per year) | ✅ One query | ❌ Two queries + UNION |
+> | Year profile (total papers) | ✅ One query | ❌ UNION |
+> | Data integrity | ⚠️ Nullable FKs (mitigated by CHECK) | ✅ Cleaner NULLs |
+> | Schema clarity | ⚠️ Mixed fields | ✅ Clear separation |
+>
+> The professor explicitly asks about cross-type queries (author profiles combining conf + journal publications), so the single-table approach wins here.
+
+### ETL Pipeline
+
+```
+etl/
+├── 01_create_schema.sql      DDL — create all tables, PKs, FKs, indexes
+├── 02_clean_inproceedings.py Extract + clean conference papers CSV
+├── 03_clean_articles.py      Extract + clean journal articles CSV  
+├── 04_load_lookups.py        Load: primary_for, best_subject_area,
+│                             conferences (iCORE26), journals (Kaggle)
+│                             authors (extracted from both DBLP files)
+├── 05_match_conferences.py   Match DBLP booktitle → iCORE26 acronym
+│                             (exact match first, then fuzzy/regex)
+├── 06_match_journals.py      Match DBLP journal name → Kaggle title
+│                             (regex normalization: remove punctuation,
+│                              lowercase, handle "IEEE Trans. on X" patterns)
+├── 07_load_papers.py         Load papers + paper_authors with FK resolution
+├── 08_create_views.sql       SQL views for all common queries
+└── 09_backup.bat             mysqldump backup (Windows .bat)
+```
+
+**Matching strategy** (steps 05 & 06):
+1. Exact string match (after lowercasing + stripping spaces)
+2. Acronym match for conferences (DBLP `booktitle` = iCORE26 `Acronym`)
+3. Regex normalization (remove "The", "Journal of", punctuation, etc.)
+4. Unmatched entries → loaded with `NULL` FK (still valid, just unranked)
+
+---
+
+## Phase II: Application Prototype (Milestone: 21 April)
+
+### Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Database | MySQL 8.0 (InnoDB) |
+| Backend | Python 3 + Flask |
+| DB Access | `mysql-connector-python` — all processing done in MySQL via views/queries |
+| Frontend | HTML/CSS/JS |
+| Charts | **D3.js** — premium animated line, bar, scatter plots |
+| Styling | Custom CSS (dark theme, modern design) |
+
+### Project Structure
+
+```
+project/
+├── data/                         Raw CSV data
+├── etl/                          Phase I scripts (see above)
+├── backend/
+│   ├── app.py                    Flask app entry point
+│   ├── db.py                     MySQL connection helper
+│   ├── config.py                 DB credentials, settings
+│   └── routes/
+│       ├── conferences.py        /api/conference/<id>/profile, /stats, /papers
+│       ├── journals.py           /api/journal/<id>/profile, /stats, /papers
+│       ├── authors.py            /api/author/<id>/profile, /papers-by-year
+│       ├── years.py              /api/year/<y>/profile, /papers
+│       └── charts.py             /api/charts/linechart, /barchart, /scatter
+├── frontend/
+│   ├── templates/                Jinja2 HTML templates (served by Flask)
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── conference.html
+│   │   ├── journal.html
+│   │   ├── author.html
+│   │   ├── year.html
+│   │   └── charts.html
+│   └── static/
+│       ├── css/style.css
+│       ├── js/d3-charts.js       All D3.js chart components
+│       └── js/app.js             UI logic, API calls, filters
+├── deliverables/
+├── README.md
+└── requirements.txt
+```
+
+> [!NOTE]
+> Flask's `template_folder` will be set to `'../frontend/templates'` and `static_folder` to `'../frontend/static'` in `app.py` to support the `frontend/` layout.
+
+---
+
+## Phase III: Full Interactive Application (Hard Deadline: 26 May)
+
+### Required Features
+
+#### Conference / Journal Profile
+- Ranking info (rank, PrimaryFoR / BestSubjectArea, SJR, H-index…)
+- Line charts: papers/year, total authors/year, distinct authors/year
+- Stats: first/last year, total papers, avg papers/year, avg authors/paper, avg authors/year
+- **Year range filter** on all of the above
+- Scrollable table of all papers (filterable by year range)
+
+#### Year Profile
+- Total papers, distinct journals, distinct conferences, total & distinct authors
+- Paper details table with filter by conference / journal / author
+
+#### Author Profile
+- First/last known year, total papers, avg papers/year
+- Line chart: papers/year broken down by conference vs journal
+
+#### Targeted Charts Page
+| Chart Type | Options |
+|-----------|---------|
+| **Line** | Papers (or authors) per year for selected conferences/journals |
+| **Line** | # conferences/journals per category (PrimaryFoR or BestSubjectArea) per year |
+| **Bar** | Total papers / avg papers/year / avg authors/year per conference/journal |
+| **Bar** | Per publisher: # journals total + # journals per quartile (4 series Q1–Q4) |
+| **Scatter** | Any 2 of: TotalDocs, TotalRefs, TotalCites3y, CitableDocs3y, Cites/Doc2y, Refs/Doc |
+| **Scatter** | Avg authors vs # papers per year (for conferences or journals) |
+
+#### Interactivity
+- Search/dropdown for conference, journal, author selection
+- Year range filters (from / to)
+- Multi-select for comparison line/bar charts
+- All queries parameterized and executed inside MySQL (no full-table pull to app memory)
+
+---
+
+## Verification Plan
+
+1. **ETL checks**: row counts, FK integrity, no orphan records, author N:M correctness
+2. **Sample queries**: manually verify stats (e.g. EDBT papers in 2020) against raw CSV
+3. **API tests**: check all endpoints return correct JSON
+4. **UI**: manually navigate every page, verify all charts render with real data
+5. **Filters**: test year range, author/conf/journal selection on all pages
+
+---
+
+## Decisions Made
+
+- ✅ MySQL 8.0 (already installed)
+- ✅ Team: AM 4855 & AM 5381
+- ✅ Tech stack: Python + Flask + D3.js
+- ✅ Single `papers` table (documented trade-offs above)
+- ✅ `author_order` in `paper_authors`
+- ✅ `primary_for` and `best_subject_area` as proper FK lookup tables
+- ✅ Conference matching DBLP↔iCORE26 (acronym + fuzzy)
+- ✅ Backup as `.bat` (Windows compatible)
+- ✅ Flask served from `backend/`, templates via custom `template_folder` path

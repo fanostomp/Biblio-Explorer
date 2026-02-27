@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bibliographic Explorer</title>
+    <!-- Modern Google Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Mye030 BiblioExplorer</div>
+      <ul class="nav-links">
+        <li><a href="/">Dashboard</a></li>
+        <li><a href="/conference">Conferences</a></li>
+        <li><a href="/journal">Journals</a></li>
+        <li><a href="/author">Authors</a></li>
+        <li><a href="/year">Years</a></li>
+        <li><a href="/charts">Advanced Charts</a></li>
+      </ul>
+    </nav>
+    <main class="container">{% block content %}{% endblock %}</main>
+    <footer>
+      <p>&copy; 2026 Mye030/PLE045 - AM4855 & AM5381</p>
+    </footer>
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/d3-charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>

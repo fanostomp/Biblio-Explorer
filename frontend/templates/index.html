@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero">
+    <h1>Bibliographic Data Exploration</h1>
+    <p>Analyze thousands of conferences, journals, and millions of publications interactively.</p>
+</div>
+
+<div class="stats-overview">
+    <div class="stat-card">
+        <h3>Total Papers</h3>
+        <p id="totalPapersCount">2.5M+</p>
+    </div>
+    <div class="stat-card">
+        <h3>Total Authors</h3>
+        <p id="totalAuthorsCount">1.39M</p>
+    </div>
+    <div class="stat-card">
+        <h3>Monitored Venues</h3>
+        <p id="totalVenuesCount">18.8K</p>
+    </div>
+</div>
+
+<div class="chart-container" id="mainDashboardChart">
+    <h2>Example Publication Trend</h2>
+    <div id="chart"></div>
+</div>
+{% endblock %}

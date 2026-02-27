@@ -1,0 +1,679 @@
+// ==========================================
+// UTILITY: HTML Escaper (Fix #1 — XSS prevention)
+// ==========================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    const s = String(str);
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(s));
+    return div.innerHTML;
+}
+
+// ==========================================
+// UTILITY: Loading Spinner (Fix #10)
+// ==========================================
+function showSpinner(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '<div class="spinner-container"><div class="spinner"></div><p class="text-muted">Loading...</p></div>';
+}
+
+function hideSpinner(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const spinner = el.querySelector('.spinner-container');
+    if (spinner) spinner.remove();
+}
+
+// ==========================================
+// GLOBAL STATE
+// ==========================================
+const state = {
+    conferences: [],
+    journals: [],
+    selectedConf: null,
+    selectedJournal: null,
+    selectedAuthor: null,
+    compareEntities: [] // stores {type, id, title, color} for line chart comparison
+};
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    const path = window.location.pathname;
+    
+    // Global generic fetchers (only for pages that still need them or small lists)
+    if (path === '/charts') {
+        loadVenuesList('conference');
+        loadVenuesList('journal');
+    }
+
+    // Attach Event Listeners based on current page
+    if (path === '/conference') initConferencePage();
+    if (path === '/journal') initJournalPage();
+    if (path === '/author') initAuthorPage();
+    if (path === '/year') initYearPage();
+    if (path === '/charts') initChartsPage();
+    
+    // Dashboard real chart on index page
+    if (path === '/' && document.getElementById('chart')) {
+        loadDashboardChart();
+    }
+});
+
+// --- Fetch & Store Baseline Data ---
+async function loadVenuesList(type) {
+    try {
+        const res = await fetch(`/api/${type}/`);
+        const data = await res.json();
+        
+        if (type === 'conference') state.conferences = data;
+        if (type === 'journal') state.journals = data;
+    } catch(err) {
+        console.error(`Failed to load ${type}s:`, err);
+    }
+}
+
+function setupAutocomplete(config) {
+    // config: { inputId, dropdownId, dataSource, filterFn, displayFn, onSelect }
+    const input = document.getElementById(config.inputId);
+    const dropdown = document.getElementById(config.dropdownId);
+    if (!input || !dropdown) return;
+    
+    input.addEventListener('input', async (e) => {
+        const query = e.target.value.toLowerCase();
+        dropdown.innerHTML = '';
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        let matches;
+        if (typeof config.dataSource === 'function') {
+            // Server-side search (e.g., authors)
+            matches = await config.dataSource(query);
+        } else {
+            // Client-side filter
+            matches = config.filterFn(config.dataSource(), query).slice(0, 10);
+        }
+
+        if (matches && matches.length > 0) {
+            dropdown.style.display = 'block';
+            matches.forEach(match => {
+                const li = document.createElement('li');
+                li.textContent = config.displayFn(match);
+                li.onclick = () => {
+                    input.value = config.displayFn(match);
+                    dropdown.style.display = 'none';
+                    config.onSelect(match);
+                };
+                dropdown.appendChild(li);
+            });
+        } else {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) dropdown.style.display = 'none';
+    });
+}
+
+// ==========================================
+// CONFERENCE PAGE LOGIC
+// ==========================================
+function initConferencePage() {
+    setupAutocomplete({
+        inputId: 'conferenceSearch',
+        dropdownId: 'conferenceDropdown',
+        dataSource: async (q) => {
+            const res = await fetch(`/api/conference/search?q=${encodeURIComponent(q)}`);
+            return await res.json();
+        },
+        displayFn: (match) => match.acronym ? `${match.acronym} - ${match.title}` : match.title,
+        onSelect: (match) => loadConferenceProfile(match.conf_id)
+    });
+    
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if(applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            if (state.selectedConf) {
+                loadConferencePapers(state.selectedConf);
+            }
+        });
+    }
+}
+
+async function loadConferenceProfile(id) {
+    state.selectedConf = id;
+    showSpinner('dashboardGrid');
+    try {
+        const res = await fetch(`/api/conference/${id}/profile`);
+        const data = await res.json();
+        
+        if (data.error) return alert("Profile not found.");
+
+        const p = data.profile;
+        document.getElementById('confTitle').textContent = p.title || 'Unknown Title';
+        document.getElementById('confRank').textContent = `Rank: ${p.rank || 'N/A'}`;
+        document.getElementById('confAcronym').textContent = p.acronym;
+        document.getElementById('confCategory').textContent = p.for_description || 'No Base Category';
+        document.getElementById('confDates').textContent = `Active: ${p.first_year || '?'} - ${p.last_year || '?'} | Avg Papers/Year: ${Math.round(p.avg_papers_per_year) || 0} | Total Distinct Authors: ${p.total_distinct_authors || p.distinct_authors || 0}`;
+
+        document.getElementById('conferenceDetails').style.display = 'block';
+        document.getElementById('filtersSection').style.display = 'block';
+        document.getElementById('dashboardGrid').style.display = 'flex';
+
+        hideSpinner('dashboardGrid');
+
+        // Plot Charts
+        if (window.renderConfJournalCharts) {
+            window.renderConfJournalCharts(data.yearly_stats);
+        }
+
+        // Load papers table
+        loadConferencePapers(id);
+
+    } catch(err) {
+        hideSpinner('dashboardGrid');
+        console.error(err);
+    }
+}
+
+async function loadConferencePapers(id) {
+    const startObj = document.getElementById('startYear');
+    const endObj = document.getElementById('endYear');
+    const start = startObj ? startObj.value : '';
+    const end = endObj ? endObj.value : '';
+    let url = `/api/conference/${id}/papers?`;
+    if (start) url += `start_year=${start}&`;
+    if (end) url += `end_year=${end}`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const tbody = document.querySelector('#papersTable tbody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        data.papers.forEach(p => {
+            const tr = document.createElement('tr');
+            const tdYear = document.createElement('td');
+            tdYear.textContent = p.year;
+            const tdTitle = document.createElement('td');
+            tdTitle.textContent = p.title;
+            const tdPages = document.createElement('td');
+            tdPages.textContent = p.pages || '-';
+            const tdLinks = document.createElement('td');
+            if (p.ee) {
+                const eeLink = document.createElement('a');
+                eeLink.href = p.ee;
+                eeLink.target = '_blank';
+                eeLink.textContent = 'EE';
+                tdLinks.appendChild(eeLink);
+                tdLinks.appendChild(document.createTextNode(' '));
+            }
+            if (p.url) {
+                const dblpLink = document.createElement('a');
+                dblpLink.href = p.url;
+                dblpLink.target = '_blank';
+                dblpLink.textContent = 'DBLP';
+                tdLinks.appendChild(dblpLink);
+            }
+            tr.append(tdYear, tdTitle, tdPages, tdLinks);
+            tbody.appendChild(tr);
+        });
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+// ==========================================
+// JOURNAL PAGE LOGIC
+// ==========================================
+function initJournalPage() {
+    setupAutocomplete({
+        inputId: 'journalSearch',
+        dropdownId: 'journalDropdown',
+        dataSource: async (q) => {
+            const res = await fetch(`/api/journal/search?q=${encodeURIComponent(q)}`);
+            return await res.json();
+        },
+        displayFn: (match) => match.title,
+        onSelect: (match) => loadJournalProfile(match.journal_id)
+    });
+    
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if(applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            if (state.selectedJournal) {
+                loadJournalPapers(state.selectedJournal);
+            }
+        });
+    }
+}
+
+async function loadJournalProfile(id) {
+    state.selectedJournal = id;
+    showSpinner('dashboardGrid');
+    try {
+        const res = await fetch(`/api/journal/${id}/profile`);
+        const data = await res.json();
+        
+        if (data.error) return alert("Profile not found.");
+
+        const p = data.profile;
+        document.getElementById('journalTitle').textContent = p.title || 'Unknown Title';
+        const rankEl = document.getElementById('journalRank');
+        rankEl.textContent = `Quartile: ${p.best_quartile || 'N/A'}`;
+        // Color coding for Quartiles (Fix #13)
+        if (p.best_quartile === 'Q1') rankEl.style.background = '#10b981';
+        else if (p.best_quartile === 'Q2') rankEl.style.background = '#fde047';
+        else if (p.best_quartile === 'Q3') rankEl.style.background = '#f97316';
+        else if (p.best_quartile === 'Q4') rankEl.style.background = '#ef4444';
+
+        document.getElementById('journalSjr').textContent = `SJR: ${p.sjr_index || 0}`;
+        document.getElementById('journalCiteScore').textContent = `CiteScore: ${p.cite_score || 0}`;
+        document.getElementById('journalHIndex').textContent = `H-Index: ${p.h_index || 0}`;
+        document.getElementById('journalPublisher').textContent = p.publisher || 'Unknown Publisher';
+        document.getElementById('journalArea').textContent = p.subject_area || 'No Subject Area';
+        
+        let statsText = `Active: ${p.first_year || '?'} - ${p.last_year || '?'} | Avg Papers/Year: ${Math.round(p.avg_papers_per_year) || 0} | Total Distinct Authors: ${p.total_distinct_authors || p.distinct_authors || 0}`;
+        document.getElementById('journalStats').textContent = statsText;
+
+        document.getElementById('journalCollab').textContent = `Collaboration: Avg ${p.avg_authors_per_paper || 0} authors per paper`;
+
+        document.getElementById('journalDetails').style.display = 'block';
+        document.getElementById('filtersSection').style.display = 'block';
+        document.getElementById('dashboardGrid').style.display = 'flex';
+
+        hideSpinner('dashboardGrid');
+
+        if (window.renderConfJournalCharts) {
+            window.renderConfJournalCharts(data.yearly_stats);
+        }
+
+        loadJournalPapers(id);
+
+    } catch(err) {
+        hideSpinner('dashboardGrid');
+        console.error(err);
+    }
+}
+
+async function loadJournalPapers(id) {
+    const startObj = document.getElementById('startYear');
+    const endObj = document.getElementById('endYear');
+    const start = startObj ? startObj.value : '';
+    const end = endObj ? endObj.value : '';
+    let url = `/api/journal/${id}/papers?`;
+    if (start) url += `start_year=${start}&`;
+    if (end) url += `end_year=${end}`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const tbody = document.querySelector('#papersTable tbody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        data.papers.forEach(p => {
+            const tr = document.createElement('tr');
+            const tdYear = document.createElement('td');
+            tdYear.textContent = p.year;
+            const tdTitle = document.createElement('td');
+            tdTitle.textContent = p.title;
+            const tdVol = document.createElement('td');
+            tdVol.textContent = `Vol ${p.volume || '-'} (${p.number || '-'})`;
+            const tdPages = document.createElement('td');
+            tdPages.textContent = p.pages || '-';
+            const tdLinks = document.createElement('td');
+            if (p.ee) {
+                const eeLink = document.createElement('a');
+                eeLink.href = p.ee;
+                eeLink.target = '_blank';
+                eeLink.textContent = 'EE';
+                tdLinks.appendChild(eeLink);
+            }
+            tr.append(tdYear, tdTitle, tdVol, tdPages, tdLinks);
+            tbody.appendChild(tr);
+        });
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+let authorSearchDebounce = null;
+
+function initAuthorPage() {
+    const input = document.getElementById('authorSearch');
+    if (!input) return;
+
+    // Create dropdown for author search results
+    let dropdown = document.getElementById('authorDropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('ul');
+        dropdown.id = 'authorDropdown';
+        dropdown.className = 'autocomplete-list';
+        input.parentElement.appendChild(dropdown);
+    }
+
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        if (authorSearchDebounce) clearTimeout(authorSearchDebounce);
+        
+        if (query.length < 3) {
+            dropdown.style.display = 'none';
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        // Debounce 300ms to avoid flooding server
+        authorSearchDebounce = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/author/search?q=${encodeURIComponent(query)}`);
+                const results = await res.json();
+                dropdown.innerHTML = '';
+                
+                if (results.length > 0) {
+                    dropdown.style.display = 'block';
+                    results.forEach(author => {
+                        const li = document.createElement('li');
+                        li.textContent = author.name;
+                        li.onclick = () => {
+                            input.value = author.name;
+                            dropdown.style.display = 'none';
+                            loadAuthorProfile(author.author_id);
+                        };
+                        dropdown.appendChild(li);
+                    });
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            } catch(err) {
+                console.error('Author search error:', err);
+            }
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) dropdown.style.display = 'none';
+    });
+}
+
+async function loadAuthorProfile(authorId) {
+    state.selectedAuthor = authorId;
+    showSpinner('dashboardGrid');
+    try {
+        const res = await fetch(`/api/author/${authorId}/profile`);
+        const data = await res.json();
+        
+        if (data.error) return alert("Author not found.");
+
+        const p = data.profile;
+        document.getElementById('authorName').textContent = p.name || 'Unknown';
+        document.getElementById('authorTotalPapers').textContent = `Total Papers: ${p.total_papers || 0}`;
+        document.getElementById('authorYearsActive').textContent = `Active: ${p.first_year || '?'} - ${p.last_year || '?'}`;
+        document.getElementById('authorAvgPapers').textContent = `Avg Papers/Year: ${p.avg_papers_per_year ? Number(p.avg_papers_per_year).toFixed(1) : '0.0'}`;
+
+        document.getElementById('authorDetails').style.display = 'block';
+        document.getElementById('dashboardGrid').style.display = 'flex';
+
+        hideSpinner('dashboardGrid');
+
+        // Render charts
+        if (window.renderAuthorCharts) {
+            window.renderAuthorCharts(data.yearly_stats);
+        }
+
+        // Load papers table
+        const pres = await fetch(`/api/author/${authorId}/papers`);
+        const pdata = await pres.json();
+        const tbody = document.querySelector('#papersTable tbody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        pdata.papers.forEach(p => {
+            const tr = document.createElement('tr');
+            const tdYear = document.createElement('td');
+            tdYear.textContent = p.year;
+            const tdType = document.createElement('td');
+            const typeBadge = document.createElement('span');
+            typeBadge.className = `badge ${p.type === 'conference' ? 'rank-badge' : 'category-badge'}`;
+            typeBadge.textContent = p.type;
+            tdType.appendChild(typeBadge);
+            const tdTitle = document.createElement('td');
+            tdTitle.textContent = p.title;
+            const tdVenue = document.createElement('td');
+            tdVenue.textContent = p.conf_acronym || p.journal_title || 'Unknown';
+            tr.append(tdYear, tdType, tdTitle, tdVenue);
+            tbody.appendChild(tr);
+        });
+
+    } catch(err) {
+        hideSpinner('dashboardGrid');
+        console.error(err);
+    }
+}
+
+// ==========================================
+// YEAR PAGE LOGIC
+// ==========================================
+function initYearPage() {
+    const input = document.getElementById('yearSearch');
+    if(!input) return;
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            loadYearProfile(input.value);
+        }
+    });
+}
+
+async function loadYearProfile(year) {
+    showSpinner('dashboardGrid');
+    try {
+        const res = await fetch(`/api/year/${year}/profile`);
+        const data = await res.json();
+        
+        if (data.error) return alert("Year not found in database.");
+
+        document.getElementById('yearTitle').textContent = year;
+        document.getElementById('yearTotalPapers').textContent = `Total Papers: ${data.total_papers || 0}`;
+        document.getElementById('yearTotalAuthors').textContent = `Total Authors: ${data.total_authors || 0}`;
+        document.getElementById('yearDistJournals').textContent = `Distinct Journals: ${data.distinct_journals || 0}`;
+        document.getElementById('yearDistConfs').textContent = `Distinct Conferences: ${data.distinct_conferences || 0}`;
+
+        document.getElementById('yearDetails').style.display = 'block';
+        document.getElementById('dashboardGrid').style.display = 'flex';
+
+        hideSpinner('dashboardGrid');
+
+        // Fetch Papers
+        const pres = await fetch(`/api/year/${year}/papers?limit=250`);
+        const pdata = await pres.json();
+        const tbody = document.querySelector('#papersTable tbody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        pdata.papers.forEach(p => {
+            const tr = document.createElement('tr');
+            const tdType = document.createElement('td');
+            const typeBadge = document.createElement('span');
+            typeBadge.className = `badge ${p.type === 'conference' ? 'rank-badge' : 'category-badge'}`;
+            typeBadge.textContent = p.type;
+            tdType.appendChild(typeBadge);
+            const tdTitle = document.createElement('td');
+            tdTitle.textContent = p.title;
+            const tdVenue = document.createElement('td');
+            tdVenue.textContent = p.venue_name || 'Unknown';
+            tr.append(tdType, tdTitle, tdVenue);
+            tbody.appendChild(tr);
+        });
+
+    } catch(err) {
+        hideSpinner('dashboardGrid');
+        console.error(err);
+    }
+}
+
+// ==========================================
+// DASHBOARD: Real Data Homepage Chart (Fix #11)
+// ==========================================
+async function loadDashboardChart() {
+    try {
+        const res = await fetch('/api/charts/overview');
+        const data = await res.json();
+        if (data.yearly_totals && data.yearly_totals.length > 0) {
+            if (window.drawAnimatedLineChart) {
+                drawAnimatedLineChart('#chart', data.yearly_totals, 'year', 'num_papers', "#38bdf8");
+            }
+        } else {
+            // Fallback to sample data if endpoint not ready
+            if(window.renderSampleChart) renderSampleChart();
+        }
+    } catch(err) {
+        // Fallback to sample data on error
+        if(window.renderSampleChart) renderSampleChart();
+    }
+}
+
+// ==========================================
+// ADVANCED TARGETED CHARTS PAGE LOGIC
+// ==========================================
+function initChartsPage() {
+    setupComparisonAutocomplete();
+    
+    document.getElementById('clearComparisonBtn').addEventListener('click', () => {
+        state.compareEntities = [];
+        updateComparisonUI();
+    });
+}
+
+function setupComparisonAutocomplete() {
+    const input = document.getElementById('addEntitySearch');
+    const dropdown = document.getElementById('addEntityDropdown');
+    const typeSel = document.getElementById('entityTypeSel');
+    if(!input || !dropdown || !typeSel) return;
+    
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const type = typeSel.value;
+        dropdown.innerHTML = '';
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        const dataList = type === 'conference' ? state.conferences : state.journals;
+        
+        const matches = dataList.filter(item => {
+            if (type === 'conference') {
+                return (item.acronym && item.acronym.toLowerCase().includes(query)) || 
+                       (item.title && item.title.toLowerCase().includes(query));
+            } else {
+                return item.title && item.title.toLowerCase().includes(query);
+            }
+        }).slice(0, 10);
+
+        if (matches.length > 0) {
+            dropdown.style.display = 'block';
+            matches.forEach(match => {
+                const li = document.createElement('li');
+                const titleStr = type === 'conference' ? `[${match.acronym}] ${match.title}` : match.title;
+                const id = type === 'conference' ? match.conf_id : match.journal_id;
+                li.textContent = titleStr;
+                li.onclick = () => {
+                    input.value = '';
+                    dropdown.style.display = 'none';
+                    addEntityToComparison(type, id, titleStr);
+                };
+                dropdown.appendChild(li);
+            });
+        } else {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) dropdown.style.display = 'none';
+    });
+}
+
+function addEntityToComparison(type, id, title) {
+    const scheme = ["#2563eb", "#38bdf8", "#fde047", "#f43f5e", "#10b981", "#8b5cf6"];
+    
+    if (state.compareEntities.length >= 6) {
+        alert("Maximum 6 entities allowed in comparison.");
+        return;
+    }
+    
+    if (state.compareEntities.some(e => e.id === id && e.type === type)) {
+        return;
+    }
+    
+    const color = scheme[state.compareEntities.length];
+    state.compareEntities.push({ type, id, title, color });
+    updateComparisonUI();
+}
+
+function removeEntityFromComparison(idx) {
+    state.compareEntities.splice(idx, 1);
+    updateComparisonUI();
+}
+
+async function updateComparisonUI() {
+    const list = document.getElementById('selectedEntitiesList');
+    list.innerHTML = '';
+    
+    state.compareEntities.forEach((ent, i) => {
+        const badge = document.createElement('span');
+        badge.className = `badge ${ent.type === 'conference' ? 'rank-badge' : 'category-badge'}`;
+        badge.style.borderLeft = `5px solid ${ent.color}`;
+        badge.style.cursor = 'default';
+        
+        const labelText = ent.title.length > 30 ? ent.title.substring(0, 30) + '...' : ent.title;
+        badge.appendChild(document.createTextNode(labelText + ' '));
+        
+        const removeBtn = document.createElement('b');
+        removeBtn.textContent = '✖';
+        removeBtn.style.cssText = 'cursor:pointer; margin-left: 5px; color: #ff5555;';
+        removeBtn.onclick = () => removeEntityFromComparison(i);
+        badge.appendChild(removeBtn);
+        
+        list.appendChild(badge);
+    });
+    
+    if (state.compareEntities.length === 0) {
+        document.getElementById('comparePapersChart').innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 4rem;">Search and add entities above to begin comparing.</p>';
+        document.getElementById('compareAuthorsChart').innerHTML = '';
+        return;
+    }
+    
+    showSpinner('comparePapersChart');
+    
+    try {
+        const promises = state.compareEntities.map(ent => 
+            fetch(`/api/${ent.type}/${ent.id}/profile`).then(r => r.json())
+        );
+        const results = await Promise.all(promises);
+        
+        const multiSeriesData = results.map((res, i) => {
+            return {
+                name: state.compareEntities[i].title,
+                color: state.compareEntities[i].color,
+                values: res.yearly_stats || []
+            };
+        });
+        
+        d3.select('#comparePapersChart').selectAll("*").remove();
+        d3.select('#compareAuthorsChart').selectAll("*").remove();
+        
+        if (window.drawMultiLineChart) {
+            window.drawMultiLineChart('#comparePapersChart', multiSeriesData, 'year', 'paper_count');
+            window.drawMultiLineChart('#compareAuthorsChart', multiSeriesData, 'year', 'distinct_authors');
+        }
+    } catch(err) {
+        hideSpinner('comparePapersChart');
+        console.error("Comparison Error", err);
+    }
+}

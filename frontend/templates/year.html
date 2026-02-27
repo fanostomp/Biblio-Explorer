@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="profile-header">
+    <div class="search-section">
+        <input type="number" id="yearSearch" placeholder="Enter a year (e.g., 2020) and press Enter..." min="1950" max="2026">
+    </div>
+    <div id="yearDetails" style="display: none;">
+        <h1 id="yearTitle">Year</h1>
+        <div class="badges">
+            <span class="badge" id="yearTotalPapers">Total Papers: 0</span>
+            <span class="badge" id="yearTotalAuthors">Total Authors: 0</span>
+            <span class="badge category-badge" id="yearDistJournals">Distinct Journals: 0</span>
+            <span class="badge category-badge" id="yearDistConfs">Distinct Conferences: 0</span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" id="dashboardGrid" style="display: none;">
+    <div class="table-container full-width">
+        <h3>Publications in Year</h3>
+        <div class="table-responsive">
+            <table id="papersTable">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Title</th>
+                        <th>Venue (Conf/Journal)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
