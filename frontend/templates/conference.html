@@ -27,14 +27,48 @@
 </div>
 
 <div class="dashboard-grid" id="dashboardGrid" style="display: none;">
-    <div class="chart-container">
+    <div class="stat-card" style="grid-column: span 1; background: var(--bg-card); padding: 1.5rem; text-align: center; border-radius: var(--radius);">
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Total Publications</h3>
+        <p id="statTotalPapers" style="font-size: 2rem; font-weight: 700; color: var(--primary);">0</p>
+    </div>
+    <div class="stat-card" style="grid-column: span 1; background: var(--bg-card); padding: 1.5rem; text-align: center; border-radius: var(--radius);">
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Distinct Authors</h3>
+        <p id="statTotalAuthors" style="font-size: 2rem; font-weight: 700; color: var(--secondary);">0</p>
+    </div>
+    <div class="stat-card" style="grid-column: span 1; background: var(--bg-card); padding: 1.5rem; text-align: center; border-radius: var(--radius);">
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Active Years</h3>
+        <p id="statYears" style="font-size: 1.5rem; font-weight: 700; color: var(--text);">-</p>
+    </div>
+    <div class="stat-card" style="grid-column: span 1; background: var(--bg-card); padding: 1.5rem; text-align: center; border-radius: var(--radius);">
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Avg Authors / Paper</h3>
+        <p id="statAvgAuthors" style="font-size: 2rem; font-weight: 700; color: var(--accent);">0</p>
+    </div>
+
+    <div class="chart-container" style="grid-column: span 2;">
         <h3>Publications over Time</h3>
         <div id="papersChart"></div>
     </div>
     
-    <div class="chart-container">
+    <div class="chart-container" style="grid-column: span 2;">
         <h3>Authorship Trends</h3>
         <div id="authorsChart"></div>
+    </div>
+    
+    <div class="table-container full-width" style="grid-column: 1 / -1;">
+        <h3>Top Authors Leaderboard</h3>
+        <div class="table-responsive">
+            <table id="topAuthorsTable">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Author Name</th>
+                        <th>Papers Published</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
     
     <div class="table-container full-width">

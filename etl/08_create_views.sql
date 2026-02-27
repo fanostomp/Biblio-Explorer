@@ -76,9 +76,9 @@ SELECT
           / NULLIF(MAX(p.year) - MIN(p.year) + 1, 0), 2)
                                                 AS avg_papers_per_year
 FROM conferences c
-JOIN papers      p   ON p.conf_id   = c.conf_id
-JOIN paper_authors pa ON pa.paper_id = p.paper_id
-JOIN vw_paper_author_count sub ON sub.paper_id = p.paper_id
+LEFT JOIN papers      p   ON p.conf_id   = c.conf_id
+LEFT JOIN paper_authors pa ON pa.paper_id = p.paper_id
+LEFT JOIN vw_paper_author_count sub ON sub.paper_id = p.paper_id
 LEFT JOIN primary_for pf ON pf.for_code = c.primary_for
 GROUP BY c.conf_id, c.title, c.acronym, c.rank,
          c.primary_for, pf.description;

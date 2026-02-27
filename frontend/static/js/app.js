@@ -15,7 +15,13 @@ function escapeHtml(str) {
 function showSpinner(containerId) {
     const el = document.getElementById(containerId);
     if (!el) return;
-    el.innerHTML = '<div class="spinner-container"><div class="spinner"></div><p class="text-muted">Loading...</p></div>';
+    // Don't overwrite innerHTML, just prepend the spinner (Fix for #null-refs)
+    if (!el.querySelector('.spinner-container')) {
+        const div = document.createElement('div');
+        div.className = 'spinner-container';
+        div.innerHTML = '<div class="spinner"></div><p class="text-muted">Loading...</p>';
+        el.prepend(div);
+    }
 }
 
 function hideSpinner(containerId) {
@@ -164,6 +170,12 @@ async function loadConferenceProfile(id) {
         document.getElementById('filtersSection').style.display = 'block';
         document.getElementById('dashboardGrid').style.display = 'flex';
 
+        // Populate Stat Cards
+        document.getElementById('statTotalPapers').textContent = p.total_papers || 0;
+        document.getElementById('statTotalAuthors').textContent = p.distinct_authors || 0;
+        document.getElementById('statYears').textContent = p.first_year ? `${p.first_year} - ${p.last_year}` : '-';
+        document.getElementById('statAvgAuthors').textContent = p.avg_authors_per_paper || 0;
+
         hideSpinner('dashboardGrid');
 
         // Plot Charts
@@ -171,8 +183,9 @@ async function loadConferenceProfile(id) {
             window.renderConfJournalCharts(data.yearly_stats);
         }
 
-        // Load papers table
+        // Load papers table and top authors
         loadConferencePapers(id);
+        loadConferenceTopAuthors(id);
 
     } catch(err) {
         hideSpinner('dashboardGrid');
@@ -221,6 +234,46 @@ async function loadConferencePapers(id) {
                 tdLinks.appendChild(dblpLink);
             }
             tr.append(tdYear, tdTitle, tdPages, tdLinks);
+            tbody.appendChild(tr);
+        });
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+async function loadConferenceTopAuthors(id) {
+    try {
+        const res = await fetch(`/api/conference/${id}/top_authors?limit=10`);
+        const data = await res.json();
+        const tbody = document.querySelector('#topAuthorsTable tbody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        if(data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--text-muted);">No authors found</td></tr>';
+            return;
+        }
+
+        data.forEach((author, index) => {
+            const tr = document.createElement('tr');
+            
+            const tdRank = document.createElement('td');
+            const badge = document.createElement('span');
+            badge.className = 'badge rank-badge';
+            badge.textContent = `#${index + 1}`;
+            tdRank.appendChild(badge);
+            
+            const tdName = document.createElement('td');
+            tdName.textContent = author.name;
+            tdName.style.fontWeight = 'bold';
+            
+            const tdCount = document.createElement('td');
+            tdCount.textContent = author.paper_count;
+            
+            const tdAction = document.createElement('td');
+            tdAction.innerHTML = `<span style="font-size: 0.85rem; color: var(--text-muted);">Search in Authors tab</span>`;
+            
+            tr.append(tdRank, tdName, tdCount, tdAction);
             tbody.appendChild(tr);
         });
     } catch(err) {

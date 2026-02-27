@@ -104,17 +104,49 @@ def get_papers(conf_id):
 @conferences_bp.route('/search', methods=['GET'])
 def search_conferences():
     """Server-side search for conferences using Full-Text index."""
-    q = request.args.get('q', '')
+    q = request.args.get('q', '').strip()
     if not q:
         return jsonify([])
     
+    import re
+    # Remove special chars that break MySQL Boolean Full-Text search, keeping alphanum and spaces
+    safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+    
     conn = get_db_connection()
     try:
-        results = execute_query(
-            conn,
-            "SELECT conf_id, title, acronym FROM conferences WHERE MATCH(title, acronym) AGAINST(%s IN BOOLEAN MODE) ORDER BY acronym LIMIT 15",
-            (f"+{q}*",)
-        )
+        if len(safe_q) <= 3:
+            query_sql = "SELECT conf_id, title, acronym FROM conferences WHERE acronym LIKE %s OR title LIKE %s ORDER BY acronym LIMIT 15"
+            params = (f"%{safe_q}%", f"%{safe_q}%")
+        else:
+            query_sql = "SELECT conf_id, title, acronym FROM conferences WHERE MATCH(title, acronym) AGAINST(%s IN BOOLEAN MODE) ORDER BY acronym LIMIT 15"
+            # Split into terms and prepend + to each
+            terms = [f"+{term}*" for term in safe_q.split() if term]
+            boolean_expr = " ".join(terms)
+            params = (boolean_expr,)
+            
+        results = execute_query(conn, query_sql, params)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@conferences_bp.route('/<int:conf_id>/top_authors', methods=['GET'])
+def get_top_authors(conf_id):
+    limit = request.args.get('limit', default=10, type=int)
+    conn = get_db_connection()
+    try:
+        query = """
+            SELECT a.author_id, a.name, COUNT(pa.paper_id) as paper_count
+            FROM authors a
+            JOIN paper_authors pa ON a.author_id = pa.author_id
+            JOIN papers p ON pa.paper_id = p.paper_id
+            WHERE p.conf_id = %s
+            GROUP BY a.author_id, a.name
+            ORDER BY paper_count DESC
+            LIMIT %s
+        """
+        results = execute_query(conn, query, (conf_id, limit))
         return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
