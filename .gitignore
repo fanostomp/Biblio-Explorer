@@ -28,7 +28,6 @@ env.bak/
 venv.bak/
 
 # Data and database files
-*.sql
 *.csv
 *.json
 *.sqlite3
