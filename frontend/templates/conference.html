@@ -27,32 +27,40 @@
 </div>
 
 <div class="dashboard-grid" id="dashboardGrid" style="display: none;">
-    <div class="stat-card">
-        <h3>Total Publications</h3>
-        <p id="statTotalPapers">0</p>
-    </div>
-    <div class="stat-card">
-        <h3>Distinct Authors</h3>
-        <p id="statTotalAuthors">0</p>
-    </div>
-    <div class="stat-card">
-        <h3>Active Years</h3>
-        <p id="statYears">-</p>
-    </div>
-    <div class="stat-card">
-        <h3>Avg Authors / Paper</h3>
-        <p id="statAvgAuthors">0</p>
+    <!-- Top Row: Stats -->
+    <div class="stat-row">
+        <div class="stat-card">
+            <label>Total Publications</label>
+            <p id="statTotalPapers">0</p>
+        </div>
+        <div class="stat-card">
+            <label>Distinct Authors</label>
+            <p id="statTotalAuthors">0</p>
+        </div>
+        <div class="stat-card">
+            <label>Active Years</label>
+            <p id="statYears">-</p>
+        </div>
+        <div class="stat-card">
+            <label>Avg Authors / Paper</label>
+            <p id="statAvgAuthors">0</p>
+        </div>
     </div>
 
-    <div class="chart-container" style="grid-column: span 2;">
-        <h3>Publications over Time</h3>
-        <div id="papersChart"></div>
+    <!-- Chart Grid -->
+    <div class="chart-grid">
+        <div class="chart-container" id="papersChartContainer">
+            <h3>Publications over Time</h3>
+            <div id="papersChart"></div>
+        </div>
+        
+        <div class="chart-container" id="authorsChartContainer">
+            <h3>Authorship Trends</h3>
+            <div id="authorsChart"></div>
+        </div>
     </div>
     
-    <div class="chart-container" style="grid-column: span 2;">
-        <h3>Authorship Trends</h3>
-        <div id="authorsChart"></div>
-    </div>
+
     
     <div class="table-container full-width" style="grid-column: 1 / -1;">
         <h3>Top Authors Leaderboard</h3>

@@ -19,6 +19,7 @@ function showSpinner(containerId) {
     if (!el.querySelector('.spinner-container')) {
         const div = document.createElement('div');
         div.className = 'spinner-container';
+        div.style.width = '100%';
         div.innerHTML = '<div class="spinner"></div><p class="text-muted">Loading...</p>';
         el.prepend(div);
     }

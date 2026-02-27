@@ -279,23 +279,69 @@ svg {
 }
 
 .dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.stat-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.stat-card {
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100px;
+}
+
+.stat-card label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-card p {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 0;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
 }
 
-.dashboard-grid > .stat-card {
-    grid-column: span 1;
+.chart-container {
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.dashboard-grid > .chart-container {
-    grid-column: span 2;
-    min-height: 500px;
+.chart-container h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--text-color);
 }
 
-svg {
-  width: 100%;
-  height: 500px;
+.chart-container svg {
+    width: 100%;
+    height: 500px !important;
 }
 
 .full-width {
