@@ -22,7 +22,6 @@ def init_pool(config, pool_name="mypool", pool_size=5):
 
 def get_db_connection():
     """Get a connection from the global pool."""
-    global connection_pool
     if connection_pool is None:
         raise RuntimeError("Connection pool not initialized. Call init_pool() first.")
     return connection_pool.get_connection()
