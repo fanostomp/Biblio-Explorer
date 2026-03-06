@@ -42,6 +42,7 @@ This project handles the integration, schema modeling, processing, and visualiza
 - **Profile Pages**:
   - Detailed Conference, Journal, Author, and Year profile views displaying specialized rankings (H-index, SJR, Quartile, active years, distinct counts).
   - Scrollable data tables for published papers linking to external DBLP and EE URLs.
+  - **Note on Coverage**: Activity statistics (paper counts, active years, authors) reflect the DBLP dataset (`input_article.csv`). Some journals present in the Kaggle ranking database (e.g. non-CS journals like "California Management Review") may have 0 papers simply because they are not covered by DBLP. In such cases, only their base metrics (Quartile, H-Index) are displayed.
 
 ---
 

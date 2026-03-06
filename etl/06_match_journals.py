@@ -61,6 +61,31 @@ ABBREV_MAP = {
     r'\bparallel\b':       'parallel',
     r'\bann\.?\b':         'annals',
     r'\bvldb\b':           'very large data bases',
+    r'\brev\.?\b':         'review',
+    r'\bcomb\.?\b':        'combinatoria',
+    r'\banal\.?\b':        'analysis',
+    r'\bapp\.?\b':         'applied',
+    r'\boptim\.?\b':       'optimization',
+    r'\bmath\.?\b':        'mathematics',
+    r'\bsoftw\.?\b':       'software',
+    r'\bvis\.?\b':         'visualization',
+    r'\bgraph\.?\b':       'graphics',
+    r'\btechnol\.?\b':     'technology',
+    r'\belectr\.?\b':      'electronic',
+    r'\bmed\.?\b':         'medical',
+    r'\bphys\.?\b':        'physics',
+    r'\bchem\.?\b':        'chemistry',
+    r'\bautom\.?\b':       'automatic',
+    r'\bintell\.?\b':      'intelligent',
+    r'\bcomp\.?\b':        'computer',
+    r'\bgeom\.?\b':        'geometry',
+    r'\bsec\.?\b':         'security',
+    r'\bsecur\.?\b':       'security',
+    r'\bfundam\.?\b':      'fundamenta',
+    r'\binf\.?\b':         'information',
+    r'\brobot\.?\b':       'robotics',
+    r'\bmodel\.?\b':       'modeling',
+    r'\bsimul\.?\b':       'simulation',
 }
 
 STOPWORDS = {'of', 'on', 'the', 'and', 'in', 'for', 'to', 'a', 'an',
@@ -115,7 +140,7 @@ def main():
     matched   = 0
     unmatched = []
 
-    OVERLAP_THRESHOLD = 0.70   # 70% token overlap required
+    OVERLAP_THRESHOLD = 0.55   # 55% token overlap required
 
     # Pre-tokenize all db journals to avoid 25 million regex executions
     db_journals_tokenized = [(jid, title, tokens(title)) for jid, title in db_journals if title]

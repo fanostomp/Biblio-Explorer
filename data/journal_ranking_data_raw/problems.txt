@@ -1,0 +1,8 @@
+You cannot load the csv as is
+- comma is useless, you have titles like
+    Lancet, The
+-  problematic values exist in the data set
+
+So:
+- made it tsv (tab delimited, way safer than "," or ";")
+- check what problems occur and fix either the data or the data staging schema
