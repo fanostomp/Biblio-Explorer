@@ -61,31 +61,6 @@ ABBREV_MAP = {
     r'\bparallel\b':       'parallel',
     r'\bann\.?\b':         'annals',
     r'\bvldb\b':           'very large data bases',
-    r'\brev\.?\b':         'review',
-    r'\bcomb\.?\b':        'combinatoria',
-    r'\banal\.?\b':        'analysis',
-    r'\bapp\.?\b':         'applied',
-    r'\boptim\.?\b':       'optimization',
-    r'\bmath\.?\b':        'mathematics',
-    r'\bsoftw\.?\b':       'software',
-    r'\bvis\.?\b':         'visualization',
-    r'\bgraph\.?\b':       'graphics',
-    r'\btechnol\.?\b':     'technology',
-    r'\belectr\.?\b':      'electronic',
-    r'\bmed\.?\b':         'medical',
-    r'\bphys\.?\b':        'physics',
-    r'\bchem\.?\b':        'chemistry',
-    r'\bautom\.?\b':       'automatic',
-    r'\bintell\.?\b':      'intelligent',
-    r'\bcomp\.?\b':        'computer',
-    r'\bgeom\.?\b':        'geometry',
-    r'\bsec\.?\b':         'security',
-    r'\bsecur\.?\b':       'security',
-    r'\bfundam\.?\b':      'fundamenta',
-    r'\binf\.?\b':         'information',
-    r'\brobot\.?\b':       'robotics',
-    r'\bmodel\.?\b':       'modeling',
-    r'\bsimul\.?\b':       'simulation',
 }
 
 STOPWORDS = {'of', 'on', 'the', 'and', 'in', 'for', 'to', 'a', 'an',
@@ -110,7 +85,14 @@ def token_overlap(a, b):
     ta, tb = tokens(a), tokens(b)
     if not ta or not tb:
         return 0.0
-    return len(ta & tb) / max(len(ta), len(tb))
+    
+    match_count = 0
+    for token_a in ta:
+        # Check if token_a is a prefix of any token_b, or vice-versa
+        if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
+            match_count += 1
+            
+    return match_count / max(len(ta), len(tb))
 
 def main():
     conn = mysql.connector.connect(**DB_CONFIG)
@@ -169,8 +151,13 @@ def main():
                     len_tb = len(tb)
                     if len_tb == 0:
                         continue
-                    # Inline overlap calculation
-                    score = len(ta & tb) / max(len_ta, len_tb)
+                    # Prefix overlap calculation
+                    match_count = 0
+                    for token_a in ta:
+                        if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
+                            match_count += 1
+                            
+                    score = match_count / max(len_ta, len_tb)
                     if score > best_score:
                         best_score = score
                         best_jid   = jid2

@@ -38,40 +38,41 @@ def update_links():
     # 3. Update DB
     conn = mysql.connector.connect(**DB_CONFIG)
     cur = conn.cursor()
-    
-    print("Creating temporary table...")
-    cur.execute("DROP TABLE IF EXISTS temp_journal_links")
-    cur.execute("""
-        CREATE TABLE temp_journal_links (
-            raw_id VARCHAR(255) PRIMARY KEY,
-            journal_id INT
-        )
-    """)
-    conn.commit()
-    
-    print("Inserting data into temporary table...")
-    batch_size = 50000
-    for i in range(0, len(raw_to_jid), batch_size):
-        batch = raw_to_jid[i:i+batch_size]
-        cur.executemany("INSERT IGNORE INTO temp_journal_links (raw_id, journal_id) VALUES (%s, %s)", batch)
+    try:
+        print("Creating temporary table...")
+        cur.execute("DROP TABLE IF EXISTS temp_journal_links")
+        cur.execute("""
+            CREATE TABLE temp_journal_links (
+                raw_id VARCHAR(255) PRIMARY KEY,
+                journal_id INT
+            )
+        """)
         conn.commit()
-        print(f"  Inserted {min(i+batch_size, len(raw_to_jid))} / {len(raw_to_jid)}")
         
-    print("Executing batch UPDATE using JOIN...")
-    cur.execute("""
-        UPDATE papers p
-        JOIN temp_journal_links t ON p.raw_id = t.raw_id
-        SET p.journal_id = t.journal_id
-        WHERE p.type = 'journal'
-    """)
-    updated = cur.rowcount
-    conn.commit()
-    print(f"Update complete. Rows modified: {updated}")
-    
-    cur.execute("DROP TABLE temp_journal_links")
-    conn.commit()
-    cur.close()
-    conn.close()
+        print("Inserting data into temporary table...")
+        batch_size = 50000
+        for i in range(0, len(raw_to_jid), batch_size):
+            batch = raw_to_jid[i:i+batch_size]
+            cur.executemany("INSERT IGNORE INTO temp_journal_links (raw_id, journal_id) VALUES (%s, %s)", batch)
+            conn.commit()
+            print(f"  Inserted {min(i+batch_size, len(raw_to_jid))} / {len(raw_to_jid)}")
+            
+        print("Executing batch UPDATE using JOIN...")
+        cur.execute("""
+            UPDATE papers p
+            JOIN temp_journal_links t ON p.raw_id = t.raw_id
+            SET p.journal_id = t.journal_id
+            WHERE p.type = 'journal'
+        """)
+        updated = cur.rowcount
+        conn.commit()
+        print(f"Update complete. Rows modified: {updated}")
+        
+        cur.execute("DROP TABLE temp_journal_links")
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
 
 if __name__ == "__main__":
     update_links()
