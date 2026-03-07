@@ -21,21 +21,7 @@ def update_links():
     
     print(f"Loaded {len(journal_map)} matched journals from mapping file.")
 
-    # 2. Load Raw ID -> Journal Name
-    # data/cleaned/cleaned_articles.csv
-    ARTICLES_CSV = os.path.join("data", "cleaned", "cleaned_articles.csv")
-    raw_to_jid = []
-    with open(ARTICLES_CSV, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            raw_id = row.get("id")
-            jname = row.get("journal")
-            if raw_id and jname and jname in journal_map:
-                raw_to_jid.append((raw_id, journal_map[jname]))
-
-    print(f"Found {len(raw_to_jid)} article records to update.")
-
-    # 3. Update DB
+    # 2. Update DB
     conn = mysql.connector.connect(**DB_CONFIG)
     cur = conn.cursor()
     try:
@@ -50,12 +36,31 @@ def update_links():
         conn.commit()
         
         print("Inserting data into temporary table...")
+        ARTICLES_CSV = os.path.join("data", "cleaned", "cleaned_articles.csv")
         batch_size = 50000
-        for i in range(0, len(raw_to_jid), batch_size):
-            batch = raw_to_jid[i:i+batch_size]
+        batch = []
+        records_to_update = 0
+        
+        with open(ARTICLES_CSV, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                raw_id = row.get("id")
+                jname = row.get("journal")
+                if raw_id and jname and jname in journal_map:
+                    batch.append((raw_id, journal_map[jname]))
+                    records_to_update += 1
+                    if len(batch) >= batch_size:
+                        cur.executemany("INSERT IGNORE INTO temp_journal_links (raw_id, journal_id) VALUES (%s, %s)", batch)
+                        conn.commit()
+                        print(f"  Inserted {records_to_update} records...")
+                        batch = []
+                        
+        if batch: # Insert any remaining records
             cur.executemany("INSERT IGNORE INTO temp_journal_links (raw_id, journal_id) VALUES (%s, %s)", batch)
             conn.commit()
-            print(f"  Inserted {min(i+batch_size, len(raw_to_jid))} / {len(raw_to_jid)}")
+            print(f"  Inserted {records_to_update} records...")
+            
+        print(f"Found {records_to_update} article records to update.")
             
         print("Executing batch UPDATE using JOIN...")
         cur.execute("""
