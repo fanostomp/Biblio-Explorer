@@ -85,7 +85,14 @@ def token_overlap(a, b):
     ta, tb = tokens(a), tokens(b)
     if not ta or not tb:
         return 0.0
-    return len(ta & tb) / max(len(ta), len(tb))
+    
+    match_count = 0
+    for token_a in ta:
+        # Check if token_a is a prefix of any token_b, or vice-versa
+        if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
+            match_count += 1
+            
+    return match_count / max(len(ta), len(tb))
 
 def main():
     conn = mysql.connector.connect(**DB_CONFIG)
@@ -115,7 +122,7 @@ def main():
     matched   = 0
     unmatched = []
 
-    OVERLAP_THRESHOLD = 0.70   # 70% token overlap required
+    OVERLAP_THRESHOLD = 0.55   # 55% token overlap required
 
     # Pre-tokenize all db journals to avoid 25 million regex executions
     db_journals_tokenized = [(jid, title, tokens(title)) for jid, title in db_journals if title]
@@ -144,8 +151,13 @@ def main():
                     len_tb = len(tb)
                     if len_tb == 0:
                         continue
-                    # Inline overlap calculation
-                    score = len(ta & tb) / max(len_ta, len_tb)
+                    # Prefix overlap calculation
+                    match_count = 0
+                    for token_a in ta:
+                        if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
+                            match_count += 1
+                            
+                    score = match_count / max(len_ta, len_tb)
                     if score > best_score:
                         best_score = score
                         best_jid   = jid2
