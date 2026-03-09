@@ -9,10 +9,10 @@ often does NOT match the Kaggle title (e.g. "IEEE Transactions on
 Knowledge and Data Engineering") character-for-character.
 
 Strategy (in order):
-  1. Exact match (after normalization)
-  2. Abbreviation expansion: try expanding common abbreviations
-  3. Token-overlap score: if ≥ 70% of meaningful tokens overlap → match
-  4. Unmatched → written to unmatched_journals.txt for review
+ 1. Exact match (after normalization)
+ 2. Abbreviation expansion: try expanding common abbreviations
+ 3. Token-overlap score: if ≥ THRESHOLD of meaningful tokens overlap → match
+ 4. Unmatched → written to unmatched_journals.txt for review
 
 Output: journal_name_to_journal_id.csv (used by 07_load_papers.py)
 
@@ -29,38 +29,105 @@ import mysql.connector
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG
 
-CLEANED_DIR  = os.path.join(os.path.dirname(__file__), "..", "data", "cleaned")
-OUT_DIR      = os.path.join(os.path.dirname(__file__), "..", "data", "matched")
+CLEANED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "cleaned")
+OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "matched")
 os.makedirs(OUT_DIR, exist_ok=True)
 
-ARTICLES_CSV  = os.path.join(CLEANED_DIR, "cleaned_articles.csv")
-OUT_MAPPING   = os.path.join(OUT_DIR, "journal_name_to_id.csv")
+ARTICLES_CSV = os.path.join(CLEANED_DIR, "cleaned_articles.csv")
+OUT_MAPPING = os.path.join(OUT_DIR, "journal_name_to_id.csv")
 OUT_UNMATCHED = os.path.join(OUT_DIR, "unmatched_journals.txt")
 
-# Common abbreviations found in DBLP journal names
+# EXTENDED: Common abbreviations found in DBLP journal names
 ABBREV_MAP = {
-    r'\btrans\.?\b':       'transactions',
-    r'\beng\.?\b':         'engineering',
-    r'\bcomput\.?\b':      'computing',
-    r'\bsci\.?\b':         'science',
-    r'\bint\.?\b':         'international',
-    r'\bj\.?\b':           'journal',
-    r'\bsyst\.?\b':        'systems',
-    r'\bmanag\.?\b':       'management',
-    r'\binform\.?\b':      'information',
-    r'\bconf\.?\b':        'conference',
-    r'\bproc\.?\b':        'proceedings',
-    r'\bres\.?\b':         'research',
-    r'\bappl\.?\b':        'applications',
-    r'\btheor\.?\b':       'theoretical',
-    r'\bcommun\.?\b':      'communications',
-    r'\bknowl\.?\b':       'knowledge',
-    r'\bdata\b':           'data',
-    r'\bnetw\.?\b':        'networks',
-    r'\bdistrib\.?\b':     'distributed',
-    r'\bparallel\b':       'parallel',
-    r'\bann\.?\b':         'annals',
-    r'\bvldb\b':           'very large data bases',
+    # Original core abbreviations
+    r'\btrans\.?\b': 'transactions',
+    r'\beng\.?\b': 'engineering',
+    r'\bcomput\.?\b': 'computing',
+    r'\bsci\.?\b': 'science',
+    r'\bint\.?\b': 'international',
+    r'\bj\.?\b': 'journal',
+    r'\bsyst\.?\b': 'systems',
+    r'\bmanag\.?\b': 'management',
+    r'\binform\.?\b': 'information',
+    r'\bconf\.?\b': 'conference',
+    r'\bproc\.?\b': 'proceedings',
+    r'\bres\.?\b': 'research',
+    r'\bappl\.?\b': 'applications',
+    r'\btheor\.?\b': 'theoretical',
+    r'\bcommun\.?\b': 'communications',
+    r'\bknowl\.?\b': 'knowledge',
+    r'\bdata\b': 'data',
+    r'\bnetw\.?\b': 'networks',
+    r'\bdistrib\.?\b': 'distributed',
+    r'\bparallel\b': 'parallel',
+    r'\bann\.?\b': 'annals',
+    r'\bvldb\b': 'very large data bases',
+    # NEW: Additional common abbreviations
+    r'\bmath\.?\b': 'mathematics',
+    r'\bartif\.?\b': 'artificial',
+    r'\bintell\.?\b': 'intelligence',
+    r'\btech\.?\b': 'technology',
+    r'\btechnol\.?\b': 'technology',
+    r'\bsoc\.?\b': 'society',
+    r'\blett\.?\b': 'letters',
+    r'\bcomp\.?\b': 'computer',
+    r'\bprog\.?\b': 'programming',
+    r'\bimpl\.?\b': 'implementation',
+    r'\bpract\.?\b': 'practice',
+    r'\bexp\.?\b': 'experimental',
+    r'\beduc\.?\b': 'education',
+    r'\bind\.?\b': 'industrial',
+    r'\bindust\.?\b': 'industrial',
+    r'\bserv\.?\b': 'services',
+    r'\bdes\.?\b': 'design',
+    r'\benviron\.?\b': 'environment',
+    r'\bmed\.?\b': 'medical',
+    r'\bimag\.?\b': 'imaging',
+    r'\bgraph\.?\b': 'graphics',
+    r'\bvis\.?\b': 'visualization',
+    r'\bmultim\.?\b': 'multimedia',
+    r'\bsoftw\.?\b': 'software',
+    r'\bengin\.?\b': 'engineering',
+    r'\barchit\.?\b': 'architecture',
+    r'\bcomputat\.?\b': 'computation',
+    r'\bautom\.?\b': 'automation',
+    r'\bcontr\.?\b': 'control',
+    r'\bmod\.?\b': 'modeling',
+    r'\bsimul\.?\b': 'simulation',
+    r'\banal\.?\b': 'analysis',
+    r'\bmeth\.?\b': 'methods',
+    r'\bmethodol\.?\b': 'methodology',
+    r'\bsolv\.?\b': 'solving',
+    r'\boptim\.?\b': 'optimization',
+    r'\bcomplex\.?\b': 'complex',
+    r'\boper\.?\b': 'operations',
+    r'\bmanuf\.?\b': 'manufacturing',
+    r'\bprod\.?\b': 'production',
+    r'\becon\.?\b': 'economics',
+    r'\bfinanc\.?\b': 'finance',
+    r'\bcybern\.?\b': 'cybernetics',
+    r'\btelecommun\.?\b': 'telecommunications',
+    r'\btelecom\.?\b': 'telecommunications',
+    r'\bphotogr\.?\b': 'photogrammetry',
+    r'\breconstr\.?\b': 'reconstruction',
+    r'\bdts\.?\b': 'digital technology systems',
+    r'\bgeoinf\.?\b': 'geoinformation',
+    r'\bgeomatics\b': 'geomatics',
+    r'\bphotogramm\.?\b': 'photogrammetry',
+    r'\brem\.?\b': 'remote',
+    r'\bsens\.?\b': 'sensing',
+    r'\bphotobiol\.?\b': 'photobiology',
+    r'\bphotochem\.?\b': 'photochemistry',
+    r'\bphotophys\.?\b': 'photophysics',
+    r'\bphotonics\b': 'photonics',
+    r'\bdiscret\.?\b': 'discrete',
+    r'\bcontin\.?\b': 'continuous',
+    r'\bdyn\.?\b': 'dynamic',
+    r'\bdynam\.?\b': 'dynamics',
+    r'\bstat\.?\b': 'statistics',
+    r'\bstoch\.?\b': 'stochastic',
+    r'\bprobab\.?\b': 'probability',
+    r'\bstatist\.?\b': 'statistics',
 }
 
 STOPWORDS = {'of', 'on', 'the', 'and', 'in', 'for', 'to', 'a', 'an',
@@ -85,25 +152,25 @@ def token_overlap(a, b):
     ta, tb = tokens(a), tokens(b)
     if not ta or not tb:
         return 0.0
-    
+
     match_count = 0
     for token_a in ta:
         # Check if token_a is a prefix of any token_b, or vice-versa
         if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
             match_count += 1
-            
+
     return match_count / max(len(ta), len(tb))
 
 def main():
     conn = mysql.connector.connect(**DB_CONFIG)
-    cur  = conn.cursor()
+    cur = conn.cursor()
     cur.execute("SELECT journal_id, title FROM journals")
     db_journals = cur.fetchall()
     cur.close()
     conn.close()
 
     # Build lookup maps
-    exact_map  = {}   # normalized title → journal_id
+    exact_map = {}  # normalized title → journal_id
     for jid, title in db_journals:
         if title:
             exact_map[normalize(title)] = jid
@@ -119,10 +186,10 @@ def main():
 
     print(f"Distinct DBLP journal names to match: {len(journal_names):,}")
 
-    matched   = 0
+    matched = 0
     unmatched = []
 
-    OVERLAP_THRESHOLD = 0.55   # 55% token overlap required
+    OVERLAP_THRESHOLD = 0.40  # LOWERED from 0.55 for better coverage
 
     # Pre-tokenize all db journals to avoid 25 million regex executions
     db_journals_tokenized = [(jid, title, tokens(title)) for jid, title in db_journals if title]
@@ -142,8 +209,8 @@ def main():
                 continue
 
             # 2. Token-overlap match
-            best_jid    = None
-            best_score  = 0.0
+            best_jid = None
+            best_score = 0.0
             ta = tokens(jname)
             len_ta = len(ta)
             if len_ta > 0:
@@ -156,11 +223,11 @@ def main():
                     for token_a in ta:
                         if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
                             match_count += 1
-                            
+
                     score = match_count / max(len_ta, len_tb)
                     if score > best_score:
                         best_score = score
-                        best_jid   = jid2
+                        best_jid = jid2
 
             if best_score >= OVERLAP_THRESHOLD:
                 writer.writerow([jname, best_jid, f"overlap:{best_score:.2f}"])
@@ -177,9 +244,9 @@ def main():
 
     pct = matched / len(journal_names) * 100 if journal_names else 0
     print(f"Matched: {matched:,} / {len(journal_names):,} ({pct:.1f}%)")
-    print(f"Mapping:   {OUT_MAPPING}")
+    print(f"Mapping: {OUT_MAPPING}")
     print(f"Unmatched: {OUT_UNMATCHED}")
 
 if __name__ == "__main__":
-    print("Matching DBLP journal names → journals table...")
+    print("Matching DBLP journal names to journals table...")
     main()
