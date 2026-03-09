@@ -1,0 +1,243 @@
+# 🏗️ CEO Code Review — BiblioExplorer (MYE030)
+
+**Reviewer:** Acting CTO/CEO  
+**Date:** 2026-03-09  
+**Branch:** `new-journal-fixes` (2 commits ahead of [main](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py#164-249))  
+**Deadline:** 2026-05-26 (78 days remaining)
+
+---
+
+## Executive Summary
+
+| Area | Grade | Notes |
+|---|---|---|
+| **Database & Schema** | **A** | Clean, normalized, FK/PK enforced, CHECK constraints, InnoDB. Excellent. |
+| **ETL Pipeline** | **A-** | Well-structured 9-step pipeline. Journal matching recently improved. Minor risk with 0.40 threshold. |
+| **Backend (Flask)** | **B+** | Connection pool, caching, pagination — solid. Missing error logging, no tests, inconsistent error handling. |
+| **Frontend (UI/UX)** | **B** | Good dark theme, D3 charts, autocomplete. But **missing** several required chart types and features. |
+| **Project Requirements** | **C+** | Several deliverables from the spec are **not yet implemented**. This is the biggest risk area. |
+| **Code Quality** | **B** | Clean, readable. But no tests, no logging, debug scripts scattered in root, no `.env` for secrets. |
+| **CI/CD** | **C** | GitHub Actions exists but only runs lint — no actual tests to run. |
+| **Overall** | **B** | Strong foundation, but significant feature gaps vs. the assignment spec. Must prioritize Phase III features. |
+
+---
+
+## 1. Recent Changes Review (Last 2 Commits)
+
+The last two commits (`3272c41`, `ed40841`) modify journal matching:
+
+### ✅ What's Good
+- Expanded `ABBREV_MAP` from 22 to 68 abbreviation entries — solid coverage improvement
+- Pre-tokenized DB journals to avoid millions of redundant regex executions — good optimization
+- Changed arrow `→` to ASCII [to](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py#148-150) in print statements — portability fix
+
+### ⚠️ Concerns
+
+> [!WARNING]
+> **Overlap threshold lowered from 0.55 to 0.40** — This is aggressive. At 40%, a journal with 3 meaningful tokens only needs ~1.2 matching tokens to qualify. This **will produce false-positive matches** for journals with short or generic names (e.g., "Systems", "Networks", "Logic").
+
+**Recommendation:**  
+- Add a **minimum token count guard**: if either journal name has ≤ 2 tokens, require a higher threshold (e.g., 0.70)
+- Log the top 20 closest "near-miss" matches so you can verify quality manually
+- Consider a `confidence` column with `high/medium/low` labels to flag risky matches
+
+### 🐛 Bug: `stat` abbreviation
+
+```python
+r'\bstat\.?\b': 'statistics',
+```
+
+This maps **all** occurrences of "stat" → "statistics", but in many contexts "stat" means "statistical" (e.g., "Stat. Comput." = "Statistical Computing", not "Statistics Computing"). This was noted in commit `3272c41` — the fix is partial. The regex `\bstat\b` without a dot will also match the standalone word, which may be correct, but should be audited.
+
+---
+
+## 2. Architecture Assessment
+
+```mermaid
+graph TD
+    A["Raw CSVs/TSVs"] -->|ETL Pipeline 01-07| B["MySQL 8.0<br>biblio_db"]
+    B -->|SQL Views 08| C["Pre-computed Aggregates"]
+    C --> D["Flask Backend<br>(Connection Pool)"]
+    D -->|REST JSON| E["Frontend<br>HTML/Jinja2 + D3.js"]
+    D --> F["Flask-Caching<br>(SimpleCache)"]
+```
+
+**Strengths:**
+- Single-table [papers](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/years.py#20-40) design with `type` discriminator is pragmatic and well-documented
+- SQL Views push computation into the DBMS layer (as the prof explicitly requires)
+- Connection pooling with `mysql-connector-python`
+- Clean Blueprint-based route separation
+
+**Weaknesses:**
+- `SimpleCache` is process-local and resets on restart. For a demo app this is fine, but if you want to impress: mention Redis as a future improvement in your report
+- No logging framework (just `print()` and `console.error()`)
+- No environment variable management (`.env` file)
+
+---
+
+## 3. Backend Deep Dive
+
+### 3.1 Bugs & Issues
+
+| File | Issue | Severity |
+|---|---|---|
+| [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#L76-L82) | [add_header](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#76-83) contradicts itself: sets `Cache-Control: no-cache, no-store, must-revalidate` then immediately overwrites with `Cache-Control: public, max-age=0`. The second line wins — effectively disabling the first. **Pick one strategy.** | 🔴 High |
+| [journals.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/journals.py#L76-L116) | [get_papers()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/years.py#20-40) for journals has **no `except` block** — unlike every other route. If the query fails, Flask will return a raw 500 traceback to the client. | 🔴 High |
+| [journals.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/journals.py#L121) | [search_journals()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/journals.py#118-137) doesn't strip or sanitize the query `q`. Conference search does `strip()` + regex cleanup — journals do not. This inconsistency could cause MySQL FT-search errors with special characters. | 🟡 Medium |
+| [years.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/years.py#L20-L40) | [get_papers()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/years.py#20-40) for years uses `LIMIT %s` with a query param `limit` but **no pagination**. Hardcoded to `default=100` but the frontend requests `limit=250`. With 200K+ papers per year, this is an incomplete implementation. | 🟡 Medium |
+| [db.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/db.py#L42-L61) | [execute_query()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/db.py#42-61) has a dual path (conn=None → context manager, conn not None → manual cursor). This legacy code path is confusing and could leak connections if an exception occurs between [get_db_connection()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/db.py#23-28) and `try`. It was supposed to be removed per the earlier refactor PR. | 🟡 Medium |
+
+### 3.2 Missing Features (per Project Spec)
+
+| Required Feature | Status | Route Needed |
+|---|---|---|
+| Year-filtered stats for conference/journal profiles | ✅ Partial (papers filtered, but profile stats not recalculated) | `/api/conference/<id>/profile?start_year=X&end_year=Y` |
+| Year page: filter papers by conference, journal, or author | ❌ Missing | `/api/year/<year>/papers?conf_id=X&author_id=Y` |
+| PrimaryFoR linechart (conferences per category per year) | ❌ Missing (view `vw_category_yearly_conf` exists but has no route) | `/api/charts/category/conference` |
+| BestSubjectArea linechart (journals per area per year) | ❌ Missing (view `vw_category_yearly_journal` exists but unused) | `/api/charts/category/journal` |
+| Publisher bar chart | ✅ API exists (`/api/charts/publishers/bar`) | — |
+| Scatter plot (journal metrics) | ✅ API exists (`/api/charts/scatter/metrics`) | — |
+| Bar chart: total/avg papers per venue | ❌ Missing | `/api/charts/venues/bar` |
+
+---
+
+## 4. Frontend Deep Dive
+
+### 4.1 Bugs & Issues
+
+| File | Issue | Severity |
+|---|---|---|
+| [app.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#L620-L630) | Charts page comparison search filters client-side from `state.conferences` / `state.journals`, but [loadVenuesList()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#70-82) only fetches page 1 (50 items). **Most venues are invisible in the comparison dropdown.** Should use server-side search like the other pages. | 🔴 High |
+| [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js) | No bar chart function, no scatter plot function exist. The charts page HTML references `comparePapersChart` and `compareAuthorsChart` but **there are no D3 bar or scatter implementations**. | 🔴 High (missing assignment deliverable) |
+| [index.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/index.html#L11-L19) | Dashboard stat cards show **hardcoded values** ("2.5M+", "1.39M", "18.8K") rather than querying the API. These should be fetched dynamically. | 🟡 Medium |
+| [base.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/base.html#L6) | `<title>` is always "Bibliographic Explorer" — no per-page title. This hurts SEO and user experience when multiple tabs are open. | 🟢 Low |
+| [style.css](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/css/style.css) | No `@media` responsive breakpoints. The navbar will overflow on mobile (6 nav links in a row). Stat cards `min-width: 250px` will stack gracefully, but the rest won't. | 🟡 Medium |
+
+### 4.2 Missing Frontend Features (per Project Spec)
+
+| Required | Status |
+|---|---|
+| **Bar Charts** (venue comparison, publisher quartiles) | ❌ No D3 bar chart implementation exists |
+| **Scatter Plots** (journal metrics correlation) | ❌ No D3 scatter plot implementation exists |
+| **PrimaryFoR / SubjectArea linecharts** | ❌ No UI or JS function |
+| **Year page: filter by conference/journal/author** | ❌ Only raw paper list shown |
+| **Year page: pagination** | ❌ Hardcoded to 250 items |
+| Conference/journal profile: **linecharts with year filter** | ⚠️ Filter exists but only affects paper table, not the charts |
+
+---
+
+## 5. ETL Pipeline Review
+
+### ✅ Strengths
+- Well-ordered 9-step pipeline with clear naming
+- Schema uses proper InnoDB with FKs and CHECK constraints
+- Handling of N:M author relationships with `author_order`
+- Backup script provided
+- Performance indexes created separately ([09_performance_optimization.sql](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/09_performance_optimization.sql), [09_search_indexes.sql](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/09_search_indexes.sql))
+
+### ⚠️ Issues
+
+| Issue | Severity |
+|---|---|
+| [etl/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py) likely has hardcoded DB credentials (same as [backend/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/config.py) but separate file — DRY violation). Should share or use `.env`. | 🟡 Medium |
+| The 0.40 overlap threshold risks false-positive journal matches (see Section 1) | 🟡 Medium |
+| No validation step after loading (e.g., row count assertions, FK integrity check) | 🟡 Medium |
+| [07_load_papers.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/07_load_papers.py) takes ~35 mins — could be parallelized or use `LOAD DATA INFILE` for speed | 🟢 Low |
+
+---
+
+## 6. Project Hygiene & Code Quality
+
+### 🗑️ Root Directory Clutter (Clean Up Before Submission)
+The root directory has **13 one-off debug/utility scripts** that should be removed or moved:
+
+```
+check_acta.py, check_authors.py, check_journals.py, check_single_author.py,
+debug_stats.py, deep_journal_analysis.py, diag_journal.py, find_more_journals.py,
+fix_high_impact_journals.py, quick_fix_journals.py, update_journal_links.py,
+verify_api.py, verify_db.py, temp.html, etl_error.txt,
+implementation_plan.md.resolved
+```
+
+> [!CAUTION]
+> **The professor explicitly says he expects clean code and documentation at GitHub.** These debug scripts make the repo look messy. Either delete them or move to a `scripts/debug/` directory.
+
+### 📄 Missing Deliverables
+
+| Deliverable | Status |
+|---|---|
+| `deliverables/` folder content (final PDF report) | ❌ **Empty** |
+| Video (link to ~15min MP4) | ❌ Not yet created |
+| DB backup in data/backups/ | ❓ Directory exists but not verified |
+| [README.md](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/README.md) | ✅ Good, but needs updating to reflect current state |
+
+### 🧪 Testing
+
+> [!IMPORTANT]
+> **There are ZERO tests in this project.** No unit tests, no integration tests, no API tests. The GitHub Actions CI runs `flake8` lint only. For a project that processes 2.5M records and serves analytical queries, this is a significant gap. At minimum, write:
+> - ETL unit tests for [normalize()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py#142-147), [tokens()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py#148-150), [token_overlap()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py#151-163) functions
+> - API route integration tests (at least smoke tests for each endpoint)
+> - A DB validation script that checks row counts and FK integrity
+
+---
+
+## 7. Security
+
+| Issue | Severity |
+|---|---|
+| DB password is empty string (`''`) in config — acceptable for local dev but document it | 🟢 Low |
+| No rate limiting on search endpoints — could be abused on public deployment | 🟡 Medium |
+| [escapeHtml()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#1-11) function exists in JS but isn't used consistently (e.g., `innerHTML` in spinner, top authors action column) | 🟡 Medium |
+| Flask `debug=True` in production ([app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py) line 88) — never deploy with debug mode | 🔴 High (for deployment) |
+
+---
+
+## 8. Prioritized Action Plan
+
+### 🔴 P0 — Must Do Before Submission (Critical for Grade)
+
+1. **Implement Bar Charts in D3.js** — Required by assignment spec (publisher quartile breakdown, venue totals)
+2. **Implement Scatter Plots in D3.js** — Required by assignment spec (journal metrics correlation)
+3. **Add PrimaryFoR / SubjectArea linecharts** — Backend views exist, just need API routes + frontend
+4. **Fix Charts page comparison** — Switch from client-side filtering (50 items) to server-side search
+5. **Add year page filters** — Filter by conference/journal/author as specified
+6. **Fix journals [get_papers()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/years.py#20-40) missing error handling** — Add `except` block
+7. **Clean up root directory** — Remove or archive all debug scripts
+8. **Write the project report** — `deliverables/` is empty
+
+### 🟡 P1 — Should Do (Quality & Polish)
+
+9. **Make dashboard stats dynamic** — Fetch from API instead of hardcoded values  
+10. **Fix [add_header](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#76-83) contradiction** — Remove conflicting Cache-Control headers  
+11. **Add pagination to year papers** — Currently hardcoded limit  
+12. **Sanitize journal search input** — Match conference search behavior
+13. **Apply year filters to charts, not just tables** — Re-render D3 charts on filter apply
+14. **Add responsive CSS breakpoints** — Mobile navbar especially
+15. **Add basic API tests** — At least smoke tests for CI
+
+### 🟢 P2 — Nice to Have (Bonus Points)
+
+16. **Pre-compile ABBREV_MAP regex patterns** — Currently re-compiling on every call
+17. **Use `logging` module** instead of `print()`
+18. **Add `.env` support** with `python-dotenv`
+19. **Create an ER diagram** (Mermaid or MySQL Workbench) for the report
+20. **Record the demo video** (~15 minutes)
+
+---
+
+## Timeline Recommendation
+
+| Week | Focus |
+|---|---|
+| **Mar 10-16** | P0 items 1-3 (bar charts, scatter plots, category linecharts) |
+| **Mar 17-23** | P0 items 4-6 (comparison fix, year filters, error handling) |
+| **Mar 24-30** | P1 items 9-14 (polish, responsive, dynamic stats) |
+| **Apr 1-14** | P0 items 7-8 (cleanup, report writing) |
+| **Apr 15-30** | P1 item 15 (tests) + P2 items (bonus) |
+| **May 1-20** | Final report, video recording, review |
+| **May 26** | **HARD DEADLINE** |
+
+---
+
+> [!TIP]
+> **Bottom line:** The foundation is strong — your schema design, ETL pipeline, and backend architecture are well above average. But **you're missing 3 out of 3 required chart types** (bar, scatter, PrimaryFoR) and the year page is incomplete. These are the items the professor will check first. Focus all energy on P0 items before touching anything else.

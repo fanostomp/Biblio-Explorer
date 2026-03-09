@@ -1,0 +1,649 @@
+# 📋 BiblioExplorer — Sprint Task Board
+
+**Project Manager:** PM Lead  
+**Sprint Duration:** Mar 10 – Apr 14, 2026 (5 weeks)  
+**Hard Deadline:** May 26, 2026  
+**Team Roster:**
+
+| Role | Codename | Focus Area |
+|---|---|---|
+| **Dev A** | 🔵 Frontend/D3 | Charts, visualizations, UI polish |
+| **Dev B** | 🟢 Backend/API | Flask routes, data endpoints, security |
+| **Dev C** | 🟠 ETL/Infra | Pipeline fixes, testing, cleanup, docs |
+
+---
+
+## Team Dependency Map
+
+```mermaid
+graph LR
+    B1["B-01: Category API Routes"] --> A2["A-02: Category Linecharts"]
+    B2["B-02: Venue Bar API"] --> A1["A-01: D3 Bar Charts"]
+    B5["B-05: Fix Comparison Search"] --> A5["A-05: Charts Page Rework"]
+    C1["C-01: Threshold Guard"] --> B3["B-03: Journal Search Fix"]
+    A1 --> A3["A-03: D3 Scatter Plot"]
+    A3 --> A5
+```
+
+> [!IMPORTANT]
+> **Rule:** No task can be marked "Done" until it has been tested by another team member. Dev A tests Dev B's work, Dev B tests Dev C's work, Dev C tests Dev A's work.
+
+---
+
+# 🔵 Dev A — Frontend & D3 Visualizations
+
+---
+
+## A-01: Implement D3.js Bar Chart Component
+**Priority:** 🔴 P0 — Critical  
+**Sprint:** Week 1 (Mar 10–16)  
+**Estimated Hours:** 8h  
+**Blocked By:** B-02 (API route must be ready)  
+**Branch:** `feat/bar-charts`
+
+### Description
+The project spec **explicitly requires** bar charts for venue comparisons and publisher quartile breakdowns. Currently, no D3 bar chart function exists anywhere in the codebase.
+
+### Acceptance Criteria
+- [ ] Create a reusable `drawBarChart(containerSelector, data, xKey, yKeys, colors)` function in [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js)
+- [ ] Support **grouped bars** (multiple series side-by-side) for the publisher quartile chart (Q1/Q2/Q3/Q4)
+- [ ] Support **simple bars** for single-metric comparisons (total papers per venue)
+- [ ] Must include: animated entrance, hover tooltips (reuse `chartTooltip()`), responsive SVG with `viewBox`
+- [ ] Y-axis **must start from 0** (as stated in project description)
+- [ ] Axis labels and legend must be readable on dark background (use CSS vars)
+
+### Technical Spec
+
+```javascript
+// Signature
+function drawBarChart(containerSelector, data, xKey, yKeys, options = {}) {
+  // options: { colors: [], legend: true, grouped: true, animated: true }
+}
+
+// Usage Example 1: Publisher Quartile Breakdown
+drawBarChart('#publisherChart', publisherData, 'publisher', 
+  ['q1_count', 'q2_count', 'q3_count', 'q4_count'],
+  { colors: ['#10b981', '#fde047', '#f97316', '#ef4444'], legend: true, grouped: true }
+);
+
+// Usage Example 2: Simple venue comparison
+drawBarChart('#venueBarChart', venueData, 'venue_name', ['total_papers'],
+  { colors: ['#2563eb'] }
+);
+```
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js) | Add `drawBarChart()` function (~100 lines) |
+| [charts.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/charts.html) | Add a `<div id="publisherChart">` section |
+| [app.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js) | Add `loadPublisherBarChart()` in [initChartsPage()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#594-605) |
+
+### Testing
+- Render publisher chart with data from `GET /api/charts/publishers/bar`
+- Verify bars are grouped, y-axis starts from 0, tooltips show on hover
+- Resize window — SVG must scale with `viewBox`
+
+---
+
+## A-02: Implement PrimaryFoR & SubjectArea Category Linecharts
+**Priority:** 🔴 P0 — Critical  
+**Sprint:** Week 2 (Mar 17–23)  
+**Estimated Hours:** 6h  
+**Blocked By:** B-01  
+**Branch:** `feat/category-linecharts`
+
+### Description
+The spec requires linecharts showing "per category (PrimaryFoR/BestSubjectArea): number of conferences/journals active per year." The SQL views already exist (`vw_category_yearly_conf`, `vw_category_yearly_journal`) but have no API routes or frontend rendering.
+
+### Acceptance Criteria
+- [ ] Add a "Category Analysis" section to the charts page (or a new `/category` page)
+- [ ] Dropdown selector for category type (PrimaryFoR for conferences, SubjectArea for journals)
+- [ ] Multi-line chart showing multiple categories over time (reuse [drawMultiLineChart](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js#164-270))
+- [ ] Optional: filter to select specific categories to compare
+- [ ] Color-code each category line with the existing color scheme
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [charts.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/charts.html) | Add "Category Trends" section with dropdowns and chart divs |
+| [app.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js) | Add `loadCategoryChart(type)` function |
+
+---
+
+## A-03: Implement D3.js Scatter Plot Component
+**Priority:** 🔴 P0 — Critical  
+**Sprint:** Week 2 (Mar 17–23)  
+**Estimated Hours:** 8h  
+**Blocked By:** None (API at `/api/charts/scatter/metrics` already exists)  
+**Branch:** `feat/scatter-plots`
+
+### Description
+The spec requires scatter plots correlating any two journal metrics. Currently no D3 scatter implementation exists.
+
+### Acceptance Criteria
+- [ ] Create `drawScatterPlot(containerSelector, data, xKey, yKey, options)` in [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js)
+- [ ] Each dot = one journal, color-coded by `best_quartile` (Q1=green, Q2=yellow, Q3=orange, Q4=red)
+- [ ] Hover tooltip showing journal title + both metric values
+- [ ] Axis dropdowns letting the user select which metrics to compare:
+  - X-axis options: `total_docs`, `citable_docs_3y`, `sjr_index`
+  - Y-axis options: `citable_docs_3y`, `sjr_index`, `total_docs`
+- [ ] Dots should animate in with staggered entrance
+- [ ] Optional: show Pearson/Spearman correlation coefficient on chart
+
+### Technical Spec
+
+```javascript
+function drawScatterPlot(containerSelector, data, xKey, yKey, options = {}) {
+  // options: { colorKey: 'best_quartile', colorMap: {Q1: '#10b981', ...}, tooltip: true }
+}
+```
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js) | Add `drawScatterPlot()` function (~120 lines) |
+| [charts.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/charts.html) | Add scatter plot section with axis selectors |
+| [app.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js) | Add `loadScatterPlot()`, bind dropdown change events |
+
+---
+
+## A-04: Make Dashboard Stats Dynamic + Per-Page Titles
+**Priority:** 🟡 P1  
+**Sprint:** Week 3 (Mar 24–30)  
+**Estimated Hours:** 3h  
+**Branch:** `fix/dynamic-dashboard`
+
+### Description
+Dashboard cards show hardcoded values ("2.5M+", "1.39M"). These should be fetched from the API. Also add per-page `<title>` tags.
+
+### Acceptance Criteria
+- [ ] On dashboard load, call a new `/api/stats/overview` endpoint (see B-04) to get real counts
+- [ ] Animate numbers counting up from 0 (use `d3.interpolate` or a simple JS counter)
+- [ ] Update [base.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/base.html) `<title>` to use Jinja block: `{% block title %}BiblioExplorer{% endblock %}`
+- [ ] Each page template sets its own title (e.g., "Conferences — BiblioExplorer")
+
+---
+
+## A-05: Fix Charts Page Comparison + Responsive CSS
+**Priority:** 🟡 P1  
+**Sprint:** Week 3 (Mar 24–30)  
+**Estimated Hours:** 5h  
+**Blocked By:** B-05  
+**Branch:** `fix/charts-comparison`
+
+### Description
+The comparison page filters venues **client-side** from just the first 50 items. Switch to server-side search. Also add CSS responsive breakpoints.
+
+### Acceptance Criteria
+- [ ] Replace client-side filtering in [setupComparisonAutocomplete()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#606-655) with `fetch()` calls to `/api/conference/search` and `/api/journal/search`
+- [ ] Remove the [loadVenuesList()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#70-82) calls on charts page init (no longer needed)
+- [ ] Add CSS `@media` breakpoints:
+  - `≤768px`: Stack navbar vertically (hamburger optional), single-column charts
+  - `≤480px`: Reduce font sizes, full-width stat cards
+- [ ] Test on Chrome DevTools mobile viewport
+
+---
+
+## A-06: Apply Year Filters to Charts (Not Just Tables)
+**Priority:** 🟡 P1  
+**Sprint:** Week 4 (Apr 1–7)  
+**Estimated Hours:** 4h  
+**Branch:** `fix/chart-filtering`
+
+### Description
+On conference/journal profile pages, the year range filter only affects the paper table, not the D3 charts. Charts should also re-render with filtered data.
+
+### Acceptance Criteria
+- [ ] When "Apply" is clicked with year range, filter `yearly_stats` data client-side and re-call [renderConfJournalCharts()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js#20-32) with the filtered subset
+- [ ] Clear any existing SVG before re-rendering (already done with `d3.select(...).selectAll("*").remove()`)
+- [ ] Add a "Reset" button to restore the full dataset charts
+
+---
+
+# 🟢 Dev B — Backend & API
+
+---
+
+## B-01: Add Category Linechart API Routes
+**Priority:** 🔴 P0 — Critical  
+**Sprint:** Week 1 (Mar 10–16)  
+**Estimated Hours:** 4h  
+**Blocked By:** None (SQL views already exist)  
+**Branch:** `feat/category-api`
+
+### Description
+SQL views `vw_category_yearly_conf` and `vw_category_yearly_journal` exist but have no API routes. These are needed for the category linecharts.
+
+### Acceptance Criteria
+- [ ] New route: `GET /api/charts/category/conference` → returns JSON with yearly data grouped by `for_code`
+- [ ] New route: `GET /api/charts/category/journal` → returns JSON with yearly data grouped by `area_id`
+- [ ] Optional query param `?for_code=4605` or `?area_id=3` to filter to specific category
+- [ ] Use `@cache.cached(timeout=3600)` since this data is static
+- [ ] Response format:
+
+```json
+{
+  "categories": [
+    {
+      "code": "4605",
+      "description": "Data Management and Data Science",
+      "yearly_data": [
+        {"year": 2010, "conf_count": 15, "paper_count": 3200},
+        {"year": 2011, "conf_count": 16, "paper_count": 3500}
+      ]
+    }
+  ]
+}
+```
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [charts.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/charts.py) | Add 2 new route handlers (~50 lines each) |
+
+---
+
+## B-02: Add Venue Bar Chart API Route
+**Priority:** 🔴 P0 — Critical  
+**Sprint:** Week 1 (Mar 10–16)  
+**Estimated Hours:** 3h  
+**Branch:** `feat/venue-bar-api`
+
+### Description
+The spec requires bar charts comparing total/avg papers and avg authors across selected venues. Need a flexible endpoint.
+
+### Acceptance Criteria
+- [ ] New route: `GET /api/charts/venues/bar?ids=1,2,3&type=conference`
+- [ ] Returns: for each venue, `total_papers`, `avg_papers_per_year`, `avg_authors_per_year`
+- [ ] Works for both conferences and journals (based on `type` param)
+- [ ] Validate that `ids` are integers, cap at 20 venues max
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [charts.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/charts.py) | Add `get_venues_bar()` route |
+
+---
+
+## B-03: Fix Journal Route Bugs
+**Priority:** 🔴 P0  
+**Sprint:** Week 1 (Mar 10–16)  
+**Estimated Hours:** 2h  
+**Branch:** `fix/journal-bugs`
+
+### Description
+Two bugs in [journals.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/journals.py):
+1. [get_papers()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/authors.py#57-95) (line 76-116) has **no `except` block** — any query error returns a raw Flask traceback
+2. [search_journals()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/journals.py#118-137) (line 118-136) does not strip or sanitize the query — conference search does both
+
+### Acceptance Criteria
+- [ ] Add `except Exception as e: return jsonify({'error': str(e)}), 500` to [get_papers()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/authors.py#57-95)
+- [ ] In [search_journals()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/journals.py#118-137): add `.strip()`, add short-query fallback (`LIKE` for ≤3 chars), sanitize with regex like conference search does
+- [ ] Verify both fixes with manual API calls
+
+### Code Change (Fix 1)
+```diff
+# journals.py get_papers()
+         papers = execute_query(conn, data_query, tuple(data_params))
+         ...
+-    finally:
++    except Exception as e:
++        return jsonify({'error': str(e)}), 500
++    finally:
+         conn.close()
+```
+
+### Code Change (Fix 2)
+```diff
+# journals.py search_journals()
+ def search_journals():
+     """Server-side search for journals using Full-Text index."""
+-    q = request.args.get('q', '')
+-    if not q:
++    q = request.args.get('q', '').strip()
++    if not q:
+         return jsonify([])
++
++    import re
++    safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+```
+
+---
+
+## B-04: Add Dashboard Stats Endpoint + Year Page Improvements
+**Priority:** 🟡 P1  
+**Sprint:** Week 2 (Mar 17–23)  
+**Estimated Hours:** 5h  
+**Branch:** `feat/stats-and-years`
+
+### Description
+Dashboard needs real stats. Year page needs filters and pagination.
+
+### Acceptance Criteria
+- [ ] New route: `GET /api/stats/overview` → returns `{total_papers, total_authors, total_conferences, total_journals}` with `@cache.cached`
+- [ ] Year papers endpoint: add query params `?conf_id=X`, `?journal_id=X`, `?author_id=X` for filtering
+- [ ] Year papers: add proper pagination ([page](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#58-61), `per_page`) instead of hardcoded `limit`
+- [ ] Return `total_records` and `total_pages` in year papers response
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [charts.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/charts.py) | Add `get_overview_stats()` route |
+| [years.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/years.py) | Refactor [get_papers()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/authors.py#57-95) with filters + pagination |
+
+---
+
+## B-05: Fix Cache-Control Headers + Comparison Search Endpoint
+**Priority:** 🟡 P1  
+**Sprint:** Week 2 (Mar 17–23)  
+**Estimated Hours:** 2h  
+**Branch:** `fix/headers-and-search`
+
+### Description
+Two issues:
+1. [add_header()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#76-83) in [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py) contradicts itself (sets no-cache then public)
+2. Charts comparison page needs server-side search (Dev A will consume this)
+
+### Acceptance Criteria
+- [ ] Fix [add_header()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#76-83) — remove the conflicting line. Keep `no-cache` for development, or use `max-age=300` for production
+- [ ] Verify conference/journal search routes accept queries from the comparison page (they already do — just needs testing)
+
+### Code Fix
+```diff
+# app.py
+     @app.after_request
+     def add_header(r):
+         r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+         r.headers["Pragma"] = "no-cache"
+         r.headers["Expires"] = "0"
+-        r.headers['Cache-Control'] = 'public, max-age=0'
+         return r
+```
+
+---
+
+## B-06: Add Rate Limiting + Remove Debug Mode
+**Priority:** 🟢 P2  
+**Sprint:** Week 4 (Apr 1–7)  
+**Estimated Hours:** 3h  
+**Branch:** `feat/security-hardening`
+
+### Acceptance Criteria
+- [ ] Install `Flask-Limiter` and add to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
+- [ ] Apply rate limits: `30/minute` on search endpoints, `100/minute` globally
+- [ ] Change `app.run(debug=True)` to `app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')`
+- [ ] Add `.env.example` with all required env vars documented
+
+---
+
+# 🟠 Dev C — ETL, Testing, Cleanup & Documentation
+
+---
+
+## C-01: Add Safety Guards to Journal Matching Threshold
+**Priority:** 🔴 P0  
+**Sprint:** Week 1 (Mar 10–16)  
+**Estimated Hours:** 4h  
+**Branch:** `fix/matching-guards`
+
+### Description
+The overlap threshold was lowered to 0.40, which risks false-positive matches for short journal names.
+
+### Acceptance Criteria
+- [ ] Add a **minimum token count guard**: if `max(len(ta), len(tb)) <= 2`, require threshold ≥ 0.70
+- [ ] Add a `confidence` column to the output CSV: `high` (score ≥ 0.70), `medium` (0.55–0.70), `low` (0.40–0.55)
+- [ ] Log the top 20 "low confidence" matches to stdout for human review
+- [ ] Pre-compile all `ABBREV_MAP` regex patterns (currently re-compiled on every call):
+
+```python
+# At module level
+COMPILED_ABBREV = [(re.compile(pattern, re.IGNORECASE), repl) 
+                    for pattern, repl in ABBREV_MAP.items()]
+
+def expand_abbrev(text):
+    t = text.lower()
+    for pattern, replacement in COMPILED_ABBREV:
+        t = pattern.sub(replacement, t)
+    return t
+```
+
+### Files to Modify
+| File | Change |
+|---|---|
+| [06_match_journals.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py) | Add guards, confidence column, pre-compile regex |
+
+---
+
+## C-02: Write Unit Tests for ETL Functions
+**Priority:** 🔴 P0  
+**Sprint:** Week 1–2 (Mar 10–23)  
+**Estimated Hours:** 8h  
+**Branch:** `feat/tests`
+
+### Description
+There are **zero tests** in the project. At minimum we need unit tests for the ETL matching logic and smoke tests for API endpoints.
+
+### Acceptance Criteria
+- [ ] Create `tests/` directory with [__init__.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/__init__.py), `test_etl.py`, `test_api.py`
+- [ ] Add `pytest` to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
+- [ ] **ETL tests** (`test_etl.py`):
+  - `test_normalize()` — verify abbreviation expansion + cleanup
+  - `test_tokens()` — verify stopword removal
+  - `test_token_overlap()` — verify scoring with known pairs
+  - `test_expand_abbrev()` — edge cases (e.g., "IEEE Trans." → "ieee transactions")
+  - `test_low_token_guard()` — verify high threshold for short names
+- [ ] **API smoke tests** (`test_api.py`):
+  - Test each endpoint returns 200 and valid JSON structure
+  - Test 404 for non-existent profiles
+  - Test search with special characters doesn't crash
+- [ ] Update GitHub Actions workflow to run `pytest`
+
+### Test Examples
+```python
+# test_etl.py
+from etl.match_journals import normalize, tokens, token_overlap
+
+def test_normalize_expands_abbreviations():
+    assert 'transactions' in normalize("IEEE Trans.")
+    assert 'engineering' in normalize("Eng.")
+
+def test_tokens_removes_stopwords():
+    result = tokens("Journal of the ACM")
+    assert 'of' not in result
+    assert 'the' not in result
+    assert 'journal' in result
+    assert 'acm' in result
+
+def test_token_overlap_exact():
+    assert token_overlap("Machine Learning", "Machine Learning") == 1.0
+
+def test_token_overlap_partial():
+    score = token_overlap("IEEE Trans. Knowl. Data Eng.", 
+                          "IEEE Transactions on Knowledge and Data Engineering")
+    assert score >= 0.7  # Should be a strong match
+```
+
+---
+
+## C-03: Clean Up Repository Root
+**Priority:** 🔴 P0  
+**Sprint:** Week 2 (Mar 17–23)  
+**Estimated Hours:** 2h  
+**Branch:** `chore/cleanup`
+
+### Description
+13 debug/utility scripts clutter the root directory. This is explicitly penalized in the grading rubric.
+
+### Acceptance Criteria
+- [ ] Create `scripts/debug/` directory
+- [ ] Move all one-off scripts there:
+
+```
+check_acta.py → scripts/debug/
+check_authors.py → scripts/debug/
+check_journals.py → scripts/debug/
+check_single_author.py → scripts/debug/
+debug_stats.py → scripts/debug/
+deep_journal_analysis.py → scripts/debug/
+diag_journal.py → scripts/debug/
+find_more_journals.py → scripts/debug/
+fix_high_impact_journals.py → scripts/debug/
+quick_fix_journals.py → scripts/debug/
+update_journal_links.py → scripts/debug/
+verify_api.py → scripts/debug/
+verify_db.py → scripts/debug/
+```
+
+- [ ] Delete: [temp.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/temp.html), [etl_error.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl_error.txt), [implementation_plan.md.resolved](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/implementation_plan.md.resolved)
+- [ ] Add `scripts/debug/` to [.gitignore](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/.gitignore) (or keep it — but make sure it's clean)
+- [ ] Update [.gitignore](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/.gitignore) to include `__pycache__/`, `*.pyc`, `.env`
+
+---
+
+## C-04: Unify Configuration & Add `.env` Support
+**Priority:** 🟡 P1  
+**Sprint:** Week 3 (Mar 24–30)  
+**Estimated Hours:** 3h  
+**Branch:** `feat/config-unify`
+
+### Description
+DB config is duplicated in [backend/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/config.py) and [etl/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py). Should have a single source of truth.
+
+### Acceptance Criteria
+- [ ] Install `python-dotenv`, add to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
+- [ ] Create `.env.example` in project root:
+```env
+DB_HOST=localhost
+DB_PORT=3307
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=biblio_db
+FLASK_DEBUG=true
+```
+- [ ] Create shared [config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py) in project root that both `backend/` and `etl/` import
+- [ ] Or: make [etl/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py) import from [backend/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/config.py) via relative path
+- [ ] Verify ETL scripts and Flask app both work with the unified config
+
+---
+
+## C-05: Add Python Logging Framework
+**Priority:** 🟡 P1  
+**Sprint:** Week 3 (Mar 24–30)  
+**Estimated Hours:** 3h  
+**Branch:** `feat/logging`
+
+### Description
+Replace all `print()` calls with the `logging` module.
+
+### Acceptance Criteria
+- [ ] Configure `logging` in [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py) and ETL scripts
+- [ ] Levels: `INFO` for startup messages, `WARNING` for fallbacks, `ERROR` for exceptions
+- [ ] Replace `print()` in: [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py), [db.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/verify_db.py), all ETL scripts
+- [ ] Add request logging middleware (Flask `before_request` / `after_request`)
+
+---
+
+## C-06: Prepare Deliverables Folder & Report Skeleton
+**Priority:** 🔴 P0  
+**Sprint:** Week 4 (Apr 1–7)  
+**Estimated Hours:** 6h  
+**Branch:** `docs/report`
+
+### Description
+The `deliverables/` folder is empty. The final submission requires a PDF report and a video link.
+
+### Acceptance Criteria
+- [ ] Create `deliverables/4855_5381_projectReport.md` (or `.tex`) with this structure:
+  1. Team members & AM numbers
+  2. Database schema design & trade-offs (include ER diagram)
+  3. ETL process description & transformation diagram
+  4. Application architecture (backend + frontend)
+  5. Features & screenshots
+  6. Challenges & solutions
+  7. Conclusions
+- [ ] Generate ER diagram using MySQL Workbench or Mermaid
+- [ ] Create `deliverables/VIDEO_LINK.md` placeholder
+- [ ] Verify `data/backups/` contains a recent DB dump
+- [ ] Update `README.md` to reflect current Phase III status
+
+---
+
+# 📊 Sprint Schedule Overview
+
+```mermaid
+gantt
+    title BiblioExplorer Sprint Plan
+    dateFormat  YYYY-MM-DD
+    axisFormat  %b %d
+
+    section Dev A (Frontend)
+    A-01 Bar Charts           :a1, 2026-03-10, 7d
+    A-03 Scatter Plots        :a3, 2026-03-17, 7d
+    A-02 Category Linecharts  :a2, after a3, 5d
+    A-04 Dynamic Dashboard    :a4, 2026-03-24, 4d
+    A-05 Comparison Fix + CSS :a5, after a4, 5d
+    A-06 Chart Filtering      :a6, 2026-04-01, 5d
+
+    section Dev B (Backend)
+    B-01 Category API         :b1, 2026-03-10, 5d
+    B-02 Venue Bar API        :b2, 2026-03-10, 4d
+    B-03 Journal Bug Fixes    :b3, 2026-03-14, 3d
+    B-04 Stats + Year Page    :b4, 2026-03-17, 7d
+    B-05 Headers + Search Fix :b5, 2026-03-20, 4d
+    B-06 Security Hardening   :b6, 2026-04-01, 5d
+
+    section Dev C (ETL/Infra)
+    C-01 Matching Guards      :c1, 2026-03-10, 5d
+    C-02 Unit Tests           :c2, 2026-03-10, 14d
+    C-03 Repo Cleanup         :c3, 2026-03-17, 4d
+    C-04 Config Unification   :c4, 2026-03-24, 4d
+    C-05 Logging Framework    :c5, after c4, 4d
+    C-06 Report & Deliverables:c6, 2026-04-01, 7d
+
+    section Milestones
+    All P0 Done              :milestone, 2026-03-23, 0d
+    All P1 Done              :milestone, 2026-04-07, 0d
+    Report + Video Done      :milestone, 2026-05-20, 0d
+    HARD DEADLINE            :crit, milestone, 2026-05-26, 0d
+```
+
+---
+
+# ✅ Definition of Done (Global)
+
+Every task must satisfy ALL of the following before it can be marked complete:
+
+1. **Code compiles/runs** without errors (`python backend/app.py` starts, ETL scripts complete)
+2. **No regressions** — existing features still work
+3. **Peer-tested** by another team member (A↔B, B↔C, C↔A)
+4. **PR submitted** to `main` with descriptive commit messages
+5. **README updated** if new routes, features, or setup steps were added
+
+---
+
+# 📈 Task Summary Matrix
+
+| ID | Task | Dev | Priority | Hours | Status |
+|---|---|---|---|---|---|
+| A-01 | D3 Bar Charts | 🔵 A | 🔴 P0 | 8h | ⬜ Not Started |
+| A-02 | Category Linecharts | 🔵 A | 🔴 P0 | 6h | ⬜ Not Started |
+| A-03 | D3 Scatter Plots | 🔵 A | 🔴 P0 | 8h | ⬜ Not Started |
+| A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ⬜ Not Started |
+| A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ⬜ Not Started |
+| A-06 | Chart Year Filtering | 🔵 A | 🟡 P1 | 4h | ⬜ Not Started |
+| B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ⬜ Not Started |
+| B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ⬜ Not Started |
+| B-03 | Journal Bug Fixes | 🟢 B | 🔴 P0 | 2h | ⬜ Not Started |
+| B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ⬜ Not Started |
+| B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ⬜ Not Started |
+| B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ⬜ Not Started |
+| C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ⬜ Not Started |
+| C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ⬜ Not Started |
+| C-03 | Repo Cleanup | 🟠 C | 🔴 P0 | 2h | ⬜ Not Started |
+| C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
+| C-05 | Logging Framework | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
+| C-06 | Report & Deliverables | 🟠 C | 🔴 P0 | 6h | ⬜ Not Started |
+| | | | **Total** | **75h** | |
+
+> **Workload per dev:** Dev A ~34h, Dev B ~19h, Dev C ~26h. Dev B has lighter load — pick up overflow from A or C as needed.
