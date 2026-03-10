@@ -216,11 +216,11 @@ On conference/journal profile pages, the year range filter only affects the pape
 SQL views `vw_category_yearly_conf` and `vw_category_yearly_journal` exist but have no API routes. These are needed for the category linecharts.
 
 ### Acceptance Criteria
-- [ ] New route: `GET /api/charts/category/conference` → returns JSON with yearly data grouped by `for_code`
-- [ ] New route: `GET /api/charts/category/journal` → returns JSON with yearly data grouped by `area_id`
-- [ ] Optional query param `?for_code=4605` or `?area_id=3` to filter to specific category
-- [ ] Use `@cache.cached(timeout=3600)` since this data is static
-- [ ] Response format:
+- [x] New route: `GET /api/charts/category/conference` → returns JSON with yearly data grouped by `for_code`
+- [x] New route: `GET /api/charts/category/journal` → returns JSON with yearly data grouped by `area_id`
+- [x] Optional query param `?for_code=4605` or `?area_id=3` to filter to specific category
+- [x] Use `@cache.cached(timeout=3600)` since this data is static
+- [x] Response format:
 
 ```json
 {
@@ -254,10 +254,10 @@ SQL views `vw_category_yearly_conf` and `vw_category_yearly_journal` exist but h
 The spec requires bar charts comparing total/avg papers and avg authors across selected venues. Need a flexible endpoint.
 
 ### Acceptance Criteria
-- [ ] New route: `GET /api/charts/venues/bar?ids=1,2,3&type=conference`
-- [ ] Returns: for each venue, `total_papers`, `avg_papers_per_year`, `avg_authors_per_year`
-- [ ] Works for both conferences and journals (based on `type` param)
-- [ ] Validate that `ids` are integers, cap at 20 venues max
+- [x] New route: `GET /api/charts/venues/bar?ids=1,2,3&type=conference`
+- [x] Returns: for each venue, `total_papers`, `avg_papers_per_year`, `avg_authors_per_year`
+- [x] Works for both conferences and journals (based on `type` param)
+- [x] Validate that `ids` are integers, cap at 20 venues max
 
 ### Files to Modify
 | File | Change |
@@ -632,8 +632,8 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ⬜ Not Started |
 | A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ⬜ Not Started |
 | A-06 | Chart Year Filtering | 🔵 A | 🟡 P1 | 4h | ⬜ Not Started |
-| B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ⬜ Not Started |
-| B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ⬜ Not Started |
+| B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ✅ Done |
+| B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ✅ Done |
 | B-03 | Journal Bug Fixes | 🟢 B | 🔴 P0 | 2h | ⬜ Not Started |
 | B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ⬜ Not Started |
 | B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ⬜ Not Started |
