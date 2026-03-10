@@ -147,3 +147,140 @@ def get_venues_bar():
     finally:
         if conn:
             conn.close()
+
+
+@charts_bp.route('/category/conference', methods=['GET'])
+@cache.cached(timeout=3600, query_string=True)
+def get_category_conference():
+    """
+    Get conference category data for linecharts.
+
+    Query params:
+        for_code: optional filter by PrimaryFoR code (e.g., "4605")
+    """
+    for_code = request.args.get('for_code', '')
+
+    conn = get_db_connection()
+    try:
+        if for_code:
+            # Filter to specific category
+            # Note: view already JOINs primary_for, so description is available
+            query = """
+            SELECT
+                for_code AS code,
+                description,
+                year,
+                conf_count,
+                paper_count
+            FROM vw_category_yearly_conf
+            WHERE for_code = %s
+            ORDER BY year ASC
+            """
+            data = execute_query(conn, query, (for_code,))
+        else:
+            # All categories
+            query = """
+            SELECT
+                for_code AS code,
+                description,
+                year,
+                conf_count,
+                paper_count
+            FROM vw_category_yearly_conf
+            ORDER BY for_code, year ASC
+            """
+            data = execute_query(conn, query)
+
+        # Group by category & normalize response format
+        categories = {}
+        for row in data:
+            code = row['code']
+            if code not in categories:
+                categories[code] = {
+                    'code': code,
+                    'description': row.get('description', ''),
+                    'yearly_data': []
+                }
+            categories[code]['yearly_data'].append({
+                'year': row['year'],
+                'venue_count': row['conf_count'],  # Normalized to venue_count
+                'paper_count': row['paper_count']
+            })
+
+        return jsonify({'categories': list(categories.values())})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@charts_bp.route('/category/journal', methods=['GET'])
+@cache.cached(timeout=3600, query_string=True)
+def get_category_journal():
+    """
+    Get journal category data for linecharts.
+
+    Query params:
+        area_id: optional filter by subject area ID (e.g., 3)
+    """
+    area_id = request.args.get('area_id', '')
+
+    conn = get_db_connection()
+    try:
+        if area_id:
+            try:
+                area_id = int(area_id)
+            except ValueError:
+                return jsonify({'error': 'Invalid area_id'}), 400
+
+            # Note: view already JOINs best_subject_area, so description is available
+            query = """
+            SELECT
+                area_id AS code,
+                area_name AS description,
+                year,
+                journal_count,
+                paper_count
+            FROM vw_category_yearly_journal
+            WHERE area_id = %s
+            ORDER BY year ASC
+            """
+            data = execute_query(conn, query, (area_id,))
+        else:
+            query = """
+            SELECT
+                area_id AS code,
+                area_name AS description,
+                year,
+                journal_count,
+                paper_count
+            FROM vw_category_yearly_journal
+            ORDER BY area_id, year ASC
+            """
+            data = execute_query(conn, query)
+
+        # Group by category & normalize response format
+        categories = {}
+        for row in data:
+            code = row['code']
+            if code not in categories:
+                categories[code] = {
+                    'code': code,
+                    'description': row.get('description', ''),
+                    'yearly_data': []
+                }
+            categories[code]['yearly_data'].append({
+                'year': row['year'],
+                'venue_count': row['journal_count'],  # Normalized to venue_count
+                'paper_count': row['paper_count']
+            })
+
+        return jsonify({'categories': list(categories.values())})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
