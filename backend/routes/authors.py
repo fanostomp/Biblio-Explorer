@@ -1,21 +1,34 @@
 from flask import Blueprint, jsonify, request
 from db import get_db_connection, execute_query
+import re
 
 authors_bp = Blueprint('authors', __name__)
 
 @authors_bp.route('/search', methods=['GET'])
 def search_authors():
-    """Server-side search for authors (needed because there are 1.4M+ authors)."""
-    q = request.args.get('q', '')
+    """Server-side search for authors (needed because there are 1.4M+ authors) with input sanitization."""
+    q = request.args.get('q', '').strip()
     if len(q) < 3:
         return jsonify([])
+
+    # Remove special chars that break MySQL Boolean Full-Text search
+    safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+
     conn = get_db_connection()
     try:
-        results = execute_query(
-            conn,
-            "SELECT author_id, name FROM authors WHERE MATCH(name) AGAINST(%s IN BOOLEAN MODE) ORDER BY name LIMIT 15",
-            (f"+{q}*",)
-        )
+        if len(safe_q) <= 3:
+            # Use LIKE for short queries (safer, no full-text needed)
+            query_sql = "SELECT author_id, name FROM authors WHERE name LIKE %s ORDER BY name LIMIT 15"
+            params = (f"%{safe_q}%",)
+        else:
+            # Use Full-Text search with sanitized input
+            query_sql = "SELECT author_id, name FROM authors WHERE MATCH(name) AGAINST(%s IN BOOLEAN MODE) ORDER BY name LIMIT 15"
+            # Split into terms and prepend + to each
+            terms = [f"+{term}*" for term in safe_q.split() if term]
+            boolean_expr = " ".join(terms)
+            params = (boolean_expr,)
+
+        results = execute_query(conn, query_sql, params)
         return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
