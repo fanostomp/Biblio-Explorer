@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from db import get_db_connection, execute_query
+import re
 
 journals_bp = Blueprint('journals', __name__)
 
@@ -16,7 +17,7 @@ def list_journals():
         total_journals = count_res['total'] if count_res else 0
 
         journals = execute_query(
-            conn, 
+            conn,
             "SELECT journal_id, title, publisher, best_quartile, sjr_index FROM journals ORDER BY sjr_index DESC LIMIT %s OFFSET %s",
             (per_page, offset)
         )
@@ -39,31 +40,31 @@ def get_profile(journal_id):
     conn = get_db_connection()
     try:
         profile = execute_query(conn, "SELECT * FROM vw_journal_profile WHERE journal_id = %s", (journal_id,), fetchone=True)
-        
+
         # Fallback: journal exists in rankings but has no DBLP papers
         if not profile:
             profile = execute_query(
                 conn,
-                """SELECT j.journal_id, j.title, j.publisher, j.best_quartile, 
-                          j.sjr_index, j.cite_score, j.h_index,
-                          bsa.area_name AS subject_area,
-                          NULL AS first_year, NULL AS last_year,
-                          0 AS total_papers, 0 AS distinct_authors,
-                          0 AS avg_authors_per_paper, 0 AS avg_papers_per_year
-                   FROM journals j
-                   LEFT JOIN best_subject_area bsa ON bsa.area_id = j.best_subject_area
-                   WHERE j.journal_id = %s""",
+                """SELECT j.journal_id, j.title, j.publisher, j.best_quartile,
+                j.sjr_index, j.cite_score, j.h_index,
+                bsa.area_name AS subject_area,
+                NULL AS first_year, NULL AS last_year,
+                0 AS total_papers, 0 AS distinct_authors,
+                0 AS avg_authors_per_paper, 0 AS avg_papers_per_year
+                FROM journals j
+                LEFT JOIN best_subject_area bsa ON bsa.area_id = j.best_subject_area
+                WHERE j.journal_id = %s""",
                 (journal_id,), fetchone=True
             )
-            if not profile:
-                return jsonify({'error': 'Not found'}), 404
-            
+        if not profile:
+            return jsonify({'error': 'Not found'}), 404
+
         yearly_stats = execute_query(
-            conn, 
-            "SELECT * FROM vw_journal_yearly_stats WHERE journal_id = %s ORDER BY year ASC", 
+            conn,
+            "SELECT * FROM vw_journal_yearly_stats WHERE journal_id = %s ORDER BY year ASC",
             (journal_id,)
         )
-        
+
         return jsonify({
             'profile': profile,
             'yearly_stats': yearly_stats
@@ -80,17 +81,17 @@ def get_papers(journal_id):
     page = request.args.get('page', default=1, type=int)
     per_page = request.args.get('per_page', default=50, type=int)
     offset = (page - 1) * per_page
-    
+
     base_query = "FROM papers WHERE journal_id = %s"
     params = [journal_id]
-    
+
     if start_year:
         base_query += " AND year >= %s"
         params.append(start_year)
     if end_year:
         base_query += " AND year <= %s"
         params.append(end_year)
-        
+
     conn = get_db_connection()
     try:
         # Get total for this filter
@@ -101,7 +102,7 @@ def get_papers(journal_id):
         # Get data
         data_query = "SELECT paper_id, title, year, volume, number, pages, ee, url " + base_query + " ORDER BY year DESC LIMIT %s OFFSET %s"
         data_params = params + [per_page, offset]
-        
+
         papers = execute_query(conn, data_query, tuple(data_params))
         return jsonify({
             'papers': papers,
@@ -112,23 +113,38 @@ def get_papers(journal_id):
                 'total_pages': (total_records + per_page - 1) // per_page
             }
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
 
 @journals_bp.route('/search', methods=['GET'])
 def search_journals():
-    """Server-side search for journals using Full-Text index."""
-    q = request.args.get('q', '')
+    """Server-side search for journals using Full-Text index with input sanitization."""
+    q = request.args.get('q', '').strip()
     if not q:
         return jsonify([])
-    
+
+    # Remove special chars that break MySQL Boolean Full-Text search
+    safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+    if not safe_q:
+        return jsonify([])
+
     conn = get_db_connection()
     try:
-        results = execute_query(
-            conn,
-            "SELECT journal_id, title FROM journals WHERE MATCH(title) AGAINST(%s IN BOOLEAN MODE) ORDER BY title LIMIT 15",
-            (f"+{q}*",)
-        )
+        if len(safe_q) <= 3:
+            # Use LIKE for short queries (safer, no full-text needed)
+            query_sql = "SELECT journal_id, title FROM journals WHERE title LIKE %s ORDER BY title LIMIT 15"
+            params = (f"%{safe_q}%",)
+        else:
+            # Use Full-Text search with sanitized input
+            query_sql = "SELECT journal_id, title FROM journals WHERE MATCH(title) AGAINST(%s IN BOOLEAN MODE) ORDER BY title LIMIT 15"
+            # Split into terms and prepend + to each
+            terms = [f"+{term}*" for term in safe_q.split() if term]
+            boolean_expr = " ".join(terms)
+            params = (boolean_expr,)
+
+        results = execute_query(conn, query_sql, params)
         return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
