@@ -11,35 +11,25 @@
     <label>Entity Type:</label>
     <select
       id="entityTypeSel"
-      style="
-        padding: 0.5rem;
-        background: var(--surface-color);
-        color: var(--text-color);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-      "
+      class="filter-select"
     >
       <option value="conference">Conferences</option>
       <option value="journal">Journals</option>
     </select>
   </div>
-  <div class="filter-group search-section" style="margin: 0; min-width: 300px">
+  <div class="filter-group search-section comparison-search">
     <input
       type="text"
       id="addEntitySearch"
+      class="search-input-compact"
       placeholder="Search to add to comparison..."
       autocomplete="off"
-      style="padding: 0.5rem 1rem"
     />
     <ul id="addEntityDropdown" class="autocomplete-list"></ul>
   </div>
   <button
     id="clearComparisonBtn"
-    class="btn"
-    style="
-      background: rgba(255, 0, 0, 0.2);
-      border: 1px solid rgba(255, 0, 0, 0.4);
-    "
+    class="btn btn-danger"
   >
     Clear All
   </button>
@@ -47,19 +37,15 @@
 
 <!-- Comparison Badges Area -->
 <div
-  class="badges"
+  class="badges comparison-badges"
   id="selectedEntitiesList"
-  style="margin-bottom: 2rem; min-height: 40px; justify-content: flex-start"
 >
   <!-- Badges will appear here, e.g. <span class="badge category-badge">SIGMOD ✖</span> -->
 </div>
 
-<div class="chart-container full-width" style="margin-bottom: 2rem">
+<div class="chart-container full-width chart-section-spacing">
   <h3>Publisher Quartile Breakdown</h3>
-  <p
-    class="text-muted"
-    style="font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px"
-  >
+  <p class="text-muted chart-description">
     Journals count by quartile classification per publisher.
   </p>
   <div id="publisherChart">
@@ -73,14 +59,11 @@
 <div class="dashboard-grid">
   <div class="chart-container full-width">
     <h3>Comparative Publication Volume Over Time</h3>
-    <p
-      class="text-muted"
-      style="font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px"
-    >
+    <p class="text-muted chart-description">
       Number of papers published per year.
     </p>
     <div id="comparePapersChart">
-      <p style="text-align: center; color: var(--text-muted); padding: 4rem">
+      <p class="chart-empty-state">
         Search and add entities above to begin comparing.
       </p>
     </div>
@@ -88,10 +71,7 @@
 
   <div class="chart-container full-width">
     <h3>Comparative Authorship Volume Over Time</h3>
-    <p
-      class="text-muted"
-      style="font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px"
-    >
+    <p class="text-muted chart-description">
       Number of unique authors participating per year.
     </p>
     <div id="compareAuthorsChart"></div>

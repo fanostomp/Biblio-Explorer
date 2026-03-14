@@ -281,6 +281,7 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
     const colors = options.colors || ["#2563eb", "#38bdf8", "#fde047", "#f43f5e"];
     const isGrouped = options.grouped || false;
     const showLegend = options.legend !== false;
+    const formatLabel = options.labelFormatter || (key => key);
 
     const margin = {top: 40, right: 30, bottom: (xKey.includes('name') || xKey.includes('publisher')) ? 100 : 50, left: 60};
     const container = document.querySelector(containerSelector);
@@ -335,7 +336,7 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
     });
     
     const y = d3.scaleLinear()
-        .domain([0, maxY * 1.1])
+        .domain([0, (maxY || 0) * 1.1])
         .rangeRound([height, 0]);
 
     svg.append("g")
@@ -375,7 +376,7 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
             .on("mouseover", function(event, d) {
                 d3.select(this).attr("opacity", 0.8);
                 tooltip.transition().duration(200).style("opacity", .9);
-                tooltip.html(`<strong>${d[xKey]}</strong><br/>${key.replace('_count', '').toUpperCase()}: ${d[key]}`)
+                tooltip.html(`<strong>${d[xKey]}</strong><br/>${formatLabel(key)}: ${d[key]}`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
             })
@@ -393,8 +394,7 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
     // Legend
     if (showLegend && yKeys.length > 1) {
         const legend = svg.append("g")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", 12)
+            .attr("class", "chart-legend")
             .attr("text-anchor", "end")
             .selectAll("g")
             .data(yKeys.slice().reverse())
@@ -413,7 +413,7 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
             .attr("y", 9.5)
             .attr("dy", "0.32em")
             .attr("fill", "var(--text-color)")
-            .text(d => d.replace('_count', '').toUpperCase());
+            .text(d => formatLabel(d));
     }
 };
 

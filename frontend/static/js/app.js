@@ -615,14 +615,19 @@ async function loadPublisherBarChart() {
         if (data.publishers && data.publishers.length > 0 && window.drawBarChart) {
             drawBarChart('#publisherChart', data.publishers, 'publisher', 
                 ['q1_count', 'q2_count', 'q3_count', 'q4_count'], 
-                { colors: ['#10b981', '#fde047', '#f97316', '#ef4444'], legend: true, grouped: true }
+                { 
+                    colors: ['#10b981', '#fde047', '#f97316', '#ef4444'], 
+                    legend: true, 
+                    grouped: true,
+                    labelFormatter: (key) => key.replace('_count', '').toUpperCase()
+                }
             );
         } else {
-            document.getElementById('publisherChart').innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No publisher data available.</p>';
+            document.getElementById('publisherChart').innerHTML = '<p class="chart-no-data">No publisher data available.</p>';
         }
     } catch (err) {
         console.error("Failed to load publisher bar chart:", err);
-        document.getElementById('publisherChart').innerHTML = '<p style="text-align: center; color: #ff5555; padding: 2rem;">Failed to load data.</p>';
+        document.getElementById('publisherChart').innerHTML = '<p class="chart-error">Failed to load data.</p>';
     }
 }
 
