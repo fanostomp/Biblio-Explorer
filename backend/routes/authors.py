@@ -8,11 +8,13 @@ authors_bp = Blueprint('authors', __name__)
 def search_authors():
     """Server-side search for authors (needed because there are 1.4M+ authors) with input sanitization."""
     q = request.args.get('q', '').strip()
-    if len(q) < 3:
+    if not q:
         return jsonify([])
 
     # Remove special chars that break MySQL Boolean Full-Text search
     safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+    if not safe_q:
+        return jsonify([])
 
     conn = get_db_connection()
     try:

@@ -127,6 +127,8 @@ def search_journals():
 
     # Remove special chars that break MySQL Boolean Full-Text search
     safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+    if not safe_q:
+        return jsonify([])
 
     conn = get_db_connection()
     try:
