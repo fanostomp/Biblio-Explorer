@@ -601,6 +601,34 @@ function initChartsPage() {
         state.compareEntities = [];
         updateComparisonUI();
     });
+
+    loadPublisherBarChart(); // Initialize new bar chart
+}
+
+async function loadPublisherBarChart() {
+    try {
+        const res = await fetch('/api/charts/publishers/bar');
+        const data = await res.json();
+        const spinner = document.getElementById('publisherSpinner');
+        if (spinner) spinner.style.display = 'none';
+
+        if (data.publishers && data.publishers.length > 0 && window.drawBarChart) {
+            drawBarChart('#publisherChart', data.publishers, 'publisher', 
+                ['q1_count', 'q2_count', 'q3_count', 'q4_count'], 
+                { 
+                    colors: ['#10b981', '#fde047', '#f97316', '#ef4444'], 
+                    legend: true, 
+                    grouped: true,
+                    labelFormatter: (key) => key.replace('_count', '').toUpperCase()
+                }
+            );
+        } else {
+            document.getElementById('publisherChart').innerHTML = '<p class="chart-no-data">No publisher data available.</p>';
+        }
+    } catch (err) {
+        console.error("Failed to load publisher bar chart:", err);
+        document.getElementById('publisherChart').innerHTML = '<p class="chart-error">Failed to load data.</p>';
+    }
 }
 
 function setupComparisonAutocomplete() {

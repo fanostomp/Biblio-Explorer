@@ -426,3 +426,69 @@ tr:hover td {
     font-size: 0.9rem;
 }
 
+/* Custom Chart UI */
+.chart-error {
+    text-align: center;
+    color: #ff5555;
+    padding: 2rem;
+}
+
+.chart-no-data {
+    text-align: center; 
+    color: var(--text-muted); 
+    padding: 2rem;
+}
+
+.chart-legend {
+    font-family: sans-serif;
+    font-size: 12px;
+}
+
+.chart-section-spacing {
+    margin-bottom: 2rem;
+}
+
+.chart-description {
+    font-size: 0.85rem;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+.chart-empty-state {
+    text-align: center; 
+    color: var(--text-muted); 
+    padding: 4rem;
+}
+
+/* Comparison UI Modifiers */
+.filter-select {
+    padding: 0.5rem; 
+    background: var(--surface-color); 
+    color: var(--text-color); 
+    border: 1px solid rgba(255,255,255,0.2); 
+    border-radius: 6px;
+}
+
+.comparison-search {
+    margin: 0; 
+    min-width: 300px;
+}
+
+.search-input-compact {
+    padding: 0.5rem 1rem !important;
+}
+
+.comparison-badges {
+    margin-bottom: 2rem; 
+    min-height: 40px; 
+    justify-content: flex-start;
+}
+
+.btn-danger {
+    background: rgba(255, 0, 0, 0.2) !important; 
+    border: 1px solid rgba(255, 0, 0, 0.4) !important;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 0, 0, 0.4) !important;
+}
