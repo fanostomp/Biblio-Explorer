@@ -267,3 +267,153 @@ window.drawMultiLineChart = function(containerSelector, multiSeriesData, xKey, y
         .duration(500)
         .style("opacity", 1);
 };
+
+/**
+ * Reusable D3.js Bar Chart Renderer 
+ * Supports simple bar charts and grouped bar charts for comparison.
+ * Option parameters:
+ *   - colors: Array of hex color strings mapped to yKeys.
+ *   - grouped: Boolean ensuring side-by-side grouped bars for multiple keys.
+ *   - legend: Boolean to draw legend based on yKeys.
+ */
+window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {}) {
+    // Defaults
+    const colors = options.colors || ["#2563eb", "#38bdf8", "#fde047", "#f43f5e"];
+    const isGrouped = options.grouped || false;
+    const showLegend = options.legend !== false;
+
+    const margin = {top: 40, right: 30, bottom: (xKey.includes('name') || xKey.includes('publisher')) ? 100 : 50, left: 60};
+    const container = document.querySelector(containerSelector);
+    if (!container || !data || data.length === 0) return;
+    
+    // Clear previous
+    d3.select(containerSelector).selectAll("*").remove();
+
+    const totalWidth = container.clientWidth || 800;
+    const totalHeight = 500;
+    const width = totalWidth - margin.left - margin.right;
+    const height = totalHeight - margin.top - margin.bottom;
+
+    const svg = d3.select(containerSelector)
+        .append("svg")
+        .attr("viewBox", `0 0 ${totalWidth} ${totalHeight}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("width", "100%")
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Main X scale for the categories (e.g., publisher name)
+    const x0 = d3.scaleBand()
+        .domain(data.map(d => d[xKey]))
+        .rangeRound([0, width])
+        .paddingInner(0.2);
+
+    // Sub X scale for grouped bars within each category
+    const x1 = d3.scaleBand()
+        .domain(yKeys)
+        .rangeRound([0, x0.bandwidth()])
+        .padding(0.05);
+
+    // Draw X Axis
+    const xAxis = svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x0));
+        
+    // Slanted text if we expect long labels
+    if (xKey.includes('name') || xKey.includes('publisher')) {
+        xAxis.selectAll("text")
+            .attr("y", 10)
+            .attr("x", -5)
+            .attr("dy", ".35em")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end");
+    }
+
+    // Y Scale must start from 0
+    let maxY = d3.max(data, d => {
+        return d3.max(yKeys, key => Number(d[key]));
+    });
+    
+    const y = d3.scaleLinear()
+        .domain([0, maxY * 1.1])
+        .rangeRound([height, 0]);
+
+    svg.append("g")
+        .call(d3.axisLeft(y).ticks(6));
+
+    // Color scale mapping keys to provided colors
+    const colorScale = d3.scaleOrdinal()
+        .domain(yKeys)
+        .range(colors);
+
+    const tooltip = chartTooltip();
+
+    // Add Groups map to data
+    const barGroups = svg.append("g")
+        .selectAll("g")
+        .data(data)
+        .enter().append("g")
+        .attr("transform", d => `translate(${x0(d[xKey])},0)`);
+
+    // Determine scale and width based on whether it is grouped or simple
+    const getX = isGrouped ? (key) => x1(key) : () => 0;
+    const getWidth = isGrouped ? x1.bandwidth() : x0.bandwidth();
+
+    // Map the actual nested rects
+    yKeys.forEach((key, ind) => {
+        barGroups.selectAll(`.rect-${key}`)
+            .data(d => [d])
+            .enter().append("rect")
+            .attr("class", `rect-${key}`)
+            .attr("x", () => getX(key))
+            .attr("y", height) // Start from bottom for animation
+            .attr("width", getWidth)
+            .attr("height", 0) // Start with 0 height
+            .attr("fill", colorScale(key))
+            .attr("rx", 3) // Rounded corners at top
+            .attr("ry", 3)
+            .on("mouseover", function(event, d) {
+                d3.select(this).attr("opacity", 0.8);
+                tooltip.transition().duration(200).style("opacity", .9);
+                tooltip.html(`<strong>${d[xKey]}</strong><br/>${key.replace('_count', '').toUpperCase()}: ${d[key]}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this).attr("opacity", 1);
+                tooltip.transition().duration(500).style("opacity", 0);
+            })
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 50 + (ind * 100))
+            .attr("y", d => y(d[key]))
+            .attr("height", d => height - y(d[key]));
+    });
+
+    // Legend
+    if (showLegend && yKeys.length > 1) {
+        const legend = svg.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 12)
+            .attr("text-anchor", "end")
+            .selectAll("g")
+            .data(yKeys.slice().reverse())
+            .enter().append("g")
+            .attr("transform", (d, i) => `translate(0,${i * 20})`);
+
+        legend.append("rect")
+            .attr("x", width - 19)
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("rx", 3)
+            .attr("fill", colorScale);
+
+        legend.append("text")
+            .attr("x", width - 24)
+            .attr("y", 9.5)
+            .attr("dy", "0.32em")
+            .attr("fill", "var(--text-color)")
+            .text(d => d.replace('_count', '').toUpperCase());
+    }
+};
+
