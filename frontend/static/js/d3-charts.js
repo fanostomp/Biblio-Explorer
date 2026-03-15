@@ -408,6 +408,7 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
             .attr("rx", 3)
             .attr("fill", colorScale);
 
+
         legend.append("text")
             .attr("x", width - 24)
             .attr("y", 9.5)
@@ -417,3 +418,186 @@ window.drawBarChart = function(containerSelector, data, xKey, yKeys, options = {
     }
 };
 
+/**
+ * Reusable D3.js Scatter Plot Renderer
+ * Correlates two metrics and visualizes data points with tooltips and optional categorization.
+ */
+window.drawScatterPlot = function(containerSelector, data, xKey, yKey, options = {}) {
+    const margin = {top: 30, right: 30, bottom: 50, left: 60};
+    const container = document.querySelector(containerSelector);
+    if (!container || !data || data.length === 0) return;
+    
+    // Clear previous chart
+    d3.select(containerSelector).selectAll("*").remove();
+    
+    const totalWidth = container.clientWidth || 800;
+    const totalHeight = 500;
+    const width = totalWidth - margin.left - margin.right;
+    const height = totalHeight - margin.top - margin.bottom;
+
+    const svg = d3.select(containerSelector)
+        .append("svg")
+        .attr("viewBox", `0 0 ${totalWidth} ${totalHeight}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("width", "100%")
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Ensure numeric data and skip invalid/null values
+    const cleanData = data.filter(d => 
+        d[xKey] != null && d[yKey] != null && 
+        !isNaN(d[xKey]) && !isNaN(d[yKey])
+    ).map(d => ({
+        ...d,
+        xVal: Number(d[xKey]),
+        yVal: Number(d[yKey])
+    }));
+
+    if (cleanData.length === 0) {
+        document.querySelector(containerSelector).innerHTML = '<p class="chart-no-data">Insufficient numeric data for scatter plot.</p>';
+        return;
+    }
+
+    // Determine domains allowing a bit of padding
+    const xDomain = d3.extent(cleanData, d => d.xVal);
+    const yDomain = d3.extent(cleanData, d => d.yVal);
+    
+    // Add 5% padding to domain
+    const xPadding = (xDomain[1] - xDomain[0]) * 0.05;
+    const yPadding = (yDomain[1] - yDomain[0]) * 0.05;
+
+    const x = d3.scaleLinear()
+        .domain([Math.max(0, xDomain[0] - xPadding), xDomain[1] + xPadding])
+        .range([0, width]);
+
+    const y = d3.scaleLinear()
+        .domain([Math.max(0, yDomain[0] - yPadding), yDomain[1] + yPadding])
+        .range([height, 0]);
+
+    // Draw X Axis
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x).ticks(8))
+        .call(g => g.select(".domain").attr("stroke", "var(--text-muted)"))
+        .call(g => g.selectAll(".tick line").attr("stroke", "var(--text-muted)"));
+
+    // Draw Y Axis
+    svg.append("g")
+        .call(d3.axisLeft(y).ticks(8))
+        .call(g => g.select(".domain").attr("stroke", "var(--text-muted)"))
+        .call(g => g.selectAll(".tick line").attr("stroke", "var(--text-muted)"));
+        
+    // Format labels mapping keys to readable names
+    const formatLabel = options.labelFormatter || (key => {
+        const map = {
+            'total_docs': 'Total Documents',
+            'citable_docs_3y': 'Citable Docs (3Y)',
+            'sjr_index': 'SJR Index'
+        };
+        return map[key] || key;
+    });
+
+    // Add X axis label
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 10)
+        .attr("fill", "var(--text-color)")
+        .style("font-size", "0.9rem")
+        .text(formatLabel(xKey));
+
+    // Add Y axis label
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 20)
+        .attr("x", -height / 2)
+        .attr("fill", "var(--text-color)")
+        .style("font-size", "0.9rem")
+        .text(formatLabel(yKey));
+
+    // Calculate Pearson Correlation (optional)
+    if (options.showCorrelation !== false && cleanData.length > 1) {
+        const meanX = d3.mean(cleanData, d => d.xVal);
+        const meanY = d3.mean(cleanData, d => d.yVal);
+        let num = 0, denX = 0, denY = 0;
+        cleanData.forEach(d => {
+            const dx = d.xVal - meanX;
+            const dy = d.yVal - meanY;
+            num += dx * dy;
+            denX += dx * dx;
+            denY += dy * dy;
+        });
+        const denominator = denX * denY;
+        
+        if (denominator > 0) {
+            const r = num / Math.sqrt(denominator);
+            svg.append("text")
+                .attr("x", width)
+                .attr("y", 10)
+                .attr("text-anchor", "end")
+                .attr("fill", "var(--text-muted)")
+                .style("font-size", "0.85rem")
+                .text(`r ≈ ${r.toFixed(2)} (${cleanData.length} records)`);
+        }
+    }
+
+    const tooltip = chartTooltip();
+    const colorKey = options.colorKey || 'best_quartile';
+    const colorMap = options.colorMap || {
+        'Q1': '#10b981',
+        'Q2': '#fde047',
+        'Q3': '#f97316',
+        'Q4': '#ef4444'
+    };
+    
+    // Add dots
+    svg.selectAll("circle")
+        .data(cleanData)
+        .enter()
+        .append("circle")
+        .attr("cx", d => x(d.xVal))
+        .attr("cy", d => y(d.yVal))
+        .attr("r", 5)
+        .attr("fill", d => colorMap[d[colorKey]] || '#38bdf8')
+        .attr("opacity", 0) // start invisible for animation
+        .attr("stroke", "var(--background-color)")
+        .attr("stroke-width", 1)
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+              .transition().duration(200)
+              .attr("r", 8)
+              .attr("stroke", "#fff")
+              .attr("stroke-width", 2);
+              
+            tooltip.transition().duration(200).style("opacity", .9);
+            
+            // Fix tooltip rendering using the existing chartTooltip which sets innerHTML
+            tooltip.html(`
+                <div class="tooltip-title">${escapeHtml(d.title || 'Unknown')}</div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">${formatLabel(xKey)}:</span> 
+                    <strong>${d.xVal.toLocaleString()}</strong>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">${formatLabel(yKey)}:</span> 
+                    <strong>${d.yVal.toLocaleString()}</strong>
+                </div>
+                ${d[colorKey] ? `<div class="tooltip-quartile">Quartile: ${d[colorKey]}</div>` : ''}
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            d3.select(this)
+              .transition().duration(300)
+              .attr("r", 5)
+              .attr("stroke", "var(--background-color)")
+              .attr("stroke-width", 1);
+            tooltip.transition().duration(500).style("opacity", 0);
+        })
+        .transition()
+        .delay((d, i) => Math.random() * 800) // Staggered entrance
+        .duration(800)
+        .attr("opacity", 0.7);
+};
