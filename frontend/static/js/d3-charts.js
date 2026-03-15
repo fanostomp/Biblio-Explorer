@@ -528,15 +528,18 @@ window.drawScatterPlot = function(containerSelector, data, xKey, yKey, options =
             denX += dx * dx;
             denY += dy * dy;
         });
-        const r = num / Math.sqrt(denX * denY);
+        const denominator = denX * denY;
         
-        svg.append("text")
-            .attr("x", width)
-            .attr("y", 10)
-            .attr("text-anchor", "end")
-            .attr("fill", "var(--text-muted)")
-            .style("font-size", "0.85rem")
-            .text(`r ≈ ${r.toFixed(2)} (${cleanData.length} records)`);
+        if (denominator > 0) {
+            const r = num / Math.sqrt(denominator);
+            svg.append("text")
+                .attr("x", width)
+                .attr("y", 10)
+                .attr("text-anchor", "end")
+                .attr("fill", "var(--text-muted)")
+                .style("font-size", "0.85rem")
+                .text(`r ≈ ${r.toFixed(2)} (${cleanData.length} records)`);
+        }
     }
 
     const tooltip = chartTooltip();
@@ -571,16 +574,16 @@ window.drawScatterPlot = function(containerSelector, data, xKey, yKey, options =
             
             // Fix tooltip rendering using the existing chartTooltip which sets innerHTML
             tooltip.html(`
-                <div style="font-weight:bold; margin-bottom:4px; max-width:250px; white-space:normal;">${escapeHtml(d.title || 'Unknown')}</div>
-                <div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 2px;">
-                    <span style="color:var(--text-muted); margin-right: 8px;">${formatLabel(xKey)}:</span> 
+                <div class="tooltip-title">${escapeHtml(d.title || 'Unknown')}</div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">${formatLabel(xKey)}:</span> 
                     <strong>${d.xVal.toLocaleString()}</strong>
                 </div>
-                <div style="display:flex; justify-content:space-between; width:100%;">
-                    <span style="color:var(--text-muted); margin-right: 8px;">${formatLabel(yKey)}:</span> 
+                <div class="tooltip-row">
+                    <span class="tooltip-label">${formatLabel(yKey)}:</span> 
                     <strong>${d.yVal.toLocaleString()}</strong>
                 </div>
-                ${d[colorKey] ? `<div style="margin-top:4px; font-size:0.8rem; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.1);">Quartile: ${d[colorKey]}</div>` : ''}
+                ${d[colorKey] ? `<div class="tooltip-quartile">Quartile: ${d[colorKey]}</div>` : ''}
             `)
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 28) + "px");

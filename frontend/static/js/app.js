@@ -647,6 +647,7 @@ async function loadScatterPlot() {
             state.scatterData = data.scatter || [];
         } catch (err) {
             console.error("Failed to load scatter plot data:", err);
+            if (spinner) spinner.style.display = 'none';
             chartDiv.innerHTML = '<p class="chart-error">Failed to load scatter plot data.</p>';
             return;
         }

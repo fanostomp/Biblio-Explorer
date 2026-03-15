@@ -426,6 +426,32 @@ tr:hover td {
     font-size: 0.9rem;
 }
 
+/* Tooltip UI */
+.chart-tooltip .tooltip-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+    max-width: 250px;
+    white-space: normal;
+}
+.chart-tooltip .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.chart-tooltip .tooltip-row:not(:last-child) {
+    margin-bottom: 2px;
+}
+.chart-tooltip .tooltip-label {
+    color: var(--text-muted);
+    margin-right: 8px;
+}
+.chart-tooltip .tooltip-quartile {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
 /* Custom Chart UI */
 .chart-error {
     text-align: center;
