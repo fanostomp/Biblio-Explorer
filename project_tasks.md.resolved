@@ -45,12 +45,12 @@ graph LR
 The project spec **explicitly requires** bar charts for venue comparisons and publisher quartile breakdowns. Currently, no D3 bar chart function exists anywhere in the codebase.
 
 ### Acceptance Criteria
-- [ ] Create a reusable `drawBarChart(containerSelector, data, xKey, yKeys, colors)` function in [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js)
-- [ ] Support **grouped bars** (multiple series side-by-side) for the publisher quartile chart (Q1/Q2/Q3/Q4)
-- [ ] Support **simple bars** for single-metric comparisons (total papers per venue)
-- [ ] Must include: animated entrance, hover tooltips (reuse `chartTooltip()`), responsive SVG with `viewBox`
-- [ ] Y-axis **must start from 0** (as stated in project description)
-- [ ] Axis labels and legend must be readable on dark background (use CSS vars)
+- [x] Create a reusable `drawBarChart(containerSelector, data, xKey, yKeys, colors)` function in [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js)
+- [x] Support **grouped bars** (multiple series side-by-side) for the publisher quartile chart (Q1/Q2/Q3/Q4)
+- [x] Support **simple bars** for single-metric comparisons (total papers per venue)
+- [x] Must include: animated entrance, hover tooltips (reuse `chartTooltip()`), responsive SVG with `viewBox`
+- [x] Y-axis **must start from 0** (as stated in project description)
+- [x] Axis labels and legend must be readable on dark background (use CSS vars)
 
 ### Technical Spec
 
@@ -97,11 +97,11 @@ drawBarChart('#venueBarChart', venueData, 'venue_name', ['total_papers'],
 The spec requires linecharts showing "per category (PrimaryFoR/BestSubjectArea): number of conferences/journals active per year." The SQL views already exist (`vw_category_yearly_conf`, `vw_category_yearly_journal`) but have no API routes or frontend rendering.
 
 ### Acceptance Criteria
-- [ ] Add a "Category Analysis" section to the charts page (or a new `/category` page)
-- [ ] Dropdown selector for category type (PrimaryFoR for conferences, SubjectArea for journals)
-- [ ] Multi-line chart showing multiple categories over time (reuse [drawMultiLineChart](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js#164-270))
-- [ ] Optional: filter to select specific categories to compare
-- [ ] Color-code each category line with the existing color scheme
+- [x] Add a "Category Analysis" section to the charts page (or a new `/category` page)
+- [x] Dropdown selector for category type (PrimaryFoR for conferences, SubjectArea for journals)
+- [x] Multi-line chart showing multiple categories over time (reuse [drawMultiLineChart](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js#164-270))
+- [x] Optional: filter to select specific categories to compare
+- [x] Color-code each category line with the existing color scheme
 
 ### Files to Modify
 | File | Change |
@@ -626,8 +626,8 @@ Every task must satisfy ALL of the following before it can be marked complete:
 
 | ID | Task | Dev | Priority | Hours | Status |
 |---|---|---|---|---|---|
-| A-01 | D3 Bar Charts | 🔵 A | 🔴 P0 | 8h | ⬜ Not Started |
-| A-02 | Category Linecharts | 🔵 A | 🔴 P0 | 6h | ⬜ Not Started |
+| A-01 | D3 Bar Charts | 🔵 A | 🔴 P0 | 8h | ✅ Done |
+| A-02 | Category Linecharts | 🔵 A | 🔴 P0 | 6h | ✅ Done |
 | A-03 | D3 Scatter Plots | 🔵 A | 🔴 P0 | 8h | ⬜ Not Started |
 | A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ⬜ Not Started |
 | A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ⬜ Not Started |

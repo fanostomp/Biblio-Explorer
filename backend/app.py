@@ -62,6 +62,10 @@ def create_app():
     @app.route('/charts')
     def charts_page():
         return render_template('charts.html')
+    
+    @app.route('/trends')
+    def trends_page():
+        return render_template('trends.html')
 
     @app.route('/health')
     def health():

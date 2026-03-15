@@ -1,0 +1,55 @@
+{% extends 'base.html' %} {% block content %}
+<div class="profile-header">
+ <h1>Category Trends</h1>
+ <p class="text-muted">
+  Track research field activity over time
+ </p>
+</div>
+
+<div class="filters-section">
+ <div class="filter-group">
+  <label>Entity Type:</label>
+  <select id="entityTypeSel" class="filter-select">
+   <option value="conference">Conferences (PrimaryFoR)</option>
+   <option value="journal">Journals (SubjectArea)</option>
+  </select>
+ </div>
+ <div class="filter-group">
+  <label>Category:</label>
+  <select id="categorySel" class="filter-select">
+   <option value="">Loading categories...</option>
+  </select>
+ </div>
+ <button id="addCategoryBtn" class="btn btn-primary">Add to Compare</button>
+ <button id="clearBtn" class="btn btn-danger">Clear All</button>
+</div>
+
+<!-- Selected Categories Badges -->
+<div class="badges" id="selectedCategories">
+ <!-- Badges will appear here -->
+</div>
+
+<div class="chart-container full-width chart-section-spacing">
+ <h3>Category Activity Over Time</h3>
+ <p class="text-muted chart-description">
+  Number of active venues per year by research category.
+ </p>
+ <div id="categoryTrendsChart">
+ <p class="chart-empty-state">Select a category above to view trends.</p>
+  <div class="spinner-container" id="chartSpinner" style="display: none;">
+   <div class="spinner"></div>
+   <p class="text-muted">Loading...</p>
+  </div>
+ </div>
+</div>
+
+<div class="chart-container full-width">
+ <h3>Publication Volume by Category</h3>
+ <p class="text-muted chart-description">
+  Number of papers published per year by research category.
+ </p>
+ <div id="categoryPapersChart">
+ <p class="chart-empty-state">Select a category above to view publication trends.</p>
+</div>
+</div>
+{% endblock %}

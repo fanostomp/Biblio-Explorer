@@ -156,16 +156,32 @@ def get_category_conference():
     Get conference category data for linecharts.
 
     Query params:
-        for_code: optional filter by PrimaryFoR code (e.g., "4605")
+        for_codes: optional comma-separated list of PrimaryFoR codes (e.g., "4605,4606")
+        list_only: if true, returns only code and description without chart data.
     """
-    for_code = request.args.get('for_code', '')
+    for_codes = request.args.get('for_codes', '')
+    list_only = request.args.get('list_only', 'false').lower() == 'true'
 
     conn = get_db_connection()
     try:
-        if for_code:
-            # Filter to specific category
-            # Note: view already JOINs primary_for, so description is available
+        if list_only:
             query = """
+            SELECT DISTINCT c.primary_for AS code, pf.description 
+            FROM conferences c
+            JOIN primary_for pf ON pf.for_code = c.primary_for
+            ORDER BY pf.description ASC
+            """
+            data = execute_query(conn, query)
+            return jsonify({'categories': data})
+
+        if for_codes:
+            # Filter to specific categories (keep as string to preserve leading zeros)
+            code_list = [c.strip() for c in for_codes.split(',') if c.strip().isalnum()]
+            if not code_list:
+                return jsonify({'categories': []})
+            
+            in_clause = ','.join(['%s'] * len(code_list))
+            query = f"""
             SELECT
                 for_code AS code,
                 description,
@@ -173,10 +189,10 @@ def get_category_conference():
                 conf_count,
                 paper_count
             FROM vw_category_yearly_conf
-            WHERE for_code = %s
+            WHERE for_code IN ({in_clause})
             ORDER BY year ASC
             """
-            data = execute_query(conn, query, (for_code,))
+            data = execute_query(conn, query, tuple(code_list))
         else:
             # All categories
             query = """
@@ -223,20 +239,31 @@ def get_category_journal():
     Get journal category data for linecharts.
 
     Query params:
-        area_id: optional filter by subject area ID (e.g., 3)
+        area_ids: optional comma-separated list of subject area IDs (e.g., "3,4")
+        list_only: if true, returns only code and description without chart data.
     """
-    area_id = request.args.get('area_id', '')
+    area_ids = request.args.get('area_ids', '')
+    list_only = request.args.get('list_only', 'false').lower() == 'true'
 
     conn = get_db_connection()
     try:
-        if area_id:
-            try:
-                area_id = int(area_id)
-            except ValueError:
-                return jsonify({'error': 'Invalid area_id'}), 400
-
-            # Note: view already JOINs best_subject_area, so description is available
+        if list_only:
             query = """
+            SELECT DISTINCT j.best_subject_area AS code, bsa.area_name AS description
+            FROM journals j
+            JOIN best_subject_area bsa ON bsa.area_id = j.best_subject_area
+            ORDER BY bsa.area_name ASC
+            """
+            data = execute_query(conn, query)
+            return jsonify({'categories': data})
+
+        if area_ids:
+            code_list = [int(c.strip()) for c in area_ids.split(',') if c.strip().isdigit()]
+            if not code_list:
+                return jsonify({'categories': []})
+
+            in_clause = ','.join(['%s'] * len(code_list))
+            query = f"""
             SELECT
                 area_id AS code,
                 area_name AS description,
@@ -244,10 +271,10 @@ def get_category_journal():
                 journal_count,
                 paper_count
             FROM vw_category_yearly_journal
-            WHERE area_id = %s
+            WHERE area_id IN ({in_clause})
             ORDER BY year ASC
             """
-            data = execute_query(conn, query, (area_id,))
+            data = execute_query(conn, query, tuple(code_list))
         else:
             query = """
             SELECT
