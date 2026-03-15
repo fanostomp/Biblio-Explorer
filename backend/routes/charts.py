@@ -177,7 +177,6 @@ def get_category_conference():
         if for_codes:
             # Filter to specific categories (keep as string to preserve leading zeros)
             code_list = [c.strip() for c in for_codes.split(',') if c.strip().isalnum()]
-            print("DEBUG: for_codes code_list: ", code_list, flush=True)
             if not code_list:
                 return jsonify({'categories': []})
             

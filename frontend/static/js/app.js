@@ -860,7 +860,7 @@ function updateCategoryBadges() {
  state.categoryTrends.forEach((cat, i) => {
   const badge = document.createElement('span');
   badge.className = 'badge category-badge';
-  badge.innerHTML = `${cat.name} <span style="cursor:pointer; margin-left:5px; color:#ff5555;">&#10005;</span>`;
+  badge.innerHTML = `${cat.name} <span class="badge-remove-icon">&#10005;</span>`;
   badge.querySelector('span').onclick = () => {
    state.categoryTrends.splice(i, 1);
    updateCategoryBadges();

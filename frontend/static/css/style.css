@@ -492,3 +492,9 @@ tr:hover td {
 .btn-danger:hover {
     background: rgba(255, 0, 0, 0.4) !important;
 }
+
+.badge-remove-icon {
+    cursor: pointer;
+    margin-left: 5px;
+    color: #ff5555;
+}
