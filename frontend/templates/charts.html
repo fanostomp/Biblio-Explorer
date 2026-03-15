@@ -77,4 +77,40 @@
     <div id="compareAuthorsChart"></div>
   </div>
 </div>
+
+<div class="chart-container full-width chart-section-spacing">
+  <div class="chart-header-row">
+    <div>
+      <h3>Journal Metrics Correlation</h3>
+      <p class="text-muted chart-description">
+        Scatter plot analyzing relationships between journal performance metrics.
+      </p>
+    </div>
+    <div class="chart-controls">
+      <div>
+        <label for="scatterX" class="chart-control-label">X-Axis:</label>
+        <select id="scatterX" class="filter-select scatter-select">
+          <option value="total_docs" selected>Total Documents</option>
+          <option value="citable_docs_3y">Citable Docs (3Y)</option>
+          <option value="sjr_index">SJR Index</option>
+        </select>
+      </div>
+      <div>
+        <label for="scatterY" class="chart-control-label">Y-Axis:</label>
+        <select id="scatterY" class="filter-select scatter-select">
+          <option value="citable_docs_3y">Citable Docs (3Y)</option>
+          <option value="sjr_index" selected>SJR Index</option>
+          <option value="total_docs">Total Documents</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div id="scatterChart">
+    <div class="spinner-container" id="scatterSpinner">
+      <div class="spinner"></div>
+      <p class="text-muted">Loading...</p>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

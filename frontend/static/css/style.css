@@ -498,3 +498,27 @@ tr:hover td {
     margin-left: 5px;
     color: #ff5555;
 }
+
+/* Scatter Plot Controls */
+.chart-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.chart-control-label {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.scatter-select {
+    min-width: 150px;
+}

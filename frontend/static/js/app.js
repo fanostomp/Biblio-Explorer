@@ -41,7 +41,8 @@ const state = {
     selectedConf: null,
     selectedJournal: null,
     selectedAuthor: null,
-    compareEntities: [] // stores {type, id, title, color} for line chart comparison
+    compareEntities: [], // stores {type, id, title, color} for line chart comparison
+    scatterData: null // stores {scatter: [...]} for the scatter plot
 };
 
 // --- Initialization ---
@@ -604,6 +605,7 @@ function initChartsPage() {
     });
 
     loadPublisherBarChart(); // Initialize new bar chart
+    loadScatterPlot(); // Initialize scatter plot
 }
 
 async function loadPublisherBarChart() {
@@ -629,6 +631,57 @@ async function loadPublisherBarChart() {
     } catch (err) {
         console.error("Failed to load publisher bar chart:", err);
         document.getElementById('publisherChart').innerHTML = '<p class="chart-error">Failed to load data.</p>';
+    }
+}
+
+async function loadScatterPlot() {
+    const spinner = document.getElementById('scatterSpinner');
+    const chartDiv = document.getElementById('scatterChart');
+    if (spinner) spinner.style.display = 'flex';
+
+    if (!state.scatterData) {
+        try {
+            const res = await fetch('/api/charts/scatter/metrics');
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            state.scatterData = data.scatter || [];
+        } catch (err) {
+            console.error("Failed to load scatter plot data:", err);
+            chartDiv.innerHTML = '<p class="chart-error">Failed to load scatter plot data.</p>';
+            return;
+        }
+    }
+
+    if (spinner) spinner.style.display = 'none';
+
+    if (state.scatterData.length === 0) {
+        chartDiv.innerHTML = '<p class="chart-no-data">No data available for scatter plot.</p>';
+        return;
+    }
+
+    // Render immediately based on selected metrics
+    renderScatterPlot();
+
+    // Bind event listeners to dropdowns (unbind first to prevent multiple firings)
+    const xSelect = document.getElementById('scatterX');
+    const ySelect = document.getElementById('scatterY');
+    
+    if (xSelect) {
+        xSelect.removeEventListener('change', renderScatterPlot);
+        xSelect.addEventListener('change', renderScatterPlot);
+    }
+    if (ySelect) {
+        ySelect.removeEventListener('change', renderScatterPlot);
+        ySelect.addEventListener('change', renderScatterPlot);
+    }
+}
+
+function renderScatterPlot() {
+    const xKey = document.getElementById('scatterX')?.value || 'total_docs';
+    const yKey = document.getElementById('scatterY')?.value || 'sjr_index';
+    
+    if (window.drawScatterPlot && state.scatterData && state.scatterData.length > 0) {
+        window.drawScatterPlot('#scatterChart', state.scatterData, xKey, yKey);
     }
 }
 
