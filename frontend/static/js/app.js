@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (path === '/author') initAuthorPage();
     if (path === '/year') initYearPage();
     if (path === '/charts') initChartsPage();
+    if (path === '/trends') initTrendsPage();
     
     // Dashboard real chart on index page
     if (path === '/' && document.getElementById('chart')) {
@@ -758,4 +759,178 @@ async function updateComparisonUI() {
         hideSpinner('comparePapersChart');
         console.error("Comparison Error", err);
     }
+}
+
+// ==================== TRENDS PAGE ====================
+// Maximum categories to show in dropdown
+const MAX_CATEGORIES_DISPLAY = 27;
+
+function initTrendsPage() {
+ // Initialize category trends page
+ const entityTypeSel = document.getElementById('entityTypeSel');
+ const categorySel = document.getElementById('categorySel');
+ const addBtn = document.getElementById('addCategoryBtn');
+ const clearBtn = document.getElementById('clearBtn');
+
+ // State for selected categories
+ state.categoryTrends = [];
+
+ // Load categories based on entity type
+ if (entityTypeSel) {
+  entityTypeSel.addEventListener('change', () => {
+   // Clear state when entity type changes to avoid mixing conference/journal categories
+   state.categoryTrends = [];
+   updateCategoryBadges();
+  // Restore empty state messages
+  document.getElementById('categoryTrendsChart').innerHTML = '<p class="chart-empty-state">Select a category above to view trends.</p>';
+  document.getElementById('categoryPapersChart').innerHTML = '<p class="chart-empty-state">Select a category above to view publication trends.</p>';
+ const spinner = document.getElementById('chartSpinner');
+ if (spinner) spinner.style.display = 'flex';
+   loadCategoryOptions(entityTypeSel.value);
+  });
+  // Initial load
+  loadCategoryOptions('conference');
+ }
+
+ // Add category button
+ if (addBtn) {
+  addBtn.addEventListener('click', () => {
+   const categoryCode = categorySel.value;
+   const categoryName = categorySel.options[categorySel.selectedIndex].text;
+   if (categoryCode && !state.categoryTrends.find(c => c.code === categoryCode)) {
+    state.categoryTrends.push({ code: categoryCode, name: categoryName });
+    updateCategoryBadges();
+    loadCategoryChartData();
+   }
+  });
+ }
+
+ // Clear button
+ if (clearBtn) {
+  clearBtn.addEventListener('click', () => {
+  state.categoryTrends = [];
+  updateCategoryBadges();
+  // Restore empty state messages
+  document.getElementById('categoryTrendsChart').innerHTML = '<p class="chart-empty-state">Select a category above to view trends.</p>';
+  document.getElementById('categoryPapersChart').innerHTML = '<p class="chart-empty-state">Select a category above to view publication trends.</p>';
+  document.getElementById('chartSpinner').style.display = 'none';
+ });
+ }
+}
+
+async function loadCategoryOptions(entityType) {
+ const categorySel = document.getElementById('categorySel');
+ if (!categorySel) return;
+
+ try {
+  const res = await fetch(`/api/charts/category/${entityType}?list_only=true`);
+  const data = await res.json();
+
+  // Check for API errors
+  if (data.error) {
+   console.error('API error:', data.error);
+   categorySel.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+   return;
+  }
+
+  categorySel.innerHTML = '';
+  if (data.categories && data.categories.length > 0) {
+   // Show categories up to MAX_CATEGORIES_DISPLAY
+   data.categories.slice(0, MAX_CATEGORIES_DISPLAY).forEach(cat => {
+    const option = document.createElement('option');
+    // Ensure code is string for consistent comparison
+    option.value = String(cat.code);
+    option.textContent = cat.description || cat.code;
+    categorySel.appendChild(option);
+   });
+  } else {
+   categorySel.innerHTML = '<option value="">No categories found</option>';
+  }
+ } catch (err) {
+  console.error('Failed to load categories:', err);
+  categorySel.innerHTML = '<option value="">Error loading</option>';
+ }
+}
+
+function updateCategoryBadges() {
+ const container = document.getElementById('selectedCategories');
+ if (!container) return;
+
+ container.innerHTML = '';
+ state.categoryTrends.forEach((cat, i) => {
+  const badge = document.createElement('span');
+  badge.className = 'badge category-badge';
+  badge.innerHTML = `${cat.name} <span style="cursor:pointer; margin-left:5px; color:#ff5555;">&#10005;</span>`;
+  badge.querySelector('span').onclick = () => {
+   state.categoryTrends.splice(i, 1);
+   updateCategoryBadges();
+   loadCategoryChartData();
+  };
+  container.appendChild(badge);
+ });
+}
+
+async function loadCategoryChartData() {
+ // Clear charts if no categories selected
+ if (state.categoryTrends.length === 0) {
+  d3.select('#categoryTrendsChart').selectAll('*').remove();
+  d3.select('#categoryPapersChart').selectAll('*').remove();
+  // Restore empty state messages
+  document.getElementById('categoryTrendsChart').innerHTML = '<p class="chart-empty-state">Select a category above to view trends.</p>';
+  document.getElementById('categoryPapersChart').innerHTML = '<p class="chart-empty-state">Select a category above to view publication trends.</p>';
+  return;
+ }
+
+ const entityType = document.getElementById('entityTypeSel').value;
+ const spinner = document.getElementById('chartSpinner');
+ if (spinner) spinner.style.display = 'flex';
+
+ // PERFORMANCE: Fetch selectively to avoid heavy aggregations for all categories
+ try {
+  const selectedCodes = state.categoryTrends.map(c => c.code).join(',');
+  const queryParam = entityType === 'conference' ? 'for_codes' : 'area_ids';
+  const res = await fetch(`/api/charts/category/${entityType}?${queryParam}=${selectedCodes}`);
+  const data = await res.json();
+  
+  // Color palette for multiple lines
+  const colorPalette = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+  
+  // Filter and transform the data - find matching categories
+  const multiSeriesData = [];
+  state.categoryTrends.forEach((cat, i) => {
+   // Find this category in the response
+   const catData = data.categories?.find(c => String(c.code) === String(cat.code));
+   if (catData && catData.yearly_data) {
+    multiSeriesData.push({
+     name: cat.name,
+     color: colorPalette[i % colorPalette.length],
+     values: catData.yearly_data.map(y => ({
+      year: y.year,
+      count: y.venue_count || 0,
+      papers: y.paper_count || 0
+     }))
+    });
+   }
+  });
+
+  // Render charts
+  d3.select('#categoryTrendsChart').selectAll('*').remove();
+  d3.select('#categoryPapersChart').selectAll('*').remove();
+  if (spinner) spinner.style.display = 'none';
+
+  if (multiSeriesData.length === 0) {
+   document.getElementById('categoryTrendsChart').innerHTML = '<p class="chart-no-data">No data available for selected categories. Check console for details.</p>';
+   return;
+  }
+
+  if (window.drawMultiLineChart) {
+   // Venue count chart
+   window.drawMultiLineChart('#categoryTrendsChart', multiSeriesData, 'year', 'count');
+   // Papers chart
+   window.drawMultiLineChart('#categoryPapersChart', multiSeriesData, 'year', 'papers');
+  }
+ } catch (err) {
+  console.error('Failed to load category chart data:', err);
+  if (spinner) spinner.style.display = 'none';
+ }
 }
