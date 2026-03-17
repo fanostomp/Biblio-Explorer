@@ -66,8 +66,59 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dashboard real chart on index page
     if (path === '/' && document.getElementById('chart')) {
         loadDashboardChart();
+        loadDashboardStats();
     }
 });
+
+// --- Dashboard Animated Counter ---
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const formatNumber = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toLocaleString();
+    };
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        // easeOutQuart
+        const easeProgress = 1 - Math.pow(1 - progress, 4);
+        const currentNum = Math.floor(easeProgress * (end - start) + start);
+        obj.innerHTML = formatNumber(currentNum);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerHTML = formatNumber(end);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+async function loadDashboardStats() {
+    try {
+        const res = await fetch('/api/charts/stats/overview');
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        const papersEl = document.getElementById('totalPapersCount');
+        const authorsEl = document.getElementById('totalAuthorsCount');
+        const venuesEl = document.getElementById('totalVenuesCount');
+
+        if (papersEl && data.total_papers) {
+            animateValue(papersEl, 0, data.total_papers, 2000);
+        }
+        if (authorsEl && data.total_authors) {
+            animateValue(authorsEl, 0, data.total_authors, 2000);
+        }
+        if (venuesEl && (data.total_conferences || data.total_journals)) {
+            const totalVenues = (data.total_conferences || 0) + (data.total_journals || 0);
+            animateValue(venuesEl, 0, totalVenues, 2000);
+        }
+    } catch (err) {
+        console.error('Failed to load dashboard stats:', err);
+    }
+}
 
 // --- Fetch & Store Baseline Data ---
 async function loadVenuesList(type) {

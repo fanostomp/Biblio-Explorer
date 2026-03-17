@@ -13,12 +13,45 @@ def get_overview():
         query = """
         SELECT year, COUNT(*) AS num_papers
         FROM papers
-        WHERE year IS NOT NULL AND year > 0
+        WHERE year >= 1900 AND year <= YEAR(CURRENT_DATE())
         GROUP BY year
         ORDER BY year ASC
         """
         data = execute_query(conn, query)
         return jsonify({'yearly_totals': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@charts_bp.route('/stats/overview', methods=['GET'])
+@cache.cached(timeout=3600)
+def get_stats_overview():
+    """Real stats for the dashboard: total papers, authors, conferences, journals."""
+    conn = get_db_connection()
+    try:
+        # Fast table row count estimation using SHOW TABLE STATUS for InnoDB
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SHOW TABLE STATUS LIKE 'papers'")
+        papers_count = cursor.fetchone()['Rows']
+        
+        cursor.execute("SHOW TABLE STATUS LIKE 'authors'")
+        authors_count = cursor.fetchone()['Rows']
+
+        cursor.execute("SHOW TABLE STATUS LIKE 'conferences'")
+        confs_count = cursor.fetchone()['Rows']
+        
+        cursor.execute("SHOW TABLE STATUS LIKE 'journals'")
+        journals_count = cursor.fetchone()['Rows']
+        cursor.close()
+
+        return jsonify({
+            'total_papers': papers_count,
+            'total_authors': authors_count,
+            'total_conferences': confs_count,
+            'total_journals': journals_count
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
