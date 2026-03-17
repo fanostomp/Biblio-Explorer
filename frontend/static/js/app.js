@@ -66,8 +66,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dashboard real chart on index page
     if (path === '/' && document.getElementById('chart')) {
         loadDashboardChart();
+        loadDashboardStats();
     }
 });
+
+// --- Dashboard Animated Counter ---
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const formatNumber = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toLocaleString();
+    };
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        // easeOutQuart
+        const easeProgress = 1 - Math.pow(1 - progress, 4);
+        const currentNum = Math.floor(easeProgress * (end - start) + start);
+        obj.textContent = formatNumber(currentNum);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.textContent = formatNumber(end);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+async function loadDashboardStats() {
+    try {
+        const res = await fetch('/api/charts/stats/overview');
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        const stats = [
+            { id: 'totalPapersCount', value: data.total_papers },
+            { id: 'totalAuthorsCount', value: data.total_authors },
+            { id: 'totalVenuesCount', value: (data.total_conferences || 0) + (data.total_journals || 0) }
+        ];
+
+        stats.forEach(stat => {
+            const el = document.getElementById(stat.id);
+            if (el && stat.value) {
+                animateValue(el, 0, stat.value, 2000);
+            }
+        });
+    } catch (err) {
+        console.error('Failed to load dashboard stats:', err);
+    }
+}
 
 // --- Fetch & Store Baseline Data ---
 async function loadVenuesList(type) {

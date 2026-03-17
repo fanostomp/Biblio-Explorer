@@ -122,14 +122,14 @@ The spec requires linecharts showing "per category (PrimaryFoR/BestSubjectArea):
 The spec requires scatter plots correlating any two journal metrics. Currently no D3 scatter implementation exists.
 
 ### Acceptance Criteria
-- [ ] Create `drawScatterPlot(containerSelector, data, xKey, yKey, options)` in [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js)
-- [ ] Each dot = one journal, color-coded by `best_quartile` (Q1=green, Q2=yellow, Q3=orange, Q4=red)
-- [ ] Hover tooltip showing journal title + both metric values
-- [ ] Axis dropdowns letting the user select which metrics to compare:
+- [x] Create `drawScatterPlot(containerSelector, data, xKey, yKey, options)` in [d3-charts.js](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/d3-charts.js)
+- [x] Each dot = one journal, color-coded by `best_quartile` (Q1=green, Q2=yellow, Q3=orange, Q4=red)
+- [x] Hover tooltip showing journal title + both metric values
+- [x] Axis dropdowns letting the user select which metrics to compare:
   - X-axis options: `total_docs`, `citable_docs_3y`, `sjr_index`
   - Y-axis options: `citable_docs_3y`, `sjr_index`, `total_docs`
-- [ ] Dots should animate in with staggered entrance
-- [ ] Optional: show Pearson/Spearman correlation coefficient on chart
+- [x] Dots should animate in with staggered entrance
+- [x] Optional: show Pearson/Spearman correlation coefficient on chart
 
 ### Technical Spec
 
@@ -158,10 +158,10 @@ function drawScatterPlot(containerSelector, data, xKey, yKey, options = {}) {
 Dashboard cards show hardcoded values ("2.5M+", "1.39M"). These should be fetched from the API. Also add per-page `<title>` tags.
 
 ### Acceptance Criteria
-- [ ] On dashboard load, call a new `/api/stats/overview` endpoint (see B-04) to get real counts
-- [ ] Animate numbers counting up from 0 (use `d3.interpolate` or a simple JS counter)
-- [ ] Update [base.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/base.html) `<title>` to use Jinja block: `{% block title %}BiblioExplorer{% endblock %}`
-- [ ] Each page template sets its own title (e.g., "Conferences — BiblioExplorer")
+- [x] On dashboard load, call a new `/api/stats/overview` endpoint (see B-04) to get real counts
+- [x] Animate numbers counting up from 0 (use `d3.interpolate` or a simple JS counter)
+- [x] Update [base.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/templates/base.html) `<title>` to use Jinja block: `{% block title %}BiblioExplorer{% endblock %}`
+- [x] Each page template sets its own title (e.g., "Conferences — BiblioExplorer")
 
 ---
 
@@ -628,8 +628,8 @@ Every task must satisfy ALL of the following before it can be marked complete:
 |---|---|---|---|---|---|
 | A-01 | D3 Bar Charts | 🔵 A | 🔴 P0 | 8h | ✅ Done |
 | A-02 | Category Linecharts | 🔵 A | 🔴 P0 | 6h | ✅ Done |
-| A-03 | D3 Scatter Plots | 🔵 A | 🔴 P0 | 8h | ⬜ Not Started |
-| A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ⬜ Not Started |
+| A-03 | D3 Scatter Plots | 🔵 A | 🔴 P0 | 8h | ✅ Done |
+| A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ✅ Done |
 | A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ⬜ Not Started |
 | A-06 | Chart Year Filtering | 🔵 A | 🟡 P1 | 4h | ⬜ Not Started |
 | B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ✅ Done |
