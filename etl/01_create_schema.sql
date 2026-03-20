@@ -77,6 +77,7 @@ CREATE TABLE journals (
     -- DBLP journal name as it appears in input_article.csv (for matching)
     dblp_name           VARCHAR(512)   DEFAULT NULL,
     PRIMARY KEY (journal_id),
+    UNIQUE KEY uq_journal_title (title(191)),
     KEY idx_journal_quartile (best_quartile),
     KEY idx_journal_area (best_subject_area),
     KEY idx_journal_publisher (publisher(100)),
@@ -91,9 +92,13 @@ CREATE TABLE journals (
 -- ============================================================
 CREATE TABLE authors (
     author_id   INT          NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(512) NOT NULL,
+    -- name keeps the searchable/display form.
+    name        VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    -- name_exact is the identity key: exact author string, case/accent sensitive.
+    name_exact  VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     PRIMARY KEY (author_id),
-    UNIQUE KEY uq_author_name (name(255)),
+    UNIQUE KEY uq_author_name_exact (name_exact),
+    KEY idx_author_name (name),
     FULLTEXT KEY ft_author_name (name)
 ) ENGINE=InnoDB;
 
@@ -101,8 +106,15 @@ CREATE TABLE authors (
 -- FACTUAL TABLE: Papers (conference papers + journal articles)
 -- Design decision: single table with type discriminator.
 -- Trade-off documented in implementation_plan.md.
--- Exactly one of (conf_id, journal_id) must be non-NULL
--- (enforced by CHECK constraint).
+-- raw_id stores the source paper identity from DBLP. Together with
+-- type it is the ETL identity key so rerunning 07_load_papers.py
+-- cannot silently duplicate paper facts.
+-- Venue linkage is optional in the final table: if matching fails,
+-- the DBLP paper still remains in papers and the type-appropriate
+-- venue FK is left NULL.
+-- The CHECK constraint enforces type consistency only:
+-- conference rows may not point to journals, and journal rows may
+-- not point to conferences.
 -- ============================================================
 CREATE TABLE papers (
     paper_id    INT          NOT NULL AUTO_INCREMENT,
@@ -119,6 +131,7 @@ CREATE TABLE papers (
     url         VARCHAR(512) DEFAULT NULL,
     raw_id      VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY (paper_id),
+    UNIQUE KEY uq_paper_type_raw_id (type, raw_id),
     KEY idx_paper_year (year),
     KEY idx_paper_conf (conf_id),
     KEY idx_paper_journal (journal_id),
@@ -130,7 +143,8 @@ CREATE TABLE papers (
     CONSTRAINT fk_paper_journal FOREIGN KEY (journal_id)
         REFERENCES journals(journal_id)
         ON UPDATE CASCADE ON DELETE SET NULL,
-    -- Exactly one venue must be set
+    -- Type decides which venue FK may be populated; unmatched rows may
+    -- leave the relevant FK NULL and are tracked by ETL validation.
     CONSTRAINT chk_paper_venue CHECK (
         (type = 'conference' AND journal_id IS NULL)
         OR

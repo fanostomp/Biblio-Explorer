@@ -106,9 +106,9 @@ SELECT
           / NULLIF(MAX(p.year) - MIN(p.year) + 1, 0), 2)
                                                 AS avg_papers_per_year
 FROM journals j
-JOIN papers      p   ON p.journal_id = j.journal_id
-JOIN paper_authors pa ON pa.paper_id  = p.paper_id
-JOIN vw_paper_author_count sub ON sub.paper_id = p.paper_id
+LEFT JOIN papers      p   ON p.journal_id = j.journal_id
+LEFT JOIN paper_authors pa ON pa.paper_id  = p.paper_id
+LEFT JOIN vw_paper_author_count sub ON sub.paper_id = p.paper_id
 LEFT JOIN best_subject_area bsa ON bsa.area_id = j.best_subject_area
 GROUP BY j.journal_id, j.title, j.publisher, j.best_quartile,
          j.sjr_index, j.cite_score, j.h_index, bsa.area_name;

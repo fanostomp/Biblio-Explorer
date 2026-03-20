@@ -82,7 +82,6 @@ def create_app():
         r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         r.headers["Pragma"] = "no-cache"
         r.headers["Expires"] = "0"
-        r.headers['Cache-Control'] = 'public, max-age=0'
         return r
 
     return app
