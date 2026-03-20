@@ -312,6 +312,18 @@ def main():
     print("Loading venue mappings...")
     conf_map = load_mapping(CONF_MAP_CSV, "booktitle", "conf_id")
     journal_map = load_mapping(JOUR_MAP_CSV, "dblp_journal_name", "journal_id")
+    if not conf_map:
+        conn.close()
+        raise RuntimeError(
+            "Conference mapping is empty. Run 05_match_conferences.py first "
+            "or verify that booktitle_to_conf_id.csv exists and is non-empty."
+        )
+    if not journal_map:
+        conn.close()
+        raise RuntimeError(
+            "Journal mapping is empty. Run 06_match_journals.py first "
+            "or verify that journal_name_to_id.csv exists and is non-empty."
+        )
 
     print("Loading author name->id map...")
     author_map = load_author_map(conn)
