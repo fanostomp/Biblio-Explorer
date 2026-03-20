@@ -189,7 +189,10 @@ def main():
     matched = 0
     unmatched = []
 
-    OVERLAP_THRESHOLD = 0.40  # LOWERED from 0.55 for better coverage
+    # Lowered from 0.55 to improve recall on abbreviated DBLP journal names.
+    # Prefix-based overlap at this level can produce false positives, so
+    # unmatched_journals.txt should still be reviewed periodically.
+    OVERLAP_THRESHOLD = 0.40
 
     # Pre-tokenize all db journals to avoid 25 million regex executions
     db_journals_tokenized = [(jid, title, tokens(title)) for jid, title in db_journals if title]

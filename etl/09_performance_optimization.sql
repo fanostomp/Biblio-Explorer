@@ -1,46 +1,77 @@
 -- ============================================================
--- SQL Optimization Script
+-- 09_performance_optimization.sql
+-- Safe additive indexes for the profile/papers query paths.
+-- This script intentionally avoids schema denormalization or
+-- view rewrites so DB-07 cannot change query correctness.
 -- ============================================================
 
 USE biblio_db;
 
--- 1. Add compound indexes for frequent filtered lookups
-DROP INDEX IF EXISTS idx_paper_conf_year ON papers;
-DROP INDEX IF EXISTS idx_paper_journal_year ON papers;
-CREATE INDEX idx_paper_conf_year ON papers (conf_id, year);
-CREATE INDEX idx_paper_journal_year ON papers (journal_id, year);
+DROP PROCEDURE IF EXISTS add_index_if_missing;
 
--- 2. Performance optimization: Denormalize author count if not already done
--- We use a procedure to add the column only if it doesn't exist
-DROP PROCEDURE IF EXISTS add_num_authors_col;
 DELIMITER //
-CREATE PROCEDURE add_num_authors_col()
+CREATE PROCEDURE add_index_if_missing(
+    IN in_table_name VARCHAR(64),
+    IN in_index_name VARCHAR(64),
+    IN in_column_signature TEXT,
+    IN in_add_sql TEXT
+)
 BEGIN
-    IF NOT EXISTS (
-        SELECT * FROM information_schema.columns 
-        WHERE table_schema = 'biblio_db' 
-        AND table_name = 'papers' 
-        AND column_name = 'num_authors'
-    ) THEN
-        ALTER TABLE papers ADD COLUMN num_authors INT DEFAULT 0;
+    DECLARE existing_count INT DEFAULT 0;
+
+    SELECT COUNT(*)
+    INTO existing_count
+    FROM (
+        SELECT
+            index_name,
+            GROUP_CONCAT(column_name ORDER BY seq_in_index SEPARATOR ',') AS column_signature
+        FROM information_schema.statistics
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND index_type <> 'FULLTEXT'
+        GROUP BY index_name
+    ) AS candidate_indexes
+    WHERE candidate_indexes.column_signature = in_column_signature;
+
+    IF existing_count = 0 THEN
+        SET @ddl = in_add_sql;
+        PREPARE stmt FROM @ddl;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        SELECT CONCAT(
+            'Created index ',
+            in_index_name,
+            ' on ',
+            in_table_name,
+            '(',
+            in_column_signature,
+            ')'
+        ) AS status;
+    ELSE
+        SELECT CONCAT(
+            'Equivalent index already exists on ',
+            in_table_name,
+            '(',
+            in_column_signature,
+            ')'
+        ) AS status;
     END IF;
 END //
 DELIMITER ;
-CALL add_num_authors_col();
-DROP PROCEDURE add_num_authors_col;
 
--- Populate num_authors using a more efficient JOIN-based update
-UPDATE papers p
-JOIN (
-    SELECT paper_id, COUNT(*) as c 
-    FROM paper_authors 
-    GROUP BY paper_id
-) t ON p.paper_id = t.paper_id
-SET p.num_authors = t.c;
+CALL add_index_if_missing(
+    'papers',
+    'idx_paper_conf_year',
+    'conf_id,year',
+    'CREATE INDEX idx_paper_conf_year ON papers (conf_id, year)'
+);
 
--- 3. Update view to use the new column
-CREATE OR REPLACE VIEW vw_paper_author_count AS
-SELECT
-    paper_id,
-    num_authors
-FROM papers;
+CALL add_index_if_missing(
+    'papers',
+    'idx_paper_journal_year',
+    'journal_id,year',
+    'CREATE INDEX idx_paper_journal_year ON papers (journal_id, year)'
+);
+
+DROP PROCEDURE IF EXISTS add_index_if_missing;

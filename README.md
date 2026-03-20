@@ -11,7 +11,7 @@ This project handles the integration, schema modeling, processing, and visualiza
 
 ### Phase I: ETL & Database Architecture
 
-- **Database Target**: MySQL 8.0 `biblio_db` (Port: 3307)
+- **Database Target**: MariaDB 10.4+ / MySQL 8.0 `biblio_db` (Port: 3307)
 - **Dataset Processed**:
   - Formatted DBLP `inproceedings` and `articles` (CSV)
   - Ranked venues from iCORE26 `conference_rankings`
@@ -61,8 +61,41 @@ The data extraction algorithms exist within `/etl`. Execute them chronologically
 7. `python etl/06_match_journals.py`
 8. `python etl/07_load_papers.py` _(takes ~35 mins for 2.5 million rows due to SQL batching)_
 9. `mysql -u root -P 3307 biblio_db < etl/08_create_views.sql`
+10. `mysql -u root -P 3307 biblio_db < etl/09_search_indexes.sql`
+11. `mysql -u root -P 3307 biblio_db < etl/09_performance_optimization.sql`
 
 _A database backup script is provided in `etl/09_backup.bat`._
+
+### Safe Backup / Rebuild / Restore Workflow
+
+For current local DB work, assume the live pipeline is MariaDB `10.4.32` on `localhost:3307` and always take a logical backup before schema or ETL changes.
+
+1. Create a backup first:
+   - `etl\09_backup.bat`
+   - Dumps are written under `data\backups\` as `biblio_db_backup_YYYY-MM-DD_HH-MM-SS.sql`
+   - The script now removes failed zero-byte outputs instead of leaving them behind
+2. Rebuild from ETL only when you intentionally want a fresh database from source files:
+   - `mysql -u root -P 3307 -e "DROP DATABASE IF EXISTS biblio_db; CREATE DATABASE biblio_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"`
+   - Then rerun steps `2` through `11` above in order
+3. Restore a known-good dump instead of rerunning ETL when you need the safest rollback path:
+   - `mysql -u root -P 3307 -e "DROP DATABASE IF EXISTS biblio_db; CREATE DATABASE biblio_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"`
+   - `mysql -u root -P 3307 biblio_db < data/backups/biblio_db_backup_YYYY-MM-DD_HH-MM-SS.sql`
+4. Validate after either rebuild or restore:
+   - `python scripts/validate_etl.py`
+
+Practical notes:
+
+- `07_load_papers.py` is still the dominant ETL step and currently takes about `35` minutes for the full `2.5M` row load.
+- Full SQL dumps are large; the current `data/backups/` snapshot already contains multi-GB files, so backup and restore may take several minutes depending on disk and local DB throughput.
+- Use rebuild when ETL code or source mappings changed. Use restore when you want the quickest return to an exact known-good local state.
+
+### Venue Matching Policy
+
+- Venue matching is best-effort. If a DBLP `booktitle` or `journal` value does not map to an iCORE/Kaggle venue row, the paper still remains in the final `papers` table.
+- Unmatched conference papers are stored with `type = 'conference'` and `conf_id = NULL`.
+- Unmatched journal papers are stored with `type = 'journal'` and `journal_id = NULL`.
+- This is intentional: dropping unmatched papers would undercount author and year activity and would make rebuild results depend on incomplete venue dictionaries.
+- Downstream effect: author and year analytics include unmatched papers, while conference and journal profile pages only count venue-linked rows because they filter by `conf_id` / `journal_id`.
 
 ### 2. Analytical Flask Backend
 

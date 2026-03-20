@@ -40,22 +40,6 @@ def get_profile(journal_id):
     conn = get_db_connection()
     try:
         profile = execute_query(conn, "SELECT * FROM vw_journal_profile WHERE journal_id = %s", (journal_id,), fetchone=True)
-
-        # Fallback: journal exists in rankings but has no DBLP papers
-        if not profile:
-            profile = execute_query(
-                conn,
-                """SELECT j.journal_id, j.title, j.publisher, j.best_quartile,
-                j.sjr_index, j.cite_score, j.h_index,
-                bsa.area_name AS subject_area,
-                NULL AS first_year, NULL AS last_year,
-                0 AS total_papers, 0 AS distinct_authors,
-                0 AS avg_authors_per_paper, 0 AS avg_papers_per_year
-                FROM journals j
-                LEFT JOIN best_subject_area bsa ON bsa.area_id = j.best_subject_area
-                WHERE j.journal_id = %s""",
-                (journal_id,), fetchone=True
-            )
         if not profile:
             return jsonify({'error': 'Not found'}), 404
 

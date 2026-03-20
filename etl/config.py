@@ -1,3 +1,5 @@
+import os
+
 # ETL Configuration
 # Edit DB_PASSWORD before running any ETL scripts.
 
@@ -9,9 +11,7 @@ DB_CONFIG = {
     "database": "biblio_db",
     "charset":  "utf8mb4",
 }
-
 # Absolute paths to source data files
-import os
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 INPROCEEDINGS_CSV = os.path.join(DATA_DIR, "dblp_dataset", "input_inproceedings.csv")

@@ -1,9 +1,21 @@
 """
 07_load_papers.py
-──────────────────
 Final ETL step: loads papers and paper_authors into the database
 using the cleaned CSVs and the venue mapping files produced by
 scripts 05 and 06.
+
+Unmatched venue policy:
+- papers still load into the final papers table when venue matching fails
+- unmatched conference rows keep conf_id = NULL
+- unmatched journal rows keep journal_id = NULL
+- venue/profile analytics therefore cover only linked venue rows,
+  while author/year analytics still see every loaded paper
+
+Rerun workflow:
+- papers are keyed by (type, raw_id)
+- rerunning this script updates/reuses the same paper rows
+- if the schema guard is missing or duplicates already exist,
+  the loader aborts instead of silently importing duplicate facts
 
 Run AFTER: 02, 03, 04, 05, 06
 Run: python 07_load_papers.py
@@ -21,13 +33,13 @@ from config import DB_CONFIG
 CLEANED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "cleaned")
 MATCHED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "matched")
 
-INPROC_CSV    = os.path.join(CLEANED_DIR, "cleaned_inproceedings.csv")
-INPROC_AUTH   = os.path.join(CLEANED_DIR, "cleaned_inproceedings_authors.csv")
-ARTICLES_CSV  = os.path.join(CLEANED_DIR, "cleaned_articles.csv")
+INPROC_CSV = os.path.join(CLEANED_DIR, "cleaned_inproceedings.csv")
+INPROC_AUTH = os.path.join(CLEANED_DIR, "cleaned_inproceedings_authors.csv")
+ARTICLES_CSV = os.path.join(CLEANED_DIR, "cleaned_articles.csv")
 ARTICLES_AUTH = os.path.join(CLEANED_DIR, "cleaned_articles_authors.csv")
 
-CONF_MAP_CSV  = os.path.join(MATCHED_DIR, "booktitle_to_conf_id.csv")
-JOUR_MAP_CSV  = os.path.join(MATCHED_DIR, "journal_name_to_id.csv")
+CONF_MAP_CSV = os.path.join(MATCHED_DIR, "booktitle_to_conf_id.csv")
+JOUR_MAP_CSV = os.path.join(MATCHED_DIR, "journal_name_to_id.csv")
 
 
 def load_mapping(path, key_col, val_col):
@@ -46,56 +58,137 @@ def load_mapping(path, key_col, val_col):
 
 
 def load_author_map(conn):
-    """Fetch author name → author_id from DB."""
+    """Fetch author name -> author_id from DB."""
     cur = conn.cursor()
-    cur.execute("SELECT author_id, name FROM authors")
-    m = {name: aid for aid, name in cur.fetchall()}
+    cur.execute("SELECT author_id, name_exact FROM authors")
+    mapping = {name_exact: aid for aid, name_exact in cur.fetchall()}
     cur.close()
-    return m
+    return mapping
 
 
-def insert_papers_batch(cursor, rows):
-    cursor.executemany("""
+def validate_paper_identity_guard(conn):
+    """Refuse to load papers unless reruns are protected by schema + clean data."""
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT index_name, seq_in_index, column_name
+        FROM information_schema.statistics
+        WHERE table_schema = DATABASE()
+          AND table_name = 'papers'
+          AND non_unique = 0
+        ORDER BY index_name, seq_in_index
+        """
+    )
+
+    unique_indexes = {}
+    for index_name, _seq_in_index, column_name in cur.fetchall():
+        unique_indexes.setdefault(index_name, []).append(column_name)
+
+    has_type_raw_id_guard = any(
+        columns == ["type", "raw_id"]
+        for columns in unique_indexes.values()
+    )
+
+    if not has_type_raw_id_guard:
+        cur.close()
+        raise RuntimeError(
+            "papers is missing a UNIQUE(type, raw_id) constraint. "
+            "Rebuild or migrate the schema with etl/01_create_schema.sql before rerunning 07_load_papers.py."
+        )
+
+    cur.execute(
+        """
+        SELECT type, raw_id, COUNT(*) AS dup_count
+        FROM papers
+        WHERE raw_id IS NOT NULL
+        GROUP BY type, raw_id
+        HAVING COUNT(*) > 1
+        ORDER BY dup_count DESC, type, raw_id
+        LIMIT 5
+        """
+    )
+    duplicates = cur.fetchall()
+    cur.close()
+
+    if duplicates:
+        sample = ", ".join(
+            f"{paper_type}:{raw_id} x{dup_count}"
+            for paper_type, raw_id, dup_count in duplicates
+        )
+        raise RuntimeError(
+            "Existing duplicate paper identities detected before load "
+            f"({sample}). Clean the table before rerunning 07_load_papers.py."
+        )
+
+
+def upsert_papers_batch(cursor, rows):
+    cursor.executemany(
+        """
         INSERT INTO papers
             (title, year, pages, type, conf_id, journal_id,
              volume, number, dblp_key, ee, url, raw_id)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """, rows)
+        ON DUPLICATE KEY UPDATE
+            title = VALUES(title),
+            year = VALUES(year),
+            pages = VALUES(pages),
+            conf_id = VALUES(conf_id),
+            journal_id = VALUES(journal_id),
+            volume = VALUES(volume),
+            number = VALUES(number),
+            dblp_key = VALUES(dblp_key),
+            ee = VALUES(ee),
+            url = VALUES(url)
+        """,
+        rows,
+    )
 
 
 def insert_authors_batch(cursor, rows):
-    cursor.executemany("""
+    cursor.executemany(
+        """
         INSERT IGNORE INTO paper_authors (paper_id, author_id, author_order)
         VALUES (%s, %s, %s)
-    """, rows)
+        """,
+        rows,
+    )
 
 
-def process_papers(conn, paper_csv, author_csv, paper_type,
-                   venue_map, venue_key_col,
-                   author_name_to_id,
-                   BATCH=1000):
+def process_papers(
+    conn,
+    paper_csv,
+    author_csv,
+    paper_type,
+    venue_map,
+    venue_key_col,
+    author_name_to_id,
+    BATCH=1000,
+):
     """
     Generic loader for both conference papers and journal articles.
     paper_type: 'conference' | 'journal'
     venue_key_col: column in paper_csv that holds the venue name (booktitle or journal)
+    Unmatched venues are allowed: keep the paper fact and leave the
+    type-specific venue FK NULL.
     """
     cur = conn.cursor()
 
-    # Build a temp map: raw_paper_id_from_csv → db paper_id
-    # We need this to link author rows to the right paper_id
+    # Build a temp map: raw paper id from CSV -> db paper_id
     raw_to_db = {}
 
-    paper_rows  = []
-    skipped     = 0
-    written     = 0
+    paper_rows = []
+    skipped = 0
+    processed = 0
+    matched_venue_rows = 0
+    unmatched_venue_rows = 0
 
     with open(paper_csv, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            raw_id  = row.get("id", "").strip()
-            title   = row.get("title", "").strip()
-            year_s  = row.get("year", "").strip()
-            venue   = row.get(venue_key_col, "").strip()
+            raw_id = row.get("id", "").strip()
+            title = row.get("title", "").strip()
+            year_s = row.get("year", "").strip()
+            venue = row.get(venue_key_col, "").strip()
 
             if not raw_id or not title or not year_s:
                 skipped += 1
@@ -106,64 +199,74 @@ def process_papers(conn, paper_csv, author_csv, paper_type,
                 skipped += 1
                 continue
 
-            venue_id = venue_map.get(venue)  # may be None if unmatched
+            venue_id = venue_map.get(venue)  # None means the paper stays unmatched in final papers
 
             if paper_type == "conference":
-                conf_id    = venue_id
+                conf_id = venue_id
                 journal_id = None
                 volume = number = None
             else:
-                conf_id    = None
+                conf_id = None
                 journal_id = venue_id
-                volume  = row.get("volume", "").strip() or None
-                number  = row.get("number", "").strip() or None
+                volume = row.get("volume", "").strip() or None
+                number = row.get("number", "").strip() or None
 
-            # If both venue FKs would be NULL we can still insert —
-            # the paper exists even if we couldn't rank its venue.
-            # But CHECK constraint requires exactly one non-NULL.
-            # Handle unmatched: if journal/conf_id is None we must
-            # insert a placeholder (None with the correct type column).
-            paper_rows.append((
-                title,
-                year,
-                row.get("pages", "").strip() or None,
-                paper_type,
-                conf_id,
-                journal_id,
-                volume if paper_type == "journal" else None,
-                number if paper_type == "journal" else None,
-                row.get("dblp_key", "").strip() or None,
-                row.get("ee", "").strip() or None,
-                row.get("url", "").strip() or None,
-                raw_id
-            ))
+            if venue_id is None:
+                unmatched_venue_rows += 1
+            else:
+                matched_venue_rows += 1
+
+            paper_rows.append(
+                (
+                    title,
+                    year,
+                    row.get("pages", "").strip() or None,
+                    paper_type,
+                    conf_id,
+                    journal_id,
+                    volume if paper_type == "journal" else None,
+                    number if paper_type == "journal" else None,
+                    row.get("dblp_key", "").strip() or None,
+                    row.get("ee", "").strip() or None,
+                    row.get("url", "").strip() or None,
+                    raw_id,
+                )
+            )
 
             if len(paper_rows) >= BATCH:
                 _flush_papers(cur, conn, paper_rows)
-                written += len(paper_rows)
-                print(f"  [{paper_type}] {written:,} written...", flush=True)
+                processed += len(paper_rows)
+                print(f"  [{paper_type}] {processed:,} processed...", flush=True)
                 paper_rows = []
 
     if paper_rows:
-        written += len(paper_rows)
         _flush_papers(cur, conn, paper_rows)
+        processed += len(paper_rows)
 
-    print(f"  [{paper_type}] papers done: {written:,} written, {skipped:,} skipped")
+    cur.execute("SELECT COUNT(*) FROM papers WHERE type = %s", (paper_type,))
+    current_total = cur.fetchone()[0]
+    print(
+        f"  [{paper_type}] papers done: {processed:,} processed, "
+        f"{skipped:,} skipped, {current_total:,} rows now present, "
+        f"{matched_venue_rows:,} venue-matched, {unmatched_venue_rows:,} venue-unmatched"
+    )
 
     print(f"  [{paper_type}] fetching IDs to build author mapping...")
-    cur.execute(f"SELECT raw_id, paper_id FROM papers WHERE type='{paper_type}' AND raw_id IS NOT NULL")
+    cur.execute(
+        "SELECT raw_id, paper_id FROM papers WHERE type = %s AND raw_id IS NOT NULL",
+        (paper_type,),
+    )
     for r_id, p_id in cur.fetchall():
         if r_id:
             raw_to_db[str(r_id)] = p_id
 
-    # Now load paper_authors
     auth_rows = []
     auth_written = 0
     with open(author_csv, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            raw_id  = row.get("paper_id", "").strip()
-            name    = row.get("author_name", "").strip()
+            raw_id = row.get("paper_id", "").strip()
+            name = row.get("author_name", "").strip()
             order_s = row.get("author_order", "1").strip()
 
             db_paper_id = raw_to_db.get(raw_id)
@@ -196,7 +299,7 @@ def process_papers(conn, paper_csv, author_csv, paper_type,
 
 def _flush_papers(cur, conn, rows):
     """Insert paper rows."""
-    insert_papers_batch(cur, rows)
+    upsert_papers_batch(cur, rows)
     conn.commit()
 
 
@@ -204,8 +307,10 @@ def main():
     conn = mysql.connector.connect(**DB_CONFIG)
     conn.autocommit = False
 
+    validate_paper_identity_guard(conn)
+
     print("Loading venue mappings...")
-    conf_map   = load_mapping(CONF_MAP_CSV, "booktitle", "conf_id")
+    conf_map = load_mapping(CONF_MAP_CSV, "booktitle", "conf_id")
     journal_map = load_mapping(JOUR_MAP_CSV, "dblp_journal_name", "journal_id")
 
     print("Loading author name->id map...")
@@ -213,21 +318,30 @@ def main():
     print(f"  {len(author_map):,} authors in DB")
 
     print("\nLoading conference papers...")
-    process_papers(conn, INPROC_CSV, INPROC_AUTH,
-                   paper_type="conference",
-                   venue_map=conf_map,
-                   venue_key_col="booktitle",
-                   author_name_to_id=author_map)
+    process_papers(
+        conn,
+        INPROC_CSV,
+        INPROC_AUTH,
+        paper_type="conference",
+        venue_map=conf_map,
+        venue_key_col="booktitle",
+        author_name_to_id=author_map,
+    )
 
     print("\nLoading journal articles...")
-    process_papers(conn, ARTICLES_CSV, ARTICLES_AUTH,
-                   paper_type="journal",
-                   venue_map=journal_map,
-                   venue_key_col="journal",
-                   author_name_to_id=author_map)
+    process_papers(
+        conn,
+        ARTICLES_CSV,
+        ARTICLES_AUTH,
+        paper_type="journal",
+        venue_map=journal_map,
+        venue_key_col="journal",
+        author_name_to_id=author_map,
+    )
 
     conn.close()
     print("\nAll papers and author links loaded.")
+
 
 if __name__ == "__main__":
     main()
