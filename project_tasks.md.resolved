@@ -1,4 +1,4 @@
-# 📋 BiblioExplorer — Sprint Task Board
+﻿# 📋 BiblioExplorer — Sprint Task Board
 
 **Project Manager:** PM Lead  
 **Sprint Duration:** Mar 10 – Apr 14, 2026 (5 weeks)  
@@ -391,10 +391,10 @@ Two issues:
 The overlap threshold was lowered to 0.40, which risks false-positive matches for short journal names.
 
 ### Acceptance Criteria
-- [ ] Add a **minimum token count guard**: if `max(len(ta), len(tb)) <= 2`, require threshold ≥ 0.70
-- [ ] Add a `confidence` column to the output CSV: `high` (score ≥ 0.70), `medium` (0.55–0.70), `low` (0.40–0.55)
-- [ ] Log the top 20 "low confidence" matches to stdout for human review
-- [ ] Pre-compile all `ABBREV_MAP` regex patterns (currently re-compiled on every call):
+- [x] Add a **minimum token count guard**: if `max(len(ta), len(tb)) <= 2`, require threshold ≥ 0.70
+- [x] Add a `confidence` column to the output CSV: `high` (score ≥ 0.70), `medium` (0.55–0.70), `low` (0.40–0.55)
+- [x] Log the top 20 "low confidence" matches to stdout for human review
+- [x] Pre-compile all `ABBREV_MAP` regex patterns (currently re-compiled on every call):
 
 ```python
 # At module level
@@ -425,19 +425,19 @@ def expand_abbrev(text):
 There are **zero tests** in the project. At minimum we need unit tests for the ETL matching logic and smoke tests for API endpoints.
 
 ### Acceptance Criteria
-- [ ] Create `tests/` directory with [__init__.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/__init__.py), `test_etl.py`, `test_api.py`
-- [ ] Add `pytest` to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
-- [ ] **ETL tests** (`test_etl.py`):
-  - `test_normalize()` — verify abbreviation expansion + cleanup
-  - `test_tokens()` — verify stopword removal
-  - `test_token_overlap()` — verify scoring with known pairs
-  - `test_expand_abbrev()` — edge cases (e.g., "IEEE Trans." → "ieee transactions")
-  - `test_low_token_guard()` — verify high threshold for short names
-- [ ] **API smoke tests** (`test_api.py`):
-  - Test each endpoint returns 200 and valid JSON structure
-  - Test 404 for non-existent profiles
-  - Test search with special characters doesn't crash
-- [ ] Update GitHub Actions workflow to run `pytest`
+- [x] Create `tests/` directory with [__init__.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/routes/__init__.py), `test_etl.py`, `test_api.py`
+- [x] Add `pytest` to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
+- [x] **ETL tests** (`test_etl.py`):
+  - [x] `test_normalize()` — verify abbreviation expansion + cleanup
+  - [x] `test_tokens()` — verify stopword removal
+  - [x] `test_token_overlap()` — verify scoring with known pairs
+  - [x] `test_expand_abbrev()` — edge cases (e.g., "IEEE Trans." → "ieee transactions")
+  - [x] `test_low_token_guard()` — verify high threshold for short names
+- [x] **API smoke tests** (`test_api.py`):
+  - [x] Test each endpoint returns 200 and valid JSON structure
+  - [x] Test 404 for non-existent profiles
+  - [x] Test search with special characters doesn't crash
+- [x] Update GitHub Actions workflow to run `pytest`
 
 ### Test Examples
 ```python
@@ -638,8 +638,8 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ⬜ Not Started |
 | B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ⬜ Not Started |
 | B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ⬜ Not Started |
-| C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ⬜ Not Started |
-| C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ⬜ Not Started |
+| C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ✅ Done |
+| C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ✅ Done |
 | C-03 | Repo Cleanup | 🟠 C | 🔴 P0 | 2h | ⬜ Not Started |
 | C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
 | C-05 | Logging Framework | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |

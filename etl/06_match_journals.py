@@ -24,8 +24,6 @@ import os
 import sys
 import re
 
-import mysql.connector
-
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG
 
@@ -132,11 +130,22 @@ ABBREV_MAP = {
 
 STOPWORDS = {'of', 'on', 'the', 'and', 'in', 'for', 'to', 'a', 'an',
              'with', 'its', 'at', 'by', 'from'}
+COMPILED_ABBREV = [
+    (re.compile(pattern, re.IGNORECASE), replacement)
+    for pattern, replacement in ABBREV_MAP.items()
+]
+OVERLAP_THRESHOLD = 0.40
+SHORT_NAME_OVERLAP_THRESHOLD = 0.70
+LOW_CONFIDENCE_LIMIT = 20
+
+def console_safe(text):
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    return text.encode(encoding, errors="replace").decode(encoding)
 
 def expand_abbrev(text):
     t = text.lower()
-    for pattern, replacement in ABBREV_MAP.items():
-        t = re.sub(pattern, replacement, t)
+    for pattern, replacement in COMPILED_ABBREV:
+        t = pattern.sub(replacement, t)
     return t
 
 def normalize(text):
@@ -148,20 +157,64 @@ def normalize(text):
 def tokens(text):
     return set(normalize(text).split()) - STOPWORDS
 
-def token_overlap(a, b):
-    ta, tb = tokens(a), tokens(b)
-    if not ta or not tb:
+def overlap_score_from_tokens(source_tokens, target_tokens):
+    if not source_tokens or not target_tokens:
         return 0.0
 
     match_count = 0
-    for token_a in ta:
-        # Check if token_a is a prefix of any token_b, or vice-versa
-        if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
+    for source_token in source_tokens:
+        if any(
+            target_token.startswith(source_token) or source_token.startswith(target_token)
+            for target_token in target_tokens
+        ):
             match_count += 1
 
-    return match_count / max(len(ta), len(tb))
+    return match_count / max(len(source_tokens), len(target_tokens))
+
+def token_overlap(a, b):
+    return overlap_score_from_tokens(tokens(a), tokens(b))
+
+def required_overlap_threshold(source_tokens, target_tokens):
+    if max(len(source_tokens), len(target_tokens)) <= 2:
+        return SHORT_NAME_OVERLAP_THRESHOLD
+    return OVERLAP_THRESHOLD
+
+def should_accept_overlap(source_tokens, target_tokens, score):
+    return score >= required_overlap_threshold(source_tokens, target_tokens)
+
+def classify_confidence(score, matched=True):
+    if not matched:
+        return "unmatched"
+    if score >= 0.70:
+        return "high"
+    if score >= 0.55:
+        return "medium"
+    return "low"
+
+def find_best_overlap_match(journal_name_tokens, db_journals_tokenized):
+    best_jid = None
+    best_title = ""
+    best_tokens = set()
+    best_score = 0.0
+
+    if not journal_name_tokens:
+        return best_jid, best_title, best_tokens, best_score
+
+    for jid, title, db_tokens in db_journals_tokenized:
+        if not db_tokens:
+            continue
+        score = overlap_score_from_tokens(journal_name_tokens, db_tokens)
+        if score > best_score:
+            best_jid = jid
+            best_title = title
+            best_tokens = db_tokens
+            best_score = score
+
+    return best_jid, best_title, best_tokens, best_score
 
 def main():
+    import mysql.connector
+
     conn = mysql.connector.connect(**DB_CONFIG)
     cur = conn.cursor()
     cur.execute("SELECT journal_id, title FROM journals")
@@ -188,18 +241,14 @@ def main():
 
     matched = 0
     unmatched = []
-
-    # Lowered from 0.55 to improve recall on abbreviated DBLP journal names.
-    # Prefix-based overlap at this level can produce false positives, so
-    # unmatched_journals.txt should still be reviewed periodically.
-    OVERLAP_THRESHOLD = 0.40
+    low_confidence_matches = []
 
     # Pre-tokenize all db journals to avoid 25 million regex executions
     db_journals_tokenized = [(jid, title, tokens(title)) for jid, title in db_journals if title]
 
     with open(OUT_MAPPING, "w", encoding="utf-8", newline="") as fout:
         writer = csv.writer(fout)
-        writer.writerow(["dblp_journal_name", "journal_id", "match_type"])
+        writer.writerow(["dblp_journal_name", "journal_id", "match_type", "confidence"])
 
         for jname in sorted(journal_names):
             norm_jname = normalize(jname)
@@ -207,36 +256,24 @@ def main():
             # 1. Exact match
             jid = exact_map.get(norm_jname)
             if jid:
-                writer.writerow([jname, jid, "exact"])
+                writer.writerow([jname, jid, "exact", "high"])
                 matched += 1
                 continue
 
             # 2. Token-overlap match
-            best_jid = None
-            best_score = 0.0
             ta = tokens(jname)
-            len_ta = len(ta)
-            if len_ta > 0:
-                for jid2, title, tb in db_journals_tokenized:
-                    len_tb = len(tb)
-                    if len_tb == 0:
-                        continue
-                    # Prefix overlap calculation
-                    match_count = 0
-                    for token_a in ta:
-                        if any(token_b.startswith(token_a) or token_a.startswith(token_b) for token_b in tb):
-                            match_count += 1
+            best_jid, best_title, best_tokens, best_score = find_best_overlap_match(
+                ta, db_journals_tokenized
+            )
 
-                    score = match_count / max(len_ta, len_tb)
-                    if score > best_score:
-                        best_score = score
-                        best_jid = jid2
-
-            if best_score >= OVERLAP_THRESHOLD:
-                writer.writerow([jname, best_jid, f"overlap:{best_score:.2f}"])
+            if should_accept_overlap(ta, best_tokens, best_score):
+                confidence = classify_confidence(best_score)
+                writer.writerow([jname, best_jid, f"overlap:{best_score:.2f}", confidence])
                 matched += 1
+                if confidence == "low":
+                    low_confidence_matches.append((best_score, jname, best_jid, best_title))
             else:
-                writer.writerow([jname, "", "unmatched"])
+                writer.writerow([jname, "", "unmatched", "unmatched"])
                 unmatched.append((jname, best_score))
 
     with open(OUT_UNMATCHED, "w", encoding="utf-8") as fu:
@@ -247,6 +284,12 @@ def main():
 
     pct = matched / len(journal_names) * 100 if journal_names else 0
     print(f"Matched: {matched:,} / {len(journal_names):,} ({pct:.1f}%)")
+    print("Top low-confidence journal matches for review:")
+    for score, jname, jid, title in sorted(
+        low_confidence_matches,
+        key=lambda item: (item[0], item[1].casefold()),
+    )[:LOW_CONFIDENCE_LIMIT]:
+        print(console_safe(f"  {score:.2f} | {jname} -> [{jid}] {title}"))
     print(f"Mapping: {OUT_MAPPING}")
     print(f"Unmatched: {OUT_UNMATCHED}")
 
