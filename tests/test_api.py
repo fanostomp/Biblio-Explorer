@@ -102,6 +102,9 @@ def test_health_endpoint_returns_ok(client):
 
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok", "db": "connected"}
+    assert response.headers["Cache-Control"] == "no-cache, no-store, must-revalidate"
+    assert response.headers["Pragma"] == "no-cache"
+    assert response.headers["Expires"] == "0"
 
 
 def test_conference_list_endpoint_returns_json_shape(client):
@@ -119,6 +122,13 @@ def test_journal_search_with_special_characters_does_not_crash(client):
 
     assert response.status_code == 200
     assert isinstance(payload, list)
+
+
+def test_conference_search_with_only_special_characters_returns_empty_list(client):
+    response = client.get("/api/conference/search?q=++&&")
+
+    assert response.status_code == 200
+    assert response.get_json() == []
 
 
 def test_author_search_with_special_characters_does_not_crash(client):

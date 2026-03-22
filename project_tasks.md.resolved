@@ -346,8 +346,8 @@ Two issues:
 2. Charts comparison page needs server-side search (Dev A will consume this)
 
 ### Acceptance Criteria
-- [ ] Fix [add_header()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#76-83) — remove the conflicting line. Keep `no-cache` for development, or use `max-age=300` for production
-- [ ] Verify conference/journal search routes accept queries from the comparison page (they already do — just needs testing)
+- [x] Fix [add_header()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#76-83) — remove the conflicting line. Keep `no-cache` for development, or use `max-age=300` for production
+- [x] Verify conference/journal search routes accept queries from the comparison page (they already do — just needs testing)
 
 ### Code Fix
 ```diff
@@ -664,7 +664,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ✅ Done |
 | B-03 | Journal Bug Fixes | 🟢 B | 🔴 P0 | 2h | ✅ Done |
 | B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ⬜ Not Started |
-| B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ⬜ Not Started |
+| B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ✅ Done |
 | B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ⬜ Not Started |
 | C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ✅ Done |
 | C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ✅ Done |
