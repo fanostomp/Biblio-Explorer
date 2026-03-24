@@ -11,7 +11,7 @@ from routes.conferences import conferences_bp
 from routes.journals import journals_bp
 from routes.authors import authors_bp
 from routes.years import years_bp
-from routes.charts import charts_bp
+from routes.charts import charts_bp, stats_bp
 
 def create_app():
     # Point Flask to our structured frontend/ folders
@@ -37,6 +37,7 @@ def create_app():
     app.register_blueprint(authors_bp, url_prefix='/api/author')
     app.register_blueprint(years_bp, url_prefix='/api/year')
     app.register_blueprint(charts_bp, url_prefix='/api/charts')
+    app.register_blueprint(stats_bp, url_prefix='/api/stats')
 
     # Frontend routes
     @app.route('/')

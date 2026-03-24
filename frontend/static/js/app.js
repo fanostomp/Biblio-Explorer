@@ -97,7 +97,7 @@ function animateValue(obj, start, end, duration) {
 
 async function loadDashboardStats() {
     try {
-        const res = await fetch('/api/charts/stats/overview');
+        const res = await fetch('/api/stats/overview');
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
@@ -594,7 +594,7 @@ async function loadYearProfile(year) {
         hideSpinner('dashboardGrid');
 
         // Fetch Papers
-        const pres = await fetch(`/api/year/${year}/papers?limit=250`);
+        const pres = await fetch(`/api/year/${year}/papers?page=1&per_page=250`);
         const pdata = await pres.json();
         const tbody = document.querySelector('#papersTable tbody');
         if(!tbody) return;

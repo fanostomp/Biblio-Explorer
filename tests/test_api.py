@@ -159,3 +159,83 @@ def test_charts_overview_returns_json_shape(client):
 
     assert response.status_code == 200
     assert "yearly_totals" in payload
+
+
+def test_stats_overview_endpoint_returns_exact_counts(client, monkeypatch):
+    import routes.charts as charts
+
+    queries = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+        queries.append(compact_query)
+
+        results = {
+            "SELECT COUNT(*) AS total_papers FROM papers": {"total_papers": 321},
+            "SELECT COUNT(*) AS total_authors FROM authors": {"total_authors": 654},
+            "SELECT COUNT(*) AS total_conferences FROM conferences": {"total_conferences": 12},
+            "SELECT COUNT(*) AS total_journals FROM journals": {"total_journals": 34},
+        }
+        return results[compact_query]
+
+    monkeypatch.setattr(charts, "execute_query", fake_execute_query)
+
+    response = client.get("/api/stats/overview")
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "total_papers": 321,
+        "total_authors": 654,
+        "total_conferences": 12,
+        "total_journals": 34,
+    }
+    assert queries == [
+        "SELECT COUNT(*) AS total_papers FROM papers",
+        "SELECT COUNT(*) AS total_authors FROM authors",
+        "SELECT COUNT(*) AS total_conferences FROM conferences",
+        "SELECT COUNT(*) AS total_journals FROM journals",
+    ]
+
+
+def test_year_papers_endpoint_returns_pagination_and_filters(client, monkeypatch):
+    import routes.years as years
+
+    calls = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+        calls.append((compact_query, params))
+
+        if compact_query.startswith("SELECT COUNT(DISTINCT p.paper_id) AS total FROM papers p"):
+            return {"total": 3}
+
+        if compact_query.startswith("SELECT DISTINCT p.paper_id, p.title, p.type, IFNULL(c.acronym, j.title) AS venue_name FROM papers p"):
+            return [{"paper_id": 99, "title": "Filtered Paper", "type": "conference", "venue_name": "ICSE"}]
+
+        return None if fetchone else []
+
+    monkeypatch.setattr(years, "execute_query", fake_execute_query)
+
+    response = client.get("/api/year/2024/papers?page=2&per_page=1&conf_id=7&journal_id=11&author_id=5")
+    payload = response.get_json()
+
+    assert response.status_code == 200
+    assert payload["papers"] == [
+        {"paper_id": 99, "title": "Filtered Paper", "type": "conference", "venue_name": "ICSE"}
+    ]
+    assert payload["pagination"] == {
+        "page": 2,
+        "per_page": 1,
+        "total_records": 3,
+        "total_pages": 3,
+    }
+
+    count_query, count_params = calls[0]
+    data_query, data_params = calls[1]
+
+    assert "JOIN paper_authors pa ON pa.paper_id = p.paper_id" in count_query
+    assert "p.conf_id = %s" in count_query
+    assert "p.journal_id = %s" in count_query
+    assert "pa.author_id = %s" in count_query
+    assert count_params == (2024, 7, 11, 5)
+    assert data_params == (2024, 7, 11, 5, 1, 1)
