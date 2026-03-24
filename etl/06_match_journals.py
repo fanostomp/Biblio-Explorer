@@ -171,10 +171,11 @@ def load_manual_aliases(valid_journal_ids, manual_alias_csv=MANUAL_ALIAS_CSV):
         reader = csv.DictReader(f)
         required = {"dblp_journal_name", "journal_id", "action"}
         if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
-            raise ValueError(
-                f"{manual_alias_csv} must contain at least the columns: "
-                "dblp_journal_name, journal_id, action"
+            print(
+                f"WARNING: skipping manual alias file {manual_alias_csv}: "
+                "missing required columns dblp_journal_name, journal_id, action"
             )
+            return alias_map
 
         for line_no, row in enumerate(reader, start=2):
             dblp_name = (row.get("dblp_journal_name") or "").strip()

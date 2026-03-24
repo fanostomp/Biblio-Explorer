@@ -95,6 +95,7 @@ def test_confidence_bands_match_output_contract():
 
 def test_load_manual_aliases_supports_match_and_unmatch_actions():
     alias_file = Path(".tmp") / f"journal_manual_aliases_{uuid4().hex}.csv"
+    alias_file.parent.mkdir(parents=True, exist_ok=True)
     alias_file.write_text(
         "\n".join(
             [
@@ -114,5 +115,29 @@ def test_load_manual_aliases_supports_match_and_unmatch_actions():
         assert aliases[canonical_key("fundam inform")]["journal_id"] == 11956
         assert aliases[canonical_key("Object Oriented Systems")]["action"] == "unmatch"
         assert aliases[canonical_key("Object Oriented Systems")]["journal_id"] is None
+    finally:
+        alias_file.unlink(missing_ok=True)
+
+
+def test_load_manual_aliases_ignores_non_csv_placeholder_files(capsys):
+    alias_file = Path(".tmp") / f"journal_manual_aliases_{uuid4().hex}.csv"
+    alias_file.parent.mkdir(parents=True, exist_ok=True)
+    alias_file.write_text(
+        "\n".join(
+            [
+                "version https://git-lfs.github.com/spec/v1",
+                "oid sha256:placeholder",
+                "size 1234",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        aliases = load_manual_aliases({11956}, manual_alias_csv=alias_file)
+
+        assert aliases == {}
+        assert "WARNING: skipping manual alias file" in capsys.readouterr().out
     finally:
         alias_file.unlink(missing_ok=True)
