@@ -473,31 +473,17 @@ def test_token_overlap_partial():
 **Branch:** `chore/cleanup`
 
 ### Description
-13 debug/utility scripts clutter the root directory. This is explicitly penalized in the grading rubric.
+Repo cleanup task. In the current repo state, one-off diagnostic scripts were already out of root but still lived under `scripts/archive/`, and a stray `etl_error.txt` artifact remained at the project root.
 
 ### Acceptance Criteria
-- [ ] Create `scripts/debug/` directory
-- [ ] Move all one-off scripts there:
+- [x] Create `scripts/debug/` directory
+- [x] Move the remaining one-off diagnostic scripts from `scripts/archive/` into `scripts/debug/`
+- [x] Keep the actively used scripts in `scripts/` root (`validate_etl.py`, `benchmark_search_profile.py`)
+- [x] Delete the stray root artifact: `etl_error.txt`
+- [x] Keep `scripts/debug/` tracked and clean
+- [x] Update [.gitignore](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/.gitignore) to include `__pycache__/`, `*.pyc`, `.env`
 
-```
-check_acta.py → scripts/debug/
-check_authors.py → scripts/debug/
-check_journals.py → scripts/debug/
-check_single_author.py → scripts/debug/
-debug_stats.py → scripts/debug/
-deep_journal_analysis.py → scripts/debug/
-diag_journal.py → scripts/debug/
-find_more_journals.py → scripts/debug/
-fix_high_impact_journals.py → scripts/debug/
-quick_fix_journals.py → scripts/debug/
-update_journal_links.py → scripts/debug/
-verify_api.py → scripts/debug/
-verify_db.py → scripts/debug/
-```
-
-- [ ] Delete: [temp.html](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/temp.html), [etl_error.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl_error.txt), [implementation_plan.md.resolved](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/implementation_plan.md.resolved)
-- [ ] Add `scripts/debug/` to [.gitignore](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/.gitignore) (or keep it — but make sure it's clean)
-- [ ] Update [.gitignore](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/.gitignore) to include `__pycache__/`, `*.pyc`, `.env`
+- [x] Verification: no app/test references to `scripts/archive/`; debug scripts now live under `scripts/debug/`
 
 ---
 
@@ -668,7 +654,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ⬜ Not Started |
 | C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ✅ Done |
 | C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ✅ Done |
-| C-03 | Repo Cleanup | 🟠 C | 🔴 P0 | 2h | ⬜ Not Started |
+| C-03 | Repo Cleanup | 🟠 C | 🔴 P0 | 2h | ✅ Done |
 | C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
 | C-05 | Logging Framework | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
 | C-06 | Report & Deliverables | 🟠 C | 🔴 P0 | 6h | ⬜ Not Started |
