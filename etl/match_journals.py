@@ -17,10 +17,13 @@ COMPILED_ABBREV = _MODULE.COMPILED_ABBREV
 OVERLAP_THRESHOLD = _MODULE.OVERLAP_THRESHOLD
 SHORT_NAME_OVERLAP_THRESHOLD = _MODULE.SHORT_NAME_OVERLAP_THRESHOLD
 STOPWORDS = _MODULE.STOPWORDS
+MANUAL_ALIAS_CSV = _MODULE.MANUAL_ALIAS_CSV
 
 expand_abbrev = _MODULE.expand_abbrev
 normalize = _MODULE.normalize
+canonical_key = _MODULE.canonical_key
 tokens = _MODULE.tokens
+load_manual_aliases = _MODULE.load_manual_aliases
 overlap_score_from_tokens = _MODULE.overlap_score_from_tokens
 token_overlap = _MODULE.token_overlap
 required_overlap_threshold = _MODULE.required_overlap_threshold

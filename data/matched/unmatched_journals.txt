@@ -1,6 +1,312 @@
-# 100 unmatched DBLP journal names
+# 439 unmatched DBLP journal names
 # Format: best_overlap_score | dblp_name
 
+0.50 | ACM Crossroads
+0.50 | ACM Queue
+0.50 | ACM StandardView
+0.50 | AISS
+0.50 | ANSI X2H2
+0.50 | ANSI X3H2
+0.50 | Adaptive Behaviour
+0.50 | Adv. Bioinformatics
+0.50 | Adv. in MM
+0.50 | Advances in Computers
+0.50 | Angewandte Informatik
+0.50 | BIAA
+0.50 | BIT
+0.50 | Bioinformatics [ISMB]
+0.50 | Bulletin of the EATCS
+0.50 | Bulletin of the IGPL
+0.50 | CMG Transactions
+0.50 | Circuits and Systems
+0.50 | Compulog Newsletter
+0.50 | Comput. Geom.
+0.50 | Computers in Entertainment
+0.50 | Computerworld
+0.50 | Computing
+0.50 | Datenbank-Spektrum
+0.50 | Digital Investigation
+0.50 | Document Numérique
+0.50 | ECEASST
+0.50 | EG
+0.50 | EMISA Forum
+0.50 | ERCIM News
+0.50 | Electronic Publishing
+0.50 | Elektronische Rechenanlagen
+0.50 | Enterprise IS
+0.50 | FO & DM
+0.50 | First Monday
+0.50 | Formalized Mathematics
+0.50 | Game Studies
+0.50 | History and Computing
+0.50 | IBM Publication
+0.50 | ICGA Journal
+0.50 | IEEE Concurrency
+0.50 | IEEE-RITA
+0.50 | IGTR
+0.50 | IJ3DIM
+0.50 | IJAACS
+0.50 | IJABIM
+0.50 | IJACDT
+0.50 | IJACI
+0.50 | IJACT
+0.50 | IJAEC
+0.50 | IJAEIS
+0.50 | IJAGR
+0.50 | IJAHUC
+0.50 | IJAIP
+0.50 | IJAISC
+0.50 | IJAL
+0.50 | IJALR
+0.50 | IJAMC
+0.50 | IJANTTI
+0.50 | IJAOM
+0.50 | IJAOSE
+0.50 | IJAPUC
+0.50 | IJARAS
+0.50 | IJATEM
+0.50 | IJATS
+0.50 | IJAVET
+0.50 | IJBDCN
+0.50 | IJBIC
+0.50 | IJBIDM
+0.50 | IJBIR
+0.50 | IJBIS
+0.50 | IJBPSCM
+0.50 | IJBRA
+0.50 | IJCAC
+0.50 | IJCAET
+0.50 | IJCALLT
+0.50 | IJCBPL
+0.50 | IJCC
+0.50 | IJCCBS
+0.50 | IJCCE
+0.50 | IJCEE
+0.50 | IJCICG
+0.50 | IJCIH
+0.50 | IJCINI
+0.50 | IJCIS
+0.50 | IJCLCLP
+0.50 | IJCMAM
+0.50 | IJCNDS
+0.50 | IJCNIS
+0.50 | IJCNS
+0.50 | IJCOPI
+0.50 | IJCSA
+0.50 | IJCSE
+0.50 | IJCVIP
+0.50 | IJCWT
+0.50 | IJDC
+0.50 | IJDCF
+0.50 | IJDE
+0.50 | IJDET
+0.50 | IJDLDC
+0.50 | IJDLS
+0.50 | IJDMB
+0.50 | IJDMMM
+0.50 | IJDSST
+0.50 | IJDST
+0.50 | IJDTIS
+0.50 | IJDWM
+0.50 | IJEA
+0.50 | IJEB
+0.50 | IJEBM
+0.50 | IJEBR
+0.50 | IJEEI
+0.50 | IJEGR
+0.50 | IJEH
+0.50 | IJEHMC
+0.50 | IJEIS
+0.50 | IJEOE
+0.50 | IJEP
+0.50 | IJERTCS
+0.50 | IJES
+0.50 | IJESMA
+0.50 | IJFSA
+0.50 | IJGBL
+0.50 | IJGC
+0.50 | IJGCMS
+0.50 | IJGCRSIS
+0.50 | IJGHPC
+0.50 | IJGUC
+0.50 | IJHAC
+0.50 | IJHCITP
+0.50 | IJHCR
+0.50 | IJHISI
+0.50 | IJHPCN
+0.50 | IJHPSA
+0.50 | IJICST
+0.50 | IJICT
+0.50 | IJICTE
+0.50 | IJICTHD
+0.50 | IJICTRDA
+0.50 | IJICoT
+0.50 | IJIDE
+0.50 | IJIDS
+0.50 | IJIDSS
+0.50 | IJIEI
+0.50 | IJIIDS
+0.50 | IJIIP
+0.50 | IJIIT
+0.50 | IJIMAI
+0.50 | IJIMR
+0.50 | IJIPM
+0.50 | IJIPSI
+0.50 | IJIPT
+0.50 | IJIQ
+0.50 | IJIRR
+0.50 | IJISCM
+0.50 | IJISCRAM
+0.50 | IJISMD
+0.50 | IJISP
+0.50 | IJISSC
+0.50 | IJISSCM
+0.50 | IJISSS
+0.50 | IJISTA
+0.50 | IJITBAG
+0.50 | IJITCC
+0.50 | IJITM
+0.50 | IJITN
+0.50 | IJITPM
+0.50 | IJITSA
+0.50 | IJITWE
+0.50 | IJKBO
+0.50 | IJKDB
+0.50 | IJKEDM
+0.50 | IJKESDP
+0.50 | IJKL
+0.50 | IJKM
+0.50 | IJKSR
+0.50 | IJKSS
+0.50 | IJLT
+0.50 | IJMBL
+0.50 | IJMC
+0.50 | IJMCMC
+0.50 | IJMDEM
+0.50 | IJMEI
+0.50 | IJMHCI
+0.50 | IJMHeur
+0.50 | IJMIR
+0.50 | IJMIS
+0.50 | IJMMME
+0.50 | IJMNO
+0.50 | IJMR
+0.50 | IJMSO
+0.50 | IJMTIE
+0.50 | IJMTM
+0.50 | IJNC
+0.50 | IJNCR
+0.50 | IJNGC
+0.50 | IJNMC
+0.50 | IJNVO
+0.50 | IJOCI
+0.50 | IJOM
+0.50 | IJOPCD
+0.50 | IJORIS
+0.50 | IJOSSP
+0.50 | IJPEDS
+0.50 | IJPOP
+0.50 | IJQAETE
+0.50 | IJRFITA
+0.50 | IJSCCPS
+0.50 | IJSDS
+0.50 | IJSE
+0.50 | IJSHC
+0.50 | IJSIR
+0.50 | IJSITA
+0.50 | IJSKD
+0.50 | IJSN
+0.50 | IJSNM
+0.50 | IJSODIT
+0.50 | IJSS
+0.50 | IJSSC
+0.50 | IJSSCI
+0.50 | IJSSE
+0.50 | IJSSMET
+0.50 | IJSSOE
+0.50 | IJSSS
+0.50 | IJSTM
+0.50 | IJT
+0.50 | IJTD
+0.50 | IJTEM
+0.50 | IJTHI
+0.50 | IJUC
+0.50 | IJVCSN
+0.50 | IJVPLE
+0.50 | IJVR
+0.50 | IJWA
+0.50 | IJWBC
+0.50 | IJWGS
+0.50 | IJWIS
+0.50 | IJWLTT
+0.50 | IJWMC
+0.50 | IJWMIP
+0.50 | IJWNBT
+0.50 | IJWP
+0.50 | IJWS
+0.50 | IJeC
+0.50 | IRMJ
+0.50 | ISSE
+0.50 | ITC
+0.50 | ITSSA
+0.50 | IWBS Report
+0.50 | In Silico Biology
+0.50 | Informatica Didactica
+0.50 | Informatik Spektrum
+0.50 | Interactions
+0.50 | Internet Mathematics
+0.50 | IxD&A
+0.50 | JCIT
+0.50 | Journal of Multimedia
+0.50 | Journal of WSCG
+0.50 | KES Journal
+0.50 | L'OBJET
+0.50 | LDV Forum
+0.50 | LILOG-Memo
+0.50 | LILOG-Report
+0.50 | LOPLAS
+0.50 | MMI Interaktiv
+0.50 | Markup Languages
+0.50 | Nachr. Dok.
+0.50 | OMICS
+0.50 | OR Insight
+0.50 | Poiesis & Praxis
+0.50 | Progress in AI
+0.50 | RASI
+0.50 | RITA
+0.50 | Reliable Computing
+0.50 | Roars Transactions
+0.50 | Robotersysteme
+0.50 | SIGACT News
+0.50 | SIGART Bulletin
+0.50 | SIGART Newsletter
+0.50 | SIGBED Review
+0.50 | SIGCSE Bulletin
+0.50 | SIGHIT Record
+0.50 | SIGIR Forum
+0.50 | SIGKDD Explorations
+0.50 | SIGPLAN Notices
+0.50 | SIGecom Exchanges
+0.50 | Schedae Informaticae
+0.50 | Scholarpedia
+0.50 | Smart CR
+0.50 | Software Focus
+0.50 | Softwaretechnik-Trends
+0.50 | Space Communications
+0.50 | Structured Programming
+0.50 | Technical Report
+0.50 | The Atlantic Monthly
+0.50 | Tran. CBR
+0.50 | Trans. MLDM
+0.50 | Transactions of the SDPS
+0.50 | VLSI Design
+0.50 | Webology
+0.50 | Wikipedia
+0.50 | eLearn Magazine
+0.50 | iJEP
+0.50 | iJET
+0.50 | iJIM
+0.50 | iJOE
 0.35 | In: R. Rustin (ed.): Database Systems: 65-98, Prentice Hall and IBM Research Report RJ 987, San Jose, California
 0.33 | ACM SIGMOD Anthology
 0.33 | Adv. Artificial Intellegence
@@ -12,10 +318,8 @@
 0.33 | HMD - Praxis Wirtschaftsinform.
 0.33 | IBM Research Report, San Jose, California
 0.33 | Intelligent Tutoring Media
-0.33 | JAMIA
 0.33 | Kognitionswissenschaft
 0.33 | Kybernetica
-0.33 | MONET
 0.33 | OOPS Messenger
 0.33 | Procedia CS
 0.33 | Software - Concepts and Tools
@@ -25,24 +329,15 @@
 0.33 | TAAS
 0.33 | TACCESS
 0.33 | TACL
-0.33 | TACO
-0.33 | TAP
 0.33 | TAPOS
-0.33 | TBC
-0.33 | TIIS
 0.33 | TKDD
-0.33 | TLT
 0.33 | TOCE
 0.33 | TOCT
-0.33 | TOMCCAP
 0.33 | TOS
-0.33 | TOSN
-0.33 | TPLP
 0.33 | TRETS
 0.33 | TSLP
 0.33 | TWEB
 0.33 | Technical Rep. UKSC 0060, IBM United Kingdom Scientific Centre
-0.33 | TiiS
 0.33 | TinyToCS
 0.33 | Zeitschrift für Medienpsychologie
 0.33 | submitted to IEEE Expert
@@ -51,27 +346,51 @@
 0.25 | Hypermedia
 0.25 | MCFNS
 0.25 | MCSS
-0.25 | Presence
 0.25 | Rundbrief der GI-Fachgruppe 5.10 Informationssystem-Architekturen
 0.25 | technical Report 248, ETH Zürich, Dept. of Computer Science
 0.20 | ACM SIGAPL APL Quote Quad
 0.20 | Grammars
-0.20 | JETC
 0.20 | Universität Trier, Mathematik/Informatik, Forschungsbericht
 0.17 | JACIC
-0.17 | JACIII
 0.17 | JAISE
 0.17 | JAMDS
-0.17 | JASIS
-0.17 | JASIST
 0.17 | JCP
-0.17 | PVLDB
 0.17 | Paladyn
 0.10 | JoSS
 0.10 | JoSSR
 0.10 | NHM
-0.00 | APJOR
+0.00 | ACM Journal of Computer Documentation
+0.00 | ACM Journal of Experimental Algorithmics
+0.00 | ACM SIGMOD Digital Review
+0.00 | ACM SIGMOD Digital Symposium Collection
 0.00 | ARIST
+0.00 | Adv. Internet of Things
+0.00 | Annales UMCS, Informatica
+0.00 | Bull. Acad. Polon. Sci., Sér. Sci. Math. Astronom. Phys.
+0.00 | C't Magazin für Computer Technik
+0.00 | EAI Endorsed Trans. Mobile Communications Applications
+0.00 | EAI Endorsed Trans. Serious Games
+0.00 | Electr. Notes Theor. Comput. Sci.
+0.00 | Electron. Trans. Artif. Intell.
+0.00 | Elektronische Informationsverarbeitung und Kybernetik
+0.00 | Foundations and Trends in Technology, Information and Operations Management
+0.00 | Higher-Order and Symbolic Computation
+0.00 | I. J. Functional Informatics and Personalised Medicine
+0.00 | IACR Cryptology ePrint Archive
+0.00 | ICST Trans. Ambient Systems
+0.00 | ICST Trans. Mobile Communications Applications
+0.00 | IEEE Trans. Comput. Intellig. and AI in Games
+0.00 | Inf. Sec. Techn. Report
+0.00 | Inf. Services and Use
+0.00 | Inform., Forsch. Entwickl.
+0.00 | Int. J. Applied Earth Observation and Geoinformation
+0.00 | Int. J. Comput. Proc. Oriental Lang.
+0.00 | J. Adv. Inf. Fusion
+0.00 | J. Instruction-Level Parallelism
+0.00 | J. Math. Model. Algorithms
+0.00 | J. Math. Model. Algorithms in OR
+0.00 | J. Mobile Multimedia
+0.00 | J. Riga Technical University
 0.00 | JCM
 0.00 | JCSE
 0.00 | JDCTA
@@ -79,11 +398,9 @@
 0.00 | JECO
 0.00 | JGIM
 0.00 | JIDM
-0.00 | JIKM
 0.00 | JILSA
 0.00 | JIP
 0.00 | JIPS
-0.00 | JIT
 0.00 | JITE
 0.00 | JITR
 0.00 | JLCL
@@ -101,3 +418,25 @@
 0.00 | JUSPN
 0.00 | JVRB
 0.00 | JoCG
+0.00 | Journal of Applied Non-Classical Logics
+0.00 | Journal of Automata, Languages and Combinatorics
+0.00 | Neural Parallel & Scientific Comp.
+0.00 | Object Oriented Systems
+0.00 | Parallel Algorithms Appl.
+0.00 | Prague Bull. Math. Linguistics
+0.00 | SIGARCH Computer Architecture News
+0.00 | SIGMETRICS Performance Evaluation Review
+0.00 | Scalable Computing: Practice and Experience
+0.00 | Sci. Ann. Cuza Univ.
+0.00 | Source Code for Biology and Medicine
+0.00 | Stud. Inform. Univ.
+0.00 | Systems and Computers in Japan
+0.00 | T. Aspect-Oriented Software Development
+0.00 | T. Data Hiding and Multimedia Security
+0.00 | T. Large-Scale Data- and Knowledge-Centered Systems
+0.00 | T. Rough Sets
+0.00 | Technique et Science Informatiques
+0.00 | Theory of Computing, Graduate Surveys
+0.00 | Web Intelligence and Agent Systems
+0.00 | World Digital Libraries
+0.00 | it+ti - Informationstechnik und Technische Informatik

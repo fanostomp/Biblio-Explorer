@@ -34,6 +34,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 ARTICLES_CSV = os.path.join(CLEANED_DIR, "cleaned_articles.csv")
 OUT_MAPPING = os.path.join(OUT_DIR, "journal_name_to_id.csv")
 OUT_UNMATCHED = os.path.join(OUT_DIR, "unmatched_journals.txt")
+MANUAL_ALIAS_CSV = os.path.join(OUT_DIR, "journal_manual_aliases.csv")
 
 # EXTENDED: Common abbreviations found in DBLP journal names
 ABBREV_MAP = {
@@ -154,8 +155,70 @@ def normalize(text):
     t = re.sub(r'\s+', ' ', t).strip()
     return t
 
+def canonical_key(text):
+    return normalize(text).casefold()
+
 def tokens(text):
     return set(normalize(text).split()) - STOPWORDS
+
+def load_manual_aliases(valid_journal_ids, manual_alias_csv=MANUAL_ALIAS_CSV):
+    alias_map = {}
+
+    if not os.path.exists(manual_alias_csv):
+        return alias_map
+
+    with open(manual_alias_csv, "r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        required = {"dblp_journal_name", "journal_id", "action"}
+        if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
+            print(
+                f"WARNING: skipping manual alias file {manual_alias_csv}: "
+                "missing required columns dblp_journal_name, journal_id, action"
+            )
+            return alias_map
+
+        for line_no, row in enumerate(reader, start=2):
+            dblp_name = (row.get("dblp_journal_name") or "").strip()
+            journal_id_raw = (row.get("journal_id") or "").strip()
+            action = (row.get("action") or "").strip().casefold()
+
+            if not dblp_name and not journal_id_raw and not action:
+                continue
+            if not dblp_name or action not in {"match", "unmatch"}:
+                print(
+                    f"WARNING: ignoring invalid manual alias at line {line_no}: "
+                    f"{row!r}"
+                )
+                continue
+
+            journal_id = None
+            if action == "match":
+                if not journal_id_raw:
+                    print(
+                        f"WARNING: ignoring manual match without journal_id at "
+                        f"line {line_no}: {row!r}"
+                    )
+                    continue
+                try:
+                    journal_id = int(journal_id_raw)
+                except ValueError:
+                    print(
+                        f"WARNING: ignoring manual alias with non-integer journal_id "
+                        f"at line {line_no}: {journal_id_raw!r}"
+                    )
+                    continue
+                if journal_id not in valid_journal_ids:
+                    print(
+                        f"WARNING: ignoring manual alias with unknown journal_id at "
+                        f"line {line_no}: {journal_id}"
+                    )
+                    continue
+
+            key = canonical_key(dblp_name)
+            if key:
+                alias_map[key] = {"action": action, "journal_id": journal_id}
+
+    return alias_map
 
 def overlap_score_from_tokens(source_tokens, target_tokens):
     if not source_tokens or not target_tokens:
@@ -223,10 +286,14 @@ def main():
     conn.close()
 
     # Build lookup maps
-    exact_map = {}  # normalized title → journal_id
+    exact_map = {}  # normalized title -> journal_id
+    valid_journal_ids = set()
     for jid, title in db_journals:
+        valid_journal_ids.add(jid)
         if title:
             exact_map[normalize(title)] = jid
+
+    manual_aliases = load_manual_aliases(valid_journal_ids)
 
     # Collect distinct journal names from cleaned articles
     journal_names = set()
@@ -238,6 +305,7 @@ def main():
                 journal_names.add(jname)
 
     print(f"Distinct DBLP journal names to match: {len(journal_names):,}")
+    print(f"Manual journal alias entries loaded: {len(manual_aliases):,}")
 
     matched = 0
     unmatched = []
@@ -251,6 +319,17 @@ def main():
         writer.writerow(["dblp_journal_name", "journal_id", "match_type", "confidence"])
 
         for jname in sorted(journal_names):
+            manual_override = manual_aliases.get(canonical_key(jname))
+            if manual_override:
+                if manual_override["action"] == "match":
+                    writer.writerow([jname, manual_override["journal_id"], "manual-alias", "high"])
+                    matched += 1
+                    continue
+
+                writer.writerow([jname, "", "manual-unmatch", "unmatched"])
+                unmatched.append((jname, 0.0))
+                continue
+
             norm_jname = normalize(jname)
 
             # 1. Exact match
