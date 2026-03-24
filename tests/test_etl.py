@@ -1,11 +1,16 @@
+from pathlib import Path
+from uuid import uuid4
+
 import pytest
 
 from etl.match_journals import (
     OVERLAP_THRESHOLD,
     SHORT_NAME_OVERLAP_THRESHOLD,
+    canonical_key,
     classify_confidence,
     expand_abbrev,
     find_best_overlap_match,
+    load_manual_aliases,
     normalize,
     overlap_score_from_tokens,
     required_overlap_threshold,
@@ -27,6 +32,10 @@ def test_normalize_expands_abbreviations_and_cleans_punctuation():
         normalize(" IEEE Trans. Knowl., Data Eng. ")
         == "ieee transactions knowledge data engineering"
     )
+
+
+def test_canonical_key_normalizes_manual_alias_lookup_values():
+    assert canonical_key(" Math. Program. ") == canonical_key("math program")
 
 
 def test_tokens_removes_stopwords():
@@ -82,3 +91,28 @@ def test_confidence_bands_match_output_contract():
     assert classify_confidence(0.60) == "medium"
     assert classify_confidence(0.45) == "low"
     assert classify_confidence(0.0, matched=False) == "unmatched"
+
+
+def test_load_manual_aliases_supports_match_and_unmatch_actions():
+    alias_file = Path(".tmp") / f"journal_manual_aliases_{uuid4().hex}.csv"
+    alias_file.write_text(
+        "\n".join(
+            [
+                "dblp_journal_name,journal_id,action,notes",
+                "Fundam. Inform.,11956,match,Known abbreviation",
+                "Object Oriented Systems,,unmatch,Reject risky false positive",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        aliases = load_manual_aliases({11956}, manual_alias_csv=alias_file)
+
+        assert aliases[canonical_key("fundam inform")]["action"] == "match"
+        assert aliases[canonical_key("fundam inform")]["journal_id"] == 11956
+        assert aliases[canonical_key("Object Oriented Systems")]["action"] == "unmatch"
+        assert aliases[canonical_key("Object Oriented Systems")]["journal_id"] is None
+    finally:
+        alias_file.unlink(missing_ok=True)

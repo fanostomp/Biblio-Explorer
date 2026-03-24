@@ -565,17 +565,18 @@ The `deliverables/` folder is empty. The final submission requires a PDF report 
 `06_match_journals.py` now completes safely and emits confidence bands, but the current output still includes `68` low-confidence matches and `443` unmatched journal names. This follow-up task is a conservative curation pass: fix risky false positives first, then improve coverage on the highest-impact unmatched journals without broadening the matcher aggressively.
 
 ### Acceptance Criteria
-- [ ] Review all `low` confidence rows in [journal_name_to_id.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/journal_name_to_id.csv) and identify obviously wrong matches
-- [ ] Add a conservative manual alias / override mechanism for journals if needed (for example `data/matched/journal_manual_aliases.csv`)
-- [ ] Resolve the top high-impact unmatched journal names from [unmatched_journals.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/unmatched_journals.txt), prioritizing names with clear exact or alias mappings
-- [ ] Do **not** lower thresholds further or introduce broader fuzzy matching that increases false-positive risk
-- [ ] Rerun `python etl/06_match_journals.py` and record before/after counts for `high`, `medium`, `low`, and `unmatched`
-- [ ] Add or update pytest coverage if new curation logic is implemented in code
+- [x] Review all `low` confidence rows in [journal_name_to_id.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/journal_name_to_id.csv) and identify obviously wrong matches
+- [x] Add a conservative manual alias / override mechanism for journals if needed (for example `data/matched/journal_manual_aliases.csv`)
+- [x] Resolve the top high-impact unmatched journal names from [unmatched_journals.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/unmatched_journals.txt), prioritizing names with clear exact or alias mappings
+- [x] Do **not** lower thresholds further or introduce broader fuzzy matching that increases false-positive risk
+- [x] Rerun `python etl/06_match_journals.py` and record before/after counts for `high`, `medium`, `low`, and `unmatched`
+- [x] Add or update pytest coverage if new curation logic is implemented in code
 
 ### Files to Modify
 | File | Change |
 |---|---|
 | [06_match_journals.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/06_match_journals.py) | Add conservative alias/override support if needed |
+| [journal_manual_aliases.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/journal_manual_aliases.csv) | Curated manual match/unmatch overrides for safe journal curation |
 | [journal_name_to_id.csv](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/journal_name_to_id.csv) | Regenerated after curation pass |
 | [unmatched_journals.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/data/matched/unmatched_journals.txt) | Regenerated after curation pass |
 | [tests/test_etl.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/tests/test_etl.py) | Extend tests if matcher behavior changes |
@@ -658,7 +659,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
 | C-05 | Logging Framework | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
 | C-06 | Report & Deliverables | 🟠 C | 🔴 P0 | 6h | ⬜ Not Started |
-| C-07 | Journal Matching Curation Pass | 🟠 C | 🟡 P1 | 4h | ⬜ Not Started |
+| C-07 | Journal Matching Curation Pass | 🟠 C | 🟡 P1 | 4h | ✅ Done |
 | | | | **Total** | **79h** | |
 
 > **Workload per dev:** Dev A ~34h, Dev B ~19h, Dev C ~30h. Dev B has lighter load — pick up overflow from A or C as needed.
