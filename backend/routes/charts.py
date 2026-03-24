@@ -3,6 +3,24 @@ from db import get_db_connection, execute_query
 from extensions import cache
 
 charts_bp = Blueprint('charts', __name__)
+stats_bp = Blueprint('stats', __name__)
+
+
+def _get_stats_overview_payload(conn):
+    counts = {}
+    for key, table in (
+        ('total_papers', 'papers'),
+        ('total_authors', 'authors'),
+        ('total_conferences', 'conferences'),
+        ('total_journals', 'journals'),
+    ):
+        row = execute_query(
+            conn,
+            f"SELECT COUNT(*) AS {key} FROM {table}",
+            fetchone=True,
+        )
+        counts[key] = row[key] if row else 0
+    return counts
 
 @charts_bp.route('/overview', methods=['GET'])
 @cache.cached(timeout=3600)
@@ -28,30 +46,24 @@ def get_overview():
 @charts_bp.route('/stats/overview', methods=['GET'])
 @cache.cached(timeout=3600)
 def get_stats_overview():
+    """Compatibility alias for dashboard stats."""
+    conn = get_db_connection()
+    try:
+        return jsonify(_get_stats_overview_payload(conn))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@stats_bp.route('/overview', methods=['GET'])
+@cache.cached(timeout=3600)
+def get_stats_overview_api():
     """Real stats for the dashboard: total papers, authors, conferences, journals."""
     conn = get_db_connection()
     try:
-        # Fast table row count estimation using SHOW TABLE STATUS for InnoDB
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SHOW TABLE STATUS LIKE 'papers'")
-        papers_count = cursor.fetchone()['Rows']
-        
-        cursor.execute("SHOW TABLE STATUS LIKE 'authors'")
-        authors_count = cursor.fetchone()['Rows']
-
-        cursor.execute("SHOW TABLE STATUS LIKE 'conferences'")
-        confs_count = cursor.fetchone()['Rows']
-        
-        cursor.execute("SHOW TABLE STATUS LIKE 'journals'")
-        journals_count = cursor.fetchone()['Rows']
-        cursor.close()
-
-        return jsonify({
-            'total_papers': papers_count,
-            'total_authors': authors_count,
-            'total_conferences': confs_count,
-            'total_journals': journals_count
-        })
+        return jsonify(_get_stats_overview_payload(conn))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:

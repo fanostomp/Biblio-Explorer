@@ -321,10 +321,10 @@ Two bugs in [journals.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIM
 Dashboard needs real stats. Year page needs filters and pagination.
 
 ### Acceptance Criteria
-- [ ] New route: `GET /api/stats/overview` → returns `{total_papers, total_authors, total_conferences, total_journals}` with `@cache.cached`
-- [ ] Year papers endpoint: add query params `?conf_id=X`, `?journal_id=X`, `?author_id=X` for filtering
-- [ ] Year papers: add proper pagination ([page](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#58-61), `per_page`) instead of hardcoded `limit`
-- [ ] Return `total_records` and `total_pages` in year papers response
+- [x] New route: `GET /api/stats/overview` → returns `{total_papers, total_authors, total_conferences, total_journals}` with `@cache.cached`
+- [x] Year papers endpoint: add query params `?conf_id=X`, `?journal_id=X`, `?author_id=X` for filtering
+- [x] Year papers: add proper pagination ([page](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py#58-61), `per_page`) instead of hardcoded `limit`
+- [x] Return `total_records` and `total_pages` in year papers response
 
 ### Files to Modify
 | File | Change |
@@ -663,7 +663,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ✅ Done |
 | B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ✅ Done |
 | B-03 | Journal Bug Fixes | 🟢 B | 🔴 P0 | 2h | ✅ Done |
-| B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ⬜ Not Started |
+| B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ✅ Done |
 | B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ✅ Done |
 | B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ⬜ Not Started |
 | C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ✅ Done |
