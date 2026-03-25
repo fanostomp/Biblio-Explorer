@@ -48,10 +48,12 @@ def get_profile(journal_id):
             "SELECT * FROM vw_journal_yearly_stats WHERE journal_id = %s ORDER BY year ASC",
             (journal_id,)
         )
+        has_dblp_coverage = bool((profile.get('total_papers') or 0) > 0)
 
         return jsonify({
             'profile': profile,
-            'yearly_stats': yearly_stats
+            'yearly_stats': yearly_stats,
+            'has_dblp_coverage': has_dblp_coverage,
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

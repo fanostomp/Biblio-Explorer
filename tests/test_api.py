@@ -124,6 +124,48 @@ def test_journal_search_with_special_characters_does_not_crash(client):
     assert isinstance(payload, list)
 
 
+def test_journal_profile_includes_dblp_coverage_flag(client, monkeypatch):
+    import routes.journals as journals
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+
+        if "FROM vw_journal_profile" in compact_query:
+            if params == (1,):
+                return {
+                    "journal_id": 1,
+                    "title": "Journal With Coverage",
+                    "total_papers": 12,
+                    "distinct_authors": 8,
+                }
+            if params == (2,):
+                return {
+                    "journal_id": 2,
+                    "title": "Journal Without Coverage",
+                    "total_papers": 0,
+                    "distinct_authors": 0,
+                }
+            return None
+
+        if "FROM vw_journal_yearly_stats" in compact_query:
+            if params == (1,):
+                return [{"journal_id": 1, "year": 2024, "paper_count": 12, "distinct_authors": 8}]
+            if params == (2,):
+                return []
+
+        return None if fetchone else []
+
+    monkeypatch.setattr(journals, "execute_query", fake_execute_query)
+
+    covered_response = client.get("/api/journal/1/profile")
+    uncovered_response = client.get("/api/journal/2/profile")
+
+    assert covered_response.status_code == 200
+    assert covered_response.get_json()["has_dblp_coverage"] is True
+    assert uncovered_response.status_code == 200
+    assert uncovered_response.get_json()["has_dblp_coverage"] is False
+
+
 def test_conference_search_with_only_special_characters_returns_empty_list(client):
     response = client.get("/api/conference/search?q=++&&")
 
@@ -144,6 +186,15 @@ def test_missing_journal_profile_returns_404(client):
 
     assert response.status_code == 404
     assert response.get_json()["error"] == "Not found"
+
+
+def test_journal_page_includes_coverage_empty_state(client):
+    response = client.get("/journal")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'id="journalNoCoverage"' in html
+    assert "no indexed publication data available in DBLP" in html
 
 
 def test_missing_year_profile_returns_404(client):

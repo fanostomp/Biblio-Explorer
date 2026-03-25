@@ -389,16 +389,31 @@ async function loadJournalProfile(id) {
         document.getElementById('journalCollab').textContent = `Collaboration: Avg ${p.avg_authors_per_paper || 0} authors per paper`;
 
         document.getElementById('journalDetails').style.display = 'block';
-        document.getElementById('filtersSection').style.display = 'block';
-        document.getElementById('dashboardGrid').style.display = 'flex';
+        const hasCoverage = Boolean(data.has_dblp_coverage);
+        const filtersSection = document.getElementById('filtersSection');
+        const dashboardGrid = document.getElementById('dashboardGrid');
+        const noCoverage = document.getElementById('journalNoCoverage');
+
+        filtersSection.style.display = hasCoverage ? 'block' : 'none';
+        dashboardGrid.style.display = hasCoverage ? 'flex' : 'none';
+        if (noCoverage) noCoverage.style.display = hasCoverage ? 'none' : 'block';
 
         hideSpinner('dashboardGrid');
 
-        if (window.renderConfJournalCharts) {
+        if (hasCoverage && window.renderConfJournalCharts) {
             window.renderConfJournalCharts(data.yearly_stats);
         }
 
-        loadJournalPapers(id);
+        if (hasCoverage) {
+            loadJournalPapers(id);
+        } else {
+            const papersChart = document.getElementById('papersChart');
+            const authorsChart = document.getElementById('authorsChart');
+            const tbody = document.querySelector('#papersTable tbody');
+            if (papersChart) papersChart.innerHTML = '';
+            if (authorsChart) authorsChart.innerHTML = '';
+            if (tbody) tbody.innerHTML = '';
+        }
 
     } catch(err) {
         hideSpinner('dashboardGrid');
