@@ -883,6 +883,11 @@ function setupComparisonAutocomplete() {
 
     document.addEventListener('click', (e) => {
         if (!controls.contains(e.target)) {
+            requestToken += 1;
+            if (activeController) {
+                activeController.abort();
+                activeController = null;
+            }
             dropdown.style.display = 'none';
         }
     });
