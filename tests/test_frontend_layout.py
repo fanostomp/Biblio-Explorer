@@ -1,3 +1,5 @@
+import pytest
+
 from tests.test_api import client
 
 
@@ -31,3 +33,12 @@ def test_charts_page_exposes_comparison_warning_region(client):
 
     assert response.status_code == 200
     assert 'id="comparisonWarnings"' in html
+
+
+@pytest.mark.parametrize("page_path", ["/conference", "/journal"])
+def test_page_exposes_year_filter_reset_button(client, page_path):
+    response = client.get(page_path)
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'id="resetFilters"' in html

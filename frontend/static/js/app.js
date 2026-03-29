@@ -40,7 +40,9 @@ const state = {
     selectedJournal: null,
     selectedAuthor: null,
     compareEntities: [], // stores {type, id, title, color} for line chart comparison
-    scatterData: null // stores {scatter: [...]} for the scatter plot
+    scatterData: null, // stores {scatter: [...]} for the scatter plot
+    conferenceYearlyStats: [],
+    journalYearlyStats: []
 };
 
 // --- Initialization ---
@@ -151,6 +153,86 @@ function initMobileNav() {
     }, 100));
 }
 
+function parseYearInput(value) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getYearFilterRange() {
+    const startInput = document.getElementById('startYear');
+    const endInput = document.getElementById('endYear');
+
+    return {
+        startYear: parseYearInput(startInput ? startInput.value : ''),
+        endYear: parseYearInput(endInput ? endInput.value : '')
+    };
+}
+
+function clearYearFilterInputs() {
+    const startInput = document.getElementById('startYear');
+    const endInput = document.getElementById('endYear');
+
+    if (startInput) startInput.value = '';
+    if (endInput) endInput.value = '';
+}
+
+function filterYearlyStatsByRange(yearlyStats, startYear, endYear) {
+    if (!Array.isArray(yearlyStats)) return [];
+
+    return yearlyStats.filter((row) => {
+        const year = parseYearInput(row.year);
+        if (year === null) return false;
+        if (startYear !== null && year < startYear) return false;
+        if (endYear !== null && year > endYear) return false;
+        return true;
+    });
+}
+
+function renderFilteredConfJournalCharts(yearlyStats) {
+    ['papersChart', 'authorsChart'].forEach((id) => {
+        const container = document.getElementById(id);
+        if (!container) return;
+
+        if (window.d3) {
+            window.d3.select(container).selectAll('*').remove();
+        } else {
+            container.innerHTML = '';
+        }
+    });
+
+    if (Array.isArray(yearlyStats) && yearlyStats.length > 0 && window.renderConfJournalCharts) {
+        window.renderConfJournalCharts(yearlyStats);
+    }
+}
+
+function setupProfileYearFilterButtons(config) {
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            const selectedEntityId = state[config.selectedEntityStateKey];
+            if (!selectedEntityId) return;
+
+            const { startYear, endYear } = getYearFilterRange();
+            renderFilteredConfJournalCharts(
+                filterYearlyStatsByRange(state[config.yearlyStatsStateKey], startYear, endYear)
+            );
+            config.loadPapersFn(selectedEntityId);
+        });
+    }
+
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', () => {
+            const selectedEntityId = state[config.selectedEntityStateKey];
+            if (!selectedEntityId) return;
+
+            clearYearFilterInputs();
+            renderFilteredConfJournalCharts(state[config.yearlyStatsStateKey]);
+            config.loadPapersFn(selectedEntityId);
+        });
+    }
+}
+
 function setupAutocomplete(config) {
     // config: { inputId, dropdownId, dataSource, filterFn, displayFn, onSelect }
     const input = document.getElementById(config.inputId);
@@ -211,15 +293,12 @@ function initConferencePage() {
         displayFn: (match) => match.acronym ? `${match.acronym} - ${match.title}` : match.title,
         onSelect: (match) => loadConferenceProfile(match.conf_id)
     });
-    
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if(applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', () => {
-            if (state.selectedConf) {
-                loadConferencePapers(state.selectedConf);
-            }
-        });
-    }
+
+    setupProfileYearFilterButtons({
+        selectedEntityStateKey: 'selectedConf',
+        yearlyStatsStateKey: 'conferenceYearlyStats',
+        loadPapersFn: loadConferencePapers
+    });
 }
 
 async function loadConferenceProfile(id) {
@@ -241,6 +320,8 @@ async function loadConferenceProfile(id) {
         document.getElementById('conferenceDetails').style.display = 'block';
         document.getElementById('filtersSection').style.display = 'block';
         document.getElementById('dashboardGrid').style.display = 'flex';
+        clearYearFilterInputs();
+        state.conferenceYearlyStats = Array.isArray(data.yearly_stats) ? data.yearly_stats : [];
 
         // Populate Stat Cards
         document.getElementById('statTotalPapers').textContent = p.total_papers || 0;
@@ -251,9 +332,7 @@ async function loadConferenceProfile(id) {
         hideSpinner('dashboardGrid');
 
         // Plot Charts
-        if (window.renderConfJournalCharts) {
-            window.renderConfJournalCharts(data.yearly_stats);
-        }
+        renderFilteredConfJournalCharts(state.conferenceYearlyStats);
 
         // Load papers table and top authors
         loadConferencePapers(id);
@@ -367,15 +446,12 @@ function initJournalPage() {
         displayFn: (match) => match.title,
         onSelect: (match) => loadJournalProfile(match.journal_id)
     });
-    
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if(applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', () => {
-            if (state.selectedJournal) {
-                loadJournalPapers(state.selectedJournal);
-            }
-        });
-    }
+
+    setupProfileYearFilterButtons({
+        selectedEntityStateKey: 'selectedJournal',
+        yearlyStatsStateKey: 'journalYearlyStats',
+        loadPapersFn: loadJournalPapers
+    });
 }
 
 async function loadJournalProfile(id) {
@@ -413,6 +489,8 @@ async function loadJournalProfile(id) {
         const filtersSection = document.getElementById('filtersSection');
         const dashboardGrid = document.getElementById('dashboardGrid');
         const noCoverage = document.getElementById('journalNoCoverage');
+        clearYearFilterInputs();
+        state.journalYearlyStats = Array.isArray(data.yearly_stats) ? data.yearly_stats : [];
 
         filtersSection.style.display = hasCoverage ? 'block' : 'none';
         dashboardGrid.style.display = hasCoverage ? 'flex' : 'none';
@@ -420,8 +498,8 @@ async function loadJournalProfile(id) {
 
         hideSpinner('dashboardGrid');
 
-        if (hasCoverage && window.renderConfJournalCharts) {
-            window.renderConfJournalCharts(data.yearly_stats);
+        if (hasCoverage) {
+            renderFilteredConfJournalCharts(state.journalYearlyStats);
         }
 
         if (hasCoverage) {
