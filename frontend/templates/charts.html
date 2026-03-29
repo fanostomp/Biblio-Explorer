@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Advanced Charts — BiblioExplorer{% endblock %}
+{% block title %}Advanced Charts - BiblioExplorer{% endblock %}
 {% block content %}
 <div class="profile-header">
   <h1>Advanced Targeted Charts</h1>
@@ -8,54 +8,57 @@
   </p>
 </div>
 
-<div class="filters-section">
-  <div class="filter-group">
-    <label>Entity Type:</label>
-    <select
-      id="entityTypeSel"
-      class="filter-select"
-    >
-      <option value="conference">Conferences</option>
-      <option value="journal">Journals</option>
-    </select>
+<div class="chart-container full-width chart-section-spacing comparison-hero">
+  <div class="comparison-hero-copy">
+    <h3>Build a Venue Comparison</h3>
+    <p class="text-muted chart-description">
+      Search conferences or journals on demand, add up to six venues, and compare publication and authorship trends first.
+    </p>
   </div>
-  <div class="filter-group search-section comparison-search">
-    <input
-      type="text"
-      id="addEntitySearch"
-      class="search-input-compact"
-      placeholder="Search to add to comparison..."
-      autocomplete="off"
-    />
-    <ul id="addEntityDropdown" class="autocomplete-list"></ul>
-  </div>
-  <button
-    id="clearComparisonBtn"
-    class="btn btn-danger"
-  >
-    Clear All
-  </button>
-</div>
 
-<!-- Comparison Badges Area -->
-<div
-  class="badges comparison-badges"
-  id="selectedEntitiesList"
->
-  <!-- Badges will appear here, e.g. <span class="badge category-badge">SIGMOD ✖</span> -->
-</div>
-
-<div class="chart-container full-width chart-section-spacing">
-  <h3>Publisher Quartile Breakdown</h3>
-  <p class="text-muted chart-description">
-    Journals count by quartile classification per publisher.
-  </p>
-  <div id="publisherChart">
-    <div class="spinner-container" id="publisherSpinner">
-      <div class="spinner"></div>
-      <p class="text-muted">Loading...</p>
+  <div class="filters-section comparison-toolbar" id="comparisonControls">
+    <div class="filter-group comparison-type-group">
+      <label for="entityTypeSel">Entity Type</label>
+      <select
+        id="entityTypeSel"
+        class="filter-select"
+      >
+        <option value="conference">Conferences</option>
+        <option value="journal">Journals</option>
+      </select>
     </div>
+
+    <div class="filter-group search-section comparison-search">
+      <label for="addEntitySearch" class="sr-only">Search venues to compare</label>
+      <input
+        type="text"
+        id="addEntitySearch"
+        class="search-input-compact"
+        placeholder="Search conferences to add..."
+        autocomplete="off"
+      />
+      <ul id="addEntityDropdown" class="autocomplete-list"></ul>
+    </div>
+
+    <button
+      id="clearComparisonBtn"
+      class="btn btn-danger comparison-clear-btn"
+      type="button"
+    >
+      Clear All
+    </button>
   </div>
+
+  <div
+    class="badges comparison-badges"
+    id="selectedEntitiesList"
+  ></div>
+
+  <div
+    id="comparisonWarnings"
+    class="comparison-warnings"
+    aria-live="polite"
+  ></div>
 </div>
 
 <div class="dashboard-grid">
@@ -77,6 +80,19 @@
       Number of unique authors participating per year.
     </p>
     <div id="compareAuthorsChart"></div>
+  </div>
+</div>
+
+<div class="chart-container full-width chart-section-spacing">
+  <h3>Publisher Quartile Breakdown</h3>
+  <p class="text-muted chart-description">
+    Journals count by quartile classification per publisher.
+  </p>
+  <div id="publisherChart">
+    <div class="spinner-container" id="publisherSpinner">
+      <div class="spinner"></div>
+      <p class="text-muted">Loading...</p>
+    </div>
   </div>
 </div>
 
