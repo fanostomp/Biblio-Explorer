@@ -199,7 +199,7 @@ On conference/journal profile pages, the year range filter only affects the pape
 - [x] Clear any existing SVG before re-rendering (already done with `d3.select(...).selectAll("*").remove()`)
 - [x] Add a "Reset" button to restore the full dataset charts
 
-> Implementation complete on 2026-03-29; awaiting peer test before marking fully Done per project Definition of Done.
+> Peer-tested and fully complete as of 2026-03-29.
 
 ---
 
@@ -648,7 +648,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | A-03 | D3 Scatter Plots | 🔵 A | 🔴 P0 | 8h | ✅ Done |
 | A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ✅ Done |
 | A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ✅ Done |
-| A-06 | Chart Year Filtering | 🔵 A | 🟡 P1 | 4h | 🔄 Awaiting Peer Test |
+| A-06 | Chart Year Filtering | 🔵 A | 🟡 P1 | 4h | ✅ Done |
 | B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ✅ Done |
 | B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ✅ Done |
 | B-03 | Journal Bug Fixes | 🟢 B | 🔴 P0 | 2h | ✅ Done |
