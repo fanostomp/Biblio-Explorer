@@ -389,7 +389,7 @@ svg {
 
 .chart-container svg {
     width: 100%;
-    height: 500px !important;
+    height: 500px;
 }
 
 .full-width {
@@ -736,7 +736,7 @@ tr:hover td {
     }
 
     .chart-container svg {
-        height: 420px !important;
+        height: 420px;
     }
 }
 
@@ -765,6 +765,6 @@ tr:hover td {
     }
 
     .chart-container svg {
-        height: 320px !important;
+        height: 320px;
     }
 }

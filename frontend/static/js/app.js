@@ -144,11 +144,11 @@ function initMobileNav() {
         });
     });
 
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', debounce(() => {
         if (window.innerWidth > 768) {
             setNavState(false);
         }
-    });
+    }, 100));
 }
 
 function setupAutocomplete(config) {
@@ -870,6 +870,7 @@ function setupComparisonAutocomplete() {
 
     input.addEventListener('input', handleSearchInput);
     typeSel.addEventListener('change', () => {
+        requestToken += 1;
         if (activeController) {
             activeController.abort();
             activeController = null;
