@@ -205,6 +205,34 @@ function renderFilteredConfJournalCharts(yearlyStats) {
     }
 }
 
+function setupProfileYearFilterButtons(config) {
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            const selectedEntityId = state[config.selectedEntityStateKey];
+            if (!selectedEntityId) return;
+
+            const { startYear, endYear } = getYearFilterRange();
+            renderFilteredConfJournalCharts(
+                filterYearlyStatsByRange(state[config.yearlyStatsStateKey], startYear, endYear)
+            );
+            config.loadPapersFn(selectedEntityId);
+        });
+    }
+
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', () => {
+            const selectedEntityId = state[config.selectedEntityStateKey];
+            if (!selectedEntityId) return;
+
+            clearYearFilterInputs();
+            renderFilteredConfJournalCharts(state[config.yearlyStatsStateKey]);
+            config.loadPapersFn(selectedEntityId);
+        });
+    }
+}
+
 function setupAutocomplete(config) {
     // config: { inputId, dropdownId, dataSource, filterFn, displayFn, onSelect }
     const input = document.getElementById(config.inputId);
@@ -265,30 +293,12 @@ function initConferencePage() {
         displayFn: (match) => match.acronym ? `${match.acronym} - ${match.title}` : match.title,
         onSelect: (match) => loadConferenceProfile(match.conf_id)
     });
-    
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if(applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', () => {
-            if (state.selectedConf) {
-                const { startYear, endYear } = getYearFilterRange();
-                renderFilteredConfJournalCharts(
-                    filterYearlyStatsByRange(state.conferenceYearlyStats, startYear, endYear)
-                );
-                loadConferencePapers(state.selectedConf);
-            }
-        });
-    }
 
-    const resetFiltersBtn = document.getElementById('resetFilters');
-    if (resetFiltersBtn) {
-        resetFiltersBtn.addEventListener('click', () => {
-            if (state.selectedConf) {
-                clearYearFilterInputs();
-                renderFilteredConfJournalCharts(state.conferenceYearlyStats);
-                loadConferencePapers(state.selectedConf);
-            }
-        });
-    }
+    setupProfileYearFilterButtons({
+        selectedEntityStateKey: 'selectedConf',
+        yearlyStatsStateKey: 'conferenceYearlyStats',
+        loadPapersFn: loadConferencePapers
+    });
 }
 
 async function loadConferenceProfile(id) {
@@ -436,30 +446,12 @@ function initJournalPage() {
         displayFn: (match) => match.title,
         onSelect: (match) => loadJournalProfile(match.journal_id)
     });
-    
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if(applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', () => {
-            if (state.selectedJournal) {
-                const { startYear, endYear } = getYearFilterRange();
-                renderFilteredConfJournalCharts(
-                    filterYearlyStatsByRange(state.journalYearlyStats, startYear, endYear)
-                );
-                loadJournalPapers(state.selectedJournal);
-            }
-        });
-    }
 
-    const resetFiltersBtn = document.getElementById('resetFilters');
-    if (resetFiltersBtn) {
-        resetFiltersBtn.addEventListener('click', () => {
-            if (state.selectedJournal) {
-                clearYearFilterInputs();
-                renderFilteredConfJournalCharts(state.journalYearlyStats);
-                loadJournalPapers(state.selectedJournal);
-            }
-        });
-    }
+    setupProfileYearFilterButtons({
+        selectedEntityStateKey: 'selectedJournal',
+        yearlyStatsStateKey: 'journalYearlyStats',
+        loadPapersFn: loadJournalPapers
+    });
 }
 
 async function loadJournalProfile(id) {
