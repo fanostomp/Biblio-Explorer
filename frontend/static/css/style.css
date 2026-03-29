@@ -325,6 +325,16 @@ svg {
     background: var(--secondary-color);
 }
 
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-color);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+
 .dashboard-grid {
     display: flex;
     flex-direction: column;
