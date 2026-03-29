@@ -176,12 +176,12 @@ Dashboard cards show hardcoded values ("2.5M+", "1.39M"). These should be fetche
 The comparison page filters venues **client-side** from just the first 50 items. Switch to server-side search. Also add CSS responsive breakpoints.
 
 ### Acceptance Criteria
-- [ ] Replace client-side filtering in [setupComparisonAutocomplete()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#606-655) with `fetch()` calls to `/api/conference/search` and `/api/journal/search`
-- [ ] Remove the [loadVenuesList()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#70-82) calls on charts page init (no longer needed)
-- [ ] Add CSS `@media` breakpoints:
+- [x] Replace client-side filtering in [setupComparisonAutocomplete()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#606-655) with `fetch()` calls to `/api/conference/search` and `/api/journal/search`
+- [x] Remove the [loadVenuesList()](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/frontend/static/js/app.js#70-82) calls on charts page init (no longer needed)
+- [x] Add CSS `@media` breakpoints:
   - `≤768px`: Stack navbar vertically (hamburger optional), single-column charts
   - `≤480px`: Reduce font sizes, full-width stat cards
-- [ ] Test on Chrome DevTools mobile viewport
+- [x] Test on Chrome DevTools mobile viewport
 
 ---
 
@@ -645,7 +645,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | A-02 | Category Linecharts | 🔵 A | 🔴 P0 | 6h | ✅ Done |
 | A-03 | D3 Scatter Plots | 🔵 A | 🔴 P0 | 8h | ✅ Done |
 | A-04 | Dynamic Dashboard | 🔵 A | 🟡 P1 | 3h | ✅ Done |
-| A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ⬜ Not Started |
+| A-05 | Comparison Fix + CSS | 🔵 A | 🟡 P1 | 5h | ✅ Done |
 | A-06 | Chart Year Filtering | 🔵 A | 🟡 P1 | 4h | ⬜ Not Started |
 | B-01 | Category API Routes | 🟢 B | 🔴 P0 | 4h | ✅ Done |
 | B-02 | Venue Bar API | 🟢 B | 🔴 P0 | 3h | ✅ Done |

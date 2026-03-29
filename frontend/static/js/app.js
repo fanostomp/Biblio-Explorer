@@ -36,8 +36,6 @@ function hideSpinner(containerId) {
 // GLOBAL STATE
 // ==========================================
 const state = {
-    conferences: [],
-    journals: [],
     selectedConf: null,
     selectedJournal: null,
     selectedAuthor: null,
@@ -48,12 +46,8 @@ const state = {
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
-    
-    // Global generic fetchers (only for pages that still need them or small lists)
-    if (path === '/charts') {
-        loadVenuesList('conference');
-        loadVenuesList('journal');
-    }
+
+    initMobileNav();
 
     // Attach Event Listeners based on current page
     if (path === '/conference') initConferencePage();
@@ -118,17 +112,43 @@ async function loadDashboardStats() {
     }
 }
 
-// --- Fetch & Store Baseline Data ---
-async function loadVenuesList(type) {
-    try {
-        const res = await fetch(`/api/${type}/`);
-        const data = await res.json();
-        
-        if (type === 'conference') state.conferences = data;
-        if (type === 'journal') state.journals = data;
-    } catch(err) {
-        console.error(`Failed to load ${type}s:`, err);
-    }
+function debounce(fn, delay = 250) {
+    let timeoutId;
+    return (...args) => {
+        window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => fn(...args), delay);
+    };
+}
+
+function initMobileNav() {
+    const navRoot = document.querySelector('[data-nav-root]');
+    const navMenu = document.querySelector('[data-nav-menu]');
+    const navToggle = document.getElementById('navMenuToggle');
+    if (!navRoot || !navMenu || !navToggle) return;
+
+    const setNavState = (isOpen) => {
+        navRoot.classList.toggle('nav-open', isOpen);
+        navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    };
+
+    navToggle.addEventListener('click', () => {
+        const nextState = !navRoot.classList.contains('nav-open');
+        setNavState(nextState);
+    });
+
+    navMenu.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                setNavState(false);
+            }
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            setNavState(false);
+        }
+    });
 }
 
 function setupAutocomplete(config) {
@@ -750,53 +770,120 @@ function renderScatterPlot() {
     }
 }
 
+function setAutocompleteStatus(dropdown, message, extraClass = '') {
+    dropdown.innerHTML = '';
+    const li = document.createElement('li');
+    li.className = `autocomplete-status ${extraClass}`.trim();
+    li.textContent = message;
+    li.setAttribute('aria-disabled', 'true');
+    dropdown.appendChild(li);
+    dropdown.style.display = 'block';
+}
+
+function renderComparisonMatches(dropdown, input, type, matches) {
+    dropdown.innerHTML = '';
+    dropdown.style.display = 'block';
+
+    matches.forEach((match) => {
+        const isConference = type === 'conference';
+        const titleStr = isConference && match.acronym ? `[${match.acronym}] ${match.title}` : match.title;
+        const id = isConference ? match.conf_id : match.journal_id;
+        const li = document.createElement('li');
+
+        li.textContent = titleStr;
+        li.onclick = () => {
+            input.value = '';
+            dropdown.style.display = 'none';
+            addEntityToComparison(type, id, titleStr);
+        };
+        dropdown.appendChild(li);
+    });
+}
+
+async function fetchComparisonMatches(type, query, signal) {
+    const endpoint = type === 'conference'
+        ? `/api/conference/search?q=${encodeURIComponent(query)}`
+        : `/api/journal/search?q=${encodeURIComponent(query)}`;
+    const res = await fetch(endpoint, { signal });
+    if (!res.ok) {
+        throw new Error(`Search failed with status ${res.status}`);
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data.slice(0, 10) : [];
+}
+
 function setupComparisonAutocomplete() {
     const input = document.getElementById('addEntitySearch');
     const dropdown = document.getElementById('addEntityDropdown');
     const typeSel = document.getElementById('entityTypeSel');
-    if(!input || !dropdown || !typeSel) return;
-    
-    input.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+    const controls = document.getElementById('comparisonControls');
+    if(!input || !dropdown || !typeSel || !controls) return;
+
+    let activeController = null;
+    let requestToken = 0;
+
+    const updatePlaceholder = () => {
+        input.placeholder = typeSel.value === 'conference'
+            ? 'Search conferences to add...'
+            : 'Search journals to add...';
+    };
+
+    const handleSearchInput = debounce(async () => {
+        const query = input.value.trim();
         const type = typeSel.value;
-        dropdown.innerHTML = '';
+        requestToken += 1;
+        const currentToken = requestToken;
+
+        if (activeController) {
+            activeController.abort();
+            activeController = null;
+        }
+
         if (query.length < 2) {
+            dropdown.innerHTML = '';
             dropdown.style.display = 'none';
             return;
         }
 
-        const dataList = type === 'conference' ? state.conferences : state.journals;
-        
-        const matches = dataList.filter(item => {
-            if (type === 'conference') {
-                return (item.acronym && item.acronym.toLowerCase().includes(query)) || 
-                       (item.title && item.title.toLowerCase().includes(query));
-            } else {
-                return item.title && item.title.toLowerCase().includes(query);
-            }
-        }).slice(0, 10);
+        activeController = new AbortController();
+        setAutocompleteStatus(dropdown, 'Searching...');
 
-        if (matches.length > 0) {
-            dropdown.style.display = 'block';
-            matches.forEach(match => {
-                const li = document.createElement('li');
-                const titleStr = type === 'conference' ? `[${match.acronym}] ${match.title}` : match.title;
-                const id = type === 'conference' ? match.conf_id : match.journal_id;
-                li.textContent = titleStr;
-                li.onclick = () => {
-                    input.value = '';
-                    dropdown.style.display = 'none';
-                    addEntityToComparison(type, id, titleStr);
-                };
-                dropdown.appendChild(li);
-            });
-        } else {
-            dropdown.style.display = 'none';
+        try {
+            const matches = await fetchComparisonMatches(type, query, activeController.signal);
+            if (currentToken !== requestToken) return;
+
+            if (matches.length === 0) {
+                setAutocompleteStatus(dropdown, `No matching ${type}s found.`);
+                return;
+            }
+
+            renderComparisonMatches(dropdown, input, type, matches);
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+            console.error(`Failed to search ${type}s:`, err);
+            if (currentToken !== requestToken) return;
+            setAutocompleteStatus(dropdown, 'Search unavailable. Try again.', 'autocomplete-status-error');
         }
+    }, 250);
+
+    updatePlaceholder();
+
+    input.addEventListener('input', handleSearchInput);
+    typeSel.addEventListener('change', () => {
+        if (activeController) {
+            activeController.abort();
+            activeController = null;
+        }
+        input.value = '';
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
+        updatePlaceholder();
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target !== input) dropdown.style.display = 'none';
+        if (!controls.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
     });
 }
 
@@ -824,7 +911,11 @@ function removeEntityFromComparison(idx) {
 
 async function updateComparisonUI() {
     const list = document.getElementById('selectedEntitiesList');
+    const warnings = document.getElementById('comparisonWarnings');
+    const papersChart = document.getElementById('comparePapersChart');
+    const authorsChart = document.getElementById('compareAuthorsChart');
     list.innerHTML = '';
+    if (warnings) warnings.innerHTML = '';
     
     state.compareEntities.forEach((ent, i) => {
         const badge = document.createElement('span');
@@ -845,8 +936,8 @@ async function updateComparisonUI() {
     });
     
     if (state.compareEntities.length === 0) {
-        document.getElementById('comparePapersChart').innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 4rem;">Search and add entities above to begin comparing.</p>';
-        document.getElementById('compareAuthorsChart').innerHTML = '';
+        papersChart.innerHTML = '<p class="chart-empty-state">Search and add entities above to begin comparing.</p>';
+        authorsChart.innerHTML = '';
         return;
     }
     
@@ -858,17 +949,41 @@ async function updateComparisonUI() {
         );
         const results = await Promise.all(promises);
         
-        const multiSeriesData = results.map((res, i) => {
-            return {
+        const missingDataMessages = [];
+        const multiSeriesData = [];
+
+        results.forEach((res, i) => {
+            const yearlyStats = Array.isArray(res.yearly_stats) ? res.yearly_stats : [];
+            if (yearlyStats.length === 0) {
+                missingDataMessages.push(`No comparison data available for ${state.compareEntities[i].title}.`);
+                return;
+            }
+
+            multiSeriesData.push({
                 name: state.compareEntities[i].title,
                 color: state.compareEntities[i].color,
-                values: res.yearly_stats || []
-            };
+                values: yearlyStats
+            });
         });
         
         d3.select('#comparePapersChart').selectAll("*").remove();
         d3.select('#compareAuthorsChart').selectAll("*").remove();
-        
+
+        if (warnings && missingDataMessages.length > 0) {
+            missingDataMessages.forEach((message) => {
+                const warning = document.createElement('p');
+                warning.className = 'comparison-warning';
+                warning.textContent = message;
+                warnings.appendChild(warning);
+            });
+        }
+
+        if (multiSeriesData.length === 0) {
+            papersChart.innerHTML = '<p class="chart-empty-state">Selected venues do not have comparison data.</p>';
+            authorsChart.innerHTML = '<p class="chart-empty-state">Selected venues do not have comparison data.</p>';
+            return;
+        }
+
         if (window.drawMultiLineChart) {
             window.drawMultiLineChart('#comparePapersChart', multiSeriesData, 'year', 'paper_count');
             window.drawMultiLineChart('#compareAuthorsChart', multiSeriesData, 'year', 'distinct_authors');
@@ -876,6 +991,9 @@ async function updateComparisonUI() {
     } catch(err) {
         hideSpinner('comparePapersChart');
         console.error("Comparison Error", err);
+        if (warnings) {
+            warnings.innerHTML = '<p class="comparison-warning">Unable to load comparison data right now. Please try again.</p>';
+        }
     }
 }
 
