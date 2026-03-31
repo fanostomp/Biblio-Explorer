@@ -352,6 +352,12 @@ function initConferencePage() {
         inputId: 'conferenceSearch',
         dropdownId: 'conferenceDropdown',
         dataSource: async (q) => {
+            let url = `/api/conference/search?q=${encodeURIComponent(q)}&per_page=5`;
+            const rank = document.getElementById('filterRank').value;
+            const cat = document.getElementById('filterCategory').value;
+            if (rank) url += `&rank=${encodeURIComponent(rank)}`;
+            if (cat) url += `&category=${encodeURIComponent(cat)}`;
+
             const res = await fetch(url);
             if (!res.ok) throw new Error(`Autocomplete fetch failed with status ${res.status}`);
             const data = await res.json();
@@ -570,8 +576,13 @@ async function loadConferencePapers(id) {
             }
             if (p.url) {
                 const dblpLink = document.createElement('a');
-                dblpLink.href = p.url;
+                const dblpUrl = p.url.startsWith('http://') || p.url.startsWith('https://')
+                    ? p.url
+                    : `https://dblp.org/${p.url.replace(/^\/+/, '')}`;
+
+                dblpLink.href = dblpUrl;
                 dblpLink.target = '_blank';
+                dblpLink.rel = 'noopener noreferrer';
                 dblpLink.textContent = 'DBLP';
                 tdLinks.appendChild(dblpLink);
             }
