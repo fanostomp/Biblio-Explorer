@@ -42,7 +42,16 @@ const state = {
     compareEntities: [], // stores {type, id, title, color} for line chart comparison
     scatterData: null, // stores {scatter: [...]} for the scatter plot
     conferenceYearlyStats: [],
-    journalYearlyStats: []
+    journalYearlyStats: [],
+    search: {
+        page: 1,
+        query: '',
+        rank: '',
+        category: '',
+        quartile: '',
+        area: '',
+        publisher: ''
+    }
 };
 
 // --- Initialization ---
@@ -283,12 +292,62 @@ function setupAutocomplete(config) {
 // CONFERENCE PAGE LOGIC
 // ==========================================
 function initConferencePage() {
+    loadSearchLookups('conference');
+
+    const searchBtn = document.getElementById('searchBtn');
+    const input = document.getElementById('conferenceSearch');
+    const rankSel = document.getElementById('filterRank');
+    const catSel = document.getElementById('filterCategory');
+
+    const handleSearch = () => {
+        state.search.page = 1;
+        performPaginatedSearch('conference');
+    };
+
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    if (input) input.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleSearch(); });
+    if (rankSel) rankSel.addEventListener('change', handleSearch);
+    if (catSel) catSel.addEventListener('change', handleSearch);
+
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            rankSel.value = '';
+            catSel.value = '';
+            state.search.page = 1;
+            document.getElementById('searchResults').style.display = 'none';
+        });
+    }
+
+    const backBtn = document.getElementById('backToSearch');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            document.getElementById('conferenceDetails').style.display = 'none';
+            document.getElementById('filtersSection').style.display = 'none';
+            document.getElementById('dashboardGrid').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'block';
+        });
+    }
+
+    const prevBtn = document.getElementById('prevSearchPage');
+    const nextBtn = document.getElementById('nextSearchPage');
+    if (prevBtn) prevBtn.onclick = () => { if(state.search.page > 1) { state.search.page--; performPaginatedSearch('conference'); } };
+    if (nextBtn) nextBtn.onclick = () => { state.search.page++; performPaginatedSearch('conference'); };
+
     setupAutocomplete({
         inputId: 'conferenceSearch',
         dropdownId: 'conferenceDropdown',
         dataSource: async (q) => {
-            const res = await fetch(`/api/conference/search?q=${encodeURIComponent(q)}`);
-            return await res.json();
+            let url = `/api/conference/search?q=${encodeURIComponent(q)}&per_page=5`;
+            const rank = document.getElementById('filterRank').value;
+            const cat = document.getElementById('filterCategory').value;
+            if (rank) url += `&rank=${encodeURIComponent(rank)}`;
+            if (cat) url += `&category=${encodeURIComponent(cat)}`;
+            
+            const res = await fetch(url);
+            const data = await res.json();
+            return data.results || [];
         },
         displayFn: (match) => match.acronym ? `${match.acronym} - ${match.title}` : match.title,
         onSelect: (match) => loadConferenceProfile(match.conf_id)
@@ -301,7 +360,116 @@ function initConferencePage() {
     });
 }
 
+async function loadSearchLookups(type) {
+    try {
+        const res = await fetch(`/api/${type}/lookups`);
+        const data = await res.json();
+        if (type === 'conference') {
+            const rankSel = document.getElementById('filterRank');
+            const catSel = document.getElementById('filterCategory');
+            if (rankSel) data.ranks.forEach(r => rankSel.add(new Option(r.name, r.id)));
+            if (catSel) data.categories.forEach(c => catSel.add(new Option(c.name, c.id)));
+        } else {
+            const qSel = document.getElementById('filterQuartile');
+            const aSel = document.getElementById('filterArea');
+            if (qSel) data.quartiles.forEach(q => qSel.add(new Option(q.name, q.id)));
+            if (aSel) data.subject_areas.forEach(a => aSel.add(new Option(a.name, a.id)));
+        }
+    } catch (err) {
+        console.error(`Failed to load ${type} lookups:`, err);
+    }
+}
+
+async function performPaginatedSearch(type) {
+    const q = document.getElementById(`${type}Search`).value;
+    const commonParams = `q=${encodeURIComponent(q)}&page=${state.search.page}&per_page=10`;
+    let url = `/api/${type}/search?${commonParams}`;
+
+    if (type === 'conference') {
+        const rank = document.getElementById('filterRank').value;
+        const cat = document.getElementById('filterCategory').value;
+        if (rank) url += `&rank=${encodeURIComponent(rank)}`;
+        if (cat) url += `&category=${encodeURIComponent(cat)}`;
+    } else {
+        const qtl = document.getElementById('filterQuartile').value;
+        const area = document.getElementById('filterArea').value;
+        const pub = document.getElementById('filterPublisher').value;
+        if (qtl) url += `&quartile=${encodeURIComponent(qtl)}`;
+        if (area) url += `&subject_area=${encodeURIComponent(area)}`;
+        if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
+    }
+
+    const resultsContainer = document.getElementById('searchResults');
+    showSpinner('searchResults');
+    resultsContainer.style.display = 'block';
+    
+    // Hide profile if showing
+    const details = document.getElementById(`${type}Details`);
+    if (details) details.style.display = 'none';
+    const grid = document.getElementById('dashboardGrid');
+    if (grid) grid.style.display = 'none';
+    const filters = document.getElementById('filtersSection');
+    if (filters) filters.style.display = 'none';
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        renderSearchResults(type, data);
+    } catch (err) {
+        console.error('Search failed:', err);
+    } finally {
+        hideSpinner('searchResults');
+    }
+}
+
+function renderSearchResults(type, data) {
+    const tbody = document.querySelector('#resultsTable tbody');
+    const countEl = document.getElementById('resultsCount');
+    const pageInfo = document.getElementById('searchPageInfo');
+    const prevBtn = document.getElementById('prevSearchPage');
+    const nextBtn = document.getElementById('nextSearchPage');
+
+    tbody.innerHTML = '';
+    const results = data.results || [];
+    const pag = data.pagination || {};
+
+    countEl.textContent = `Found ${pag.total_records || 0} items`;
+    pageInfo.textContent = `Page ${pag.page || 1} of ${pag.total_pages || 1}`;
+    prevBtn.disabled = pag.page <= 1;
+    nextBtn.disabled = pag.page >= pag.total_pages;
+
+    results.forEach(item => {
+        const tr = document.createElement('tr');
+        if (type === 'conference') {
+            tr.innerHTML = `
+                <td><b>${escapeHtml(item.acronym)}</b></td>
+                <td>${escapeHtml(item.title)}</td>
+                <td><span class="badge rank-badge">${escapeHtml(item.rank)}</span></td>
+                <td><button class="btn secondary-btn small" onclick="loadConferenceProfile(${item.conf_id})">View Profile</button></td>
+            `;
+        } else {
+            tr.innerHTML = `
+                <td><b>${escapeHtml(item.title)}</b></td>
+                <td>${escapeHtml(item.publisher)}</td>
+                <td><span class="badge rank-badge" style="background: ${getQuartileColor(item.best_quartile)}">${escapeHtml(item.best_quartile)}</span></td>
+                <td>${item.sjr_index || '0.0'}</td>
+                <td><button class="btn secondary-btn small" onclick="loadJournalProfile(${item.journal_id})">View Profile</button></td>
+            `;
+        }
+        tbody.appendChild(tr);
+    });
+}
+
+function getQuartileColor(q) {
+    if (q === 'Q1') return '#10b981';
+    if (q === 'Q2') return '#fde047';
+    if (q === 'Q3') return '#f97316';
+    if (q === 'Q4') return '#ef4444';
+    return '#6b7280';
+}
+
 async function loadConferenceProfile(id) {
+    document.getElementById('searchResults').style.display = 'none';
     state.selectedConf = id;
     showSpinner('dashboardGrid');
     try {
@@ -436,12 +604,66 @@ async function loadConferenceTopAuthors(id) {
 // JOURNAL PAGE LOGIC
 // ==========================================
 function initJournalPage() {
+    loadSearchLookups('journal');
+
+    const searchBtn = document.getElementById('searchBtn');
+    const input = document.getElementById('journalSearch');
+    const qtlSel = document.getElementById('filterQuartile');
+    const areaSel = document.getElementById('filterArea');
+
+    const handleSearch = () => {
+        state.search.page = 1;
+        performPaginatedSearch('journal');
+    };
+
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    if (input) input.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleSearch(); });
+    if (qtlSel) qtlSel.addEventListener('change', handleSearch);
+    if (areaSel) areaSel.addEventListener('change', handleSearch);
+
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            qtlSel.value = '';
+            areaSel.value = '';
+            const pubInput = document.getElementById('filterPublisher');
+            if (pubInput) pubInput.value = '';
+            state.search.page = 1;
+            document.getElementById('searchResults').style.display = 'none';
+        });
+    }
+
+    const backBtn = document.getElementById('backToSearch');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            document.getElementById('journalDetails').style.display = 'none';
+            document.getElementById('filtersSection').style.display = 'none';
+            document.getElementById('dashboardGrid').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'block';
+        });
+    }
+
+    const prevBtn = document.getElementById('prevSearchPage');
+    const nextBtn = document.getElementById('nextSearchPage');
+    if (prevBtn) prevBtn.onclick = () => { if(state.search.page > 1) { state.search.page--; performPaginatedSearch('journal'); } };
+    if (nextBtn) nextBtn.onclick = () => { state.search.page++; performPaginatedSearch('journal'); };
+
     setupAutocomplete({
         inputId: 'journalSearch',
         dropdownId: 'journalDropdown',
         dataSource: async (q) => {
-            const res = await fetch(`/api/journal/search?q=${encodeURIComponent(q)}`);
-            return await res.json();
+            let url = `/api/journal/search?q=${encodeURIComponent(q)}&per_page=5`;
+            const qtl = document.getElementById('filterQuartile').value;
+            const area = document.getElementById('filterArea').value;
+            const pub = document.getElementById('filterPublisher').value;
+            if (qtl) url += `&quartile=${encodeURIComponent(qtl)}`;
+            if (area) url += `&subject_area=${encodeURIComponent(area)}`;
+            if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            return data.results || [];
         },
         displayFn: (match) => match.title,
         onSelect: (match) => loadJournalProfile(match.journal_id)
@@ -455,6 +677,7 @@ function initJournalPage() {
 }
 
 async function loadJournalProfile(id) {
+    document.getElementById('searchResults').style.display = 'none';
     state.selectedJournal = id;
     showSpinner('dashboardGrid');
     try {

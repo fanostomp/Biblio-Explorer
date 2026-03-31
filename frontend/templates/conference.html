@@ -2,11 +2,48 @@
 {% block title %}Conferences — BiblioExplorer{% endblock %}
 {% block content %}
 <div class="profile-header">
-    <div class="search-section">
-        <input type="text" id="conferenceSearch" placeholder="Search conference by acronym or title..." autocomplete="off">
-        <ul id="conferenceDropdown" class="autocomplete-list"></ul>
+    <div class="search-section full-width">
+        <div class="filter-bar">
+            <input type="text" id="conferenceSearch" placeholder="Search conference acronym or title..." autocomplete="off">
+            <select id="filterRank">
+                <option value="">All Ranks</option>
+            </select>
+            <select id="filterCategory">
+                <option value="">All Categories</option>
+            </select>
+            <button id="searchBtn" class="btn">Search</button>
+            <button id="clearFiltersBtn" class="btn secondary-btn">Clear</button>
+        </div>
+        <ul id="conferenceDropdown" class="autocomplete-list" style="display: none;"></ul>
+        
+        <div id="searchResults" class="search-results-container" style="display: none;">
+            <div class="results-header">
+                <h3>Search Results</h3>
+                <span id="resultsCount" class="text-muted"></span>
+            </div>
+            <div class="table-responsive">
+                <table id="resultsTable" class="interactive-table">
+                    <thead>
+                        <tr>
+                            <th>Acronym</th>
+                            <th>Title</th>
+                            <th>Rank</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="searchPagination" class="pagination-controls">
+                <button id="prevSearchPage" class="btn secondary-btn" disabled>Previous</button>
+                <span id="searchPageInfo">Page 1 of 1</span>
+                <button id="nextSearchPage" class="btn secondary-btn" disabled>Next</button>
+            </div>
+        </div>
     </div>
-    <div id="conferenceDetails" style="display: none;">
+    
+    <div id="conferenceDetails" style="display: none; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <button id="backToSearch" class="btn secondary-btn" style="margin-bottom: 1rem;">&larr; Back to Results</button>
         <h1 id="confTitle">Conference Title</h1>
         <div class="badges">
             <span class="badge rank-badge" id="confRank">Rank: A*</span>

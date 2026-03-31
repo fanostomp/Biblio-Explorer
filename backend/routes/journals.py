@@ -4,6 +4,22 @@ import re
 
 journals_bp = Blueprint('journals', __name__)
 
+@journals_bp.route('/lookups', methods=['GET'])
+def get_lookups():
+    """Get available quartiles and subject areas for filters."""
+    conn = get_db_connection()
+    try:
+        quartiles = [{'id': q, 'name': q} for q in ['Q1', 'Q2', 'Q3', 'Q4']]
+        subject_areas = execute_query(conn, "SELECT area_id as id, area_name as name FROM best_subject_area ORDER BY name")
+        return jsonify({
+            'quartiles': quartiles,
+            'subject_areas': subject_areas
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
 @journals_bp.route('/', methods=['GET'])
 def list_journals():
     """List all journals for autocomplete and browsing with pagination."""
@@ -106,32 +122,62 @@ def get_papers(journal_id):
 
 @journals_bp.route('/search', methods=['GET'])
 def search_journals():
-    """Server-side search for journals using Full-Text index with input sanitization."""
+    """Server-side search for journals with filters and pagination."""
     q = request.args.get('q', '').strip()
-    if not q:
-        return jsonify([])
+    quartile = request.args.get('quartile', '').strip()
+    area_id = request.args.get('subject_area', '').strip()
+    publisher = request.args.get('publisher', '').strip()
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+    offset = (page - 1) * per_page
 
-    # Remove special chars that break MySQL Boolean Full-Text search
-    safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
-    if not safe_q:
-        return jsonify([])
+    where_clauses = []
+    params = []
 
+    if q:
+        import re
+        safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+        if safe_q:
+            if len(safe_q) <= 3:
+                where_clauses.append("title LIKE %s")
+                params.append(f"%{safe_q}%")
+            else:
+                where_clauses.append("MATCH(title) AGAINST(%s IN BOOLEAN MODE)")
+                terms = [f"+{term}*" for term in safe_q.split() if term]
+                params.append(" ".join(terms))
+    
+    if quartile:
+        where_clauses.append("best_quartile = %s")
+        params.append(quartile)
+    if area_id:
+        where_clauses.append("best_subject_area = %s")
+        params.append(area_id)
+    if publisher:
+        where_clauses.append("publisher LIKE %s")
+        params.append(f"%{publisher}%")
+
+    where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+    
     conn = get_db_connection()
     try:
-        if len(safe_q) <= 3:
-            # Use LIKE for short queries (safer, no full-text needed)
-            query_sql = "SELECT journal_id, title FROM journals WHERE title LIKE %s ORDER BY title LIMIT 15"
-            params = (f"%{safe_q}%",)
-        else:
-            # Use Full-Text search with sanitized input
-            query_sql = "SELECT journal_id, title FROM journals WHERE MATCH(title) AGAINST(%s IN BOOLEAN MODE) ORDER BY title LIMIT 15"
-            # Split into terms and prepend + to each
-            terms = [f"+{term}*" for term in safe_q.split() if term]
-            boolean_expr = " ".join(terms)
-            params = (boolean_expr,)
+        # Get total for pagination
+        count_sql = f"SELECT COUNT(*) as total FROM journals{where_sql}"
+        count_res = execute_query(conn, count_sql, tuple(params), fetchone=True)
+        total_records = count_res['total'] if count_res else 0
 
-        results = execute_query(conn, query_sql, params)
-        return jsonify(results)
+        # Get results
+        query_sql = f"SELECT journal_id, title, publisher, best_quartile, sjr_index FROM journals{where_sql} ORDER BY title LIMIT %s OFFSET %s"
+        results = execute_query(conn, query_sql, tuple(params + [per_page, offset]))
+
+        return jsonify({
+            'results': results,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total_records': total_records,
+                'total_pages': (total_records + per_page - 1) // per_page
+            }
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:

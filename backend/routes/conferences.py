@@ -3,6 +3,22 @@ from db import get_db_connection, execute_query
 
 conferences_bp = Blueprint('conferences', __name__)
 
+@conferences_bp.route('/lookups', methods=['GET'])
+def get_lookups():
+    """Get available ranks and categories for filters."""
+    conn = get_db_connection()
+    try:
+        ranks = [{'id': r, 'name': r} for r in ['A*', 'A', 'B', 'C']]
+        categories = execute_query(conn, "SELECT for_code as id, description as name FROM primary_for ORDER BY name")
+        return jsonify({
+            'ranks': ranks,
+            'categories': categories
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
 @conferences_bp.route('/', methods=['GET'])
 def list_conferences():
     """List all mapped conferences with pagination."""
@@ -17,7 +33,7 @@ def list_conferences():
 
         confs = execute_query(
             conn, 
-            "SELECT conf_id, title, acronym, rank FROM conferences ORDER BY acronym LIMIT %s OFFSET %s",
+            "SELECT conf_id, title, acronym, `rank` FROM conferences ORDER BY acronym LIMIT %s OFFSET %s",
             (per_page, offset)
         )
         return jsonify({
@@ -103,31 +119,61 @@ def get_papers(conf_id):
 
 @conferences_bp.route('/search', methods=['GET'])
 def search_conferences():
-    """Server-side search for conferences using Full-Text index."""
+    """Server-side search for conferences with filters and pagination."""
     q = request.args.get('q', '').strip()
-    if not q:
-        return jsonify([])
+    rank = request.args.get('rank', '').strip()
+    category = request.args.get('category', '').strip()
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+    offset = (page - 1) * per_page
+
+    where_clauses = []
+    params = []
+
+    if q:
+        import re
+        safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
+        if safe_q:
+            if len(safe_q) <= 3:
+                where_clauses.append("(acronym LIKE %s OR title LIKE %s)")
+                params.extend([f"%{safe_q}%", f"%{safe_q}%"])
+            else:
+                where_clauses.append("MATCH(title, acronym) AGAINST(%s IN BOOLEAN MODE)")
+                terms = [f"+{term}*" for term in safe_q.split() if term]
+                params.append(" ".join(terms))
     
-    import re
-    # Remove special chars that break MySQL Boolean Full-Text search, keeping alphanum and spaces
-    safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
-    if not safe_q:
-        return jsonify([])
+    if rank:
+        where_clauses.append("`rank` = %s")
+        params.append(rank)
+    if category:
+        # DB stores 4-digit codes, but lookups may provide 6-digit subcategories.
+        # Truncate to 4 digits to match the parent group.
+        short_cat = category[:4]
+        where_clauses.append("primary_for = %s")
+        params.append(short_cat)
+
+    where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     conn = get_db_connection()
     try:
-        if len(safe_q) <= 3:
-            query_sql = "SELECT conf_id, title, acronym FROM conferences WHERE acronym LIKE %s OR title LIKE %s ORDER BY acronym LIMIT 15"
-            params = (f"%{safe_q}%", f"%{safe_q}%")
-        else:
-            query_sql = "SELECT conf_id, title, acronym FROM conferences WHERE MATCH(title, acronym) AGAINST(%s IN BOOLEAN MODE) ORDER BY acronym LIMIT 15"
-            # Split into terms and prepend + to each
-            terms = [f"+{term}*" for term in safe_q.split() if term]
-            boolean_expr = " ".join(terms)
-            params = (boolean_expr,)
-            
-        results = execute_query(conn, query_sql, params)
-        return jsonify(results)
+        # Get total for pagination
+        count_sql = f"SELECT COUNT(*) as total FROM conferences{where_sql}"
+        count_res = execute_query(conn, count_sql, tuple(params), fetchone=True)
+        total_records = count_res['total'] if count_res else 0
+
+        # Get results
+        query_sql = f"SELECT conf_id, title, acronym, `rank`, primary_for FROM conferences{where_sql} ORDER BY acronym LIMIT %s OFFSET %s"
+        results = execute_query(conn, query_sql, tuple(params + [per_page, offset]))
+
+        return jsonify({
+            'results': results,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total_records': total_records,
+                'total_pages': (total_records + per_page - 1) // per_page
+            }
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
