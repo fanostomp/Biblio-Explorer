@@ -271,9 +271,9 @@ svg {
     color: white;
 }
 
-.rank-badge {
+.badge.rank-badge {
     background: rgba(234, 179, 8, 0.2);
-    color: white !important;
+    color: white;
     border: 1px solid rgba(234, 179, 8, 0.3);
 }
 

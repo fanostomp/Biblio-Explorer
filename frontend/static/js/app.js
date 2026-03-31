@@ -103,6 +103,7 @@ function animateValue(obj, start, end, duration) {
 async function loadDashboardStats() {
     try {
         const res = await fetch('/api/stats/overview');
+        if (!res.ok) throw new Error(`Stats fetch failed with status ${res.status}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
@@ -332,20 +333,27 @@ function initConferencePage() {
 
     const prevBtn = document.getElementById('prevSearchPage');
     const nextBtn = document.getElementById('nextSearchPage');
-    if (prevBtn) prevBtn.onclick = () => { if(state.search.page > 1) { state.search.page--; performPaginatedSearch('conference'); } };
-    if (nextBtn) nextBtn.onclick = () => { state.search.page++; performPaginatedSearch('conference'); };
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (state.search.page > 1) {
+                state.search.page--;
+                performPaginatedSearch('conference');
+            }
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            state.search.page++;
+            performPaginatedSearch('conference');
+        });
+    }
 
     setupAutocomplete({
         inputId: 'conferenceSearch',
         dropdownId: 'conferenceDropdown',
         dataSource: async (q) => {
-            let url = `/api/conference/search?q=${encodeURIComponent(q)}&per_page=5`;
-            const rank = document.getElementById('filterRank').value;
-            const cat = document.getElementById('filterCategory').value;
-            if (rank) url += `&rank=${encodeURIComponent(rank)}`;
-            if (cat) url += `&category=${encodeURIComponent(cat)}`;
-            
             const res = await fetch(url);
+            if (!res.ok) throw new Error(`Autocomplete fetch failed with status ${res.status}`);
             const data = await res.json();
             return data.results || [];
         },
@@ -363,6 +371,7 @@ function initConferencePage() {
 async function loadSearchLookups(type) {
     try {
         const res = await fetch(`/api/${type}/lookups`);
+        if (!res.ok) throw new Error(`Lookups fetch failed with status ${res.status}`);
         const data = await res.json();
         if (type === 'conference') {
             const rankSel = document.getElementById('filterRank');
@@ -413,6 +422,7 @@ async function performPaginatedSearch(type) {
 
     try {
         const res = await fetch(url);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
         const data = await res.json();
         renderSearchResults(type, data);
     } catch (err) {
@@ -445,16 +455,26 @@ function renderSearchResults(type, data) {
                 <td><b>${escapeHtml(item.acronym)}</b></td>
                 <td>${escapeHtml(item.title)}</td>
                 <td><span class="badge rank-badge">${escapeHtml(item.rank)}</span></td>
-                <td><button class="btn secondary-btn small" onclick="loadConferenceProfile(${item.conf_id})">View Profile</button></td>
+                <td class="action-cell"></td>
             `;
+            const btn = document.createElement('button');
+            btn.className = 'btn secondary-btn small';
+            btn.textContent = 'View Profile';
+            btn.addEventListener('click', () => loadConferenceProfile(item.conf_id));
+            tr.querySelector('.action-cell').appendChild(btn);
         } else {
             tr.innerHTML = `
                 <td><b>${escapeHtml(item.title)}</b></td>
                 <td>${escapeHtml(item.publisher)}</td>
                 <td><span class="badge rank-badge" style="background: ${getQuartileColor(item.best_quartile)}">${escapeHtml(item.best_quartile)}</span></td>
                 <td>${item.sjr_index || '0.0'}</td>
-                <td><button class="btn secondary-btn small" onclick="loadJournalProfile(${item.journal_id})">View Profile</button></td>
+                <td class="action-cell"></td>
             `;
+            const btn = document.createElement('button');
+            btn.className = 'btn secondary-btn small';
+            btn.textContent = 'View Profile';
+            btn.addEventListener('click', () => loadJournalProfile(item.journal_id));
+            tr.querySelector('.action-cell').appendChild(btn);
         }
         tbody.appendChild(tr);
     });
@@ -474,6 +494,7 @@ async function loadConferenceProfile(id) {
     showSpinner('dashboardGrid');
     try {
         const res = await fetch(`/api/conference/${id}/profile`);
+        if (!res.ok) throw new Error(`Profile fetch failed with status ${res.status}`);
         const data = await res.json();
         
         if (data.error) return alert("Profile not found.");
@@ -523,7 +544,9 @@ async function loadConferencePapers(id) {
 
     try {
         const res = await fetch(url);
-        const data = await res.json();
+        if (!res.ok) throw new Error(`Papers fetch failed with status ${res.status}`);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
         const tbody = document.querySelector('#papersTable tbody');
         if(!tbody) return;
         tbody.innerHTML = '';
@@ -563,6 +586,7 @@ async function loadConferencePapers(id) {
 async function loadConferenceTopAuthors(id) {
     try {
         const res = await fetch(`/api/conference/${id}/top_authors?limit=10`);
+        if (!res.ok) throw new Error(`Top authors fetch failed with status ${res.status}`);
         const data = await res.json();
         const tbody = document.querySelector('#topAuthorsTable tbody');
         if(!tbody) return;
@@ -646,8 +670,20 @@ function initJournalPage() {
 
     const prevBtn = document.getElementById('prevSearchPage');
     const nextBtn = document.getElementById('nextSearchPage');
-    if (prevBtn) prevBtn.onclick = () => { if(state.search.page > 1) { state.search.page--; performPaginatedSearch('journal'); } };
-    if (nextBtn) nextBtn.onclick = () => { state.search.page++; performPaginatedSearch('journal'); };
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (state.search.page > 1) {
+                state.search.page--;
+                performPaginatedSearch('journal');
+            }
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            state.search.page++;
+            performPaginatedSearch('journal');
+        });
+    }
 
     setupAutocomplete({
         inputId: 'journalSearch',
@@ -662,6 +698,7 @@ function initJournalPage() {
             if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
 
             const res = await fetch(url);
+            if (!res.ok) throw new Error(`Autocomplete fetch failed with status ${res.status}`);
             const data = await res.json();
             return data.results || [];
         },
@@ -682,6 +719,7 @@ async function loadJournalProfile(id) {
     showSpinner('dashboardGrid');
     try {
         const res = await fetch(`/api/journal/${id}/profile`);
+        if (!res.ok) throw new Error(`Profile fetch failed with status ${res.status}`);
         const data = await res.json();
         
         if (data.error) return alert("Profile not found.");
@@ -753,7 +791,9 @@ async function loadJournalPapers(id) {
 
     try {
         const res = await fetch(url);
-        const data = await res.json();
+        if (!res.ok) throw new Error(`Papers fetch failed with status ${res.status}`);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
         const tbody = document.querySelector('#papersTable tbody');
         if(!tbody) return;
         tbody.innerHTML = '';
@@ -813,6 +853,7 @@ function initAuthorPage() {
         authorSearchDebounce = setTimeout(async () => {
             try {
                 const res = await fetch(`/api/author/search?q=${encodeURIComponent(query)}`);
+                if (!res.ok) throw new Error(`Author search failed with status ${res.status}`);
                 const results = await res.json();
                 dropdown.innerHTML = '';
                 
@@ -847,7 +888,9 @@ async function loadAuthorProfile(authorId) {
     showSpinner('dashboardGrid');
     try {
         const res = await fetch(`/api/author/${authorId}/profile`);
-        const data = await res.json();
+        if (!res.ok) throw new Error(`Author profile failed with status ${res.status}`);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
         
         if (data.error) return alert("Author not found.");
 
@@ -869,6 +912,7 @@ async function loadAuthorProfile(authorId) {
 
         // Load papers table
         const pres = await fetch(`/api/author/${authorId}/papers`);
+        if (!pres.ok) throw new Error(`Author papers failed with status ${pres.status}`);
         const pdata = await pres.json();
         const tbody = document.querySelector('#papersTable tbody');
         if(!tbody) return;
@@ -914,7 +958,9 @@ async function loadYearProfile(year) {
     showSpinner('dashboardGrid');
     try {
         const res = await fetch(`/api/year/${year}/profile`);
-        const data = await res.json();
+        if (!res.ok) throw new Error(`Year profile failed with status ${res.status}`);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
         
         if (data.error) return alert("Year not found in database.");
 
@@ -931,6 +977,7 @@ async function loadYearProfile(year) {
 
         // Fetch Papers
         const pres = await fetch(`/api/year/${year}/papers?page=1&per_page=250`);
+        if (!pres.ok) throw new Error(`Year papers failed with status ${pres.status}`);
         const pdata = await pres.json();
         const tbody = document.querySelector('#papersTable tbody');
         if(!tbody) return;
@@ -963,7 +1010,9 @@ async function loadYearProfile(year) {
 async function loadDashboardChart() {
     try {
         const res = await fetch('/api/charts/overview');
-        const data = await res.json();
+        if (!res.ok) throw new Error(`Charts overview failed with status ${res.status}`);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
         if (data.yearly_totals && data.yearly_totals.length > 0) {
             if (window.drawAnimatedLineChart) {
                 drawAnimatedLineChart('#chart', data.yearly_totals, 'year', 'num_papers', "#38bdf8");
@@ -996,7 +1045,9 @@ function initChartsPage() {
 async function loadPublisherBarChart() {
     try {
         const res = await fetch('/api/charts/publishers/bar');
-        const data = await res.json();
+        if (!res.ok) throw new Error(`Publisher chart failed with status ${res.status}`);
+        if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
         const spinner = document.getElementById('publisherSpinner');
         if (spinner) spinner.style.display = 'none';
 
@@ -1027,7 +1078,9 @@ async function loadScatterPlot() {
     if (!state.scatterData) {
         try {
             const res = await fetch('/api/charts/scatter/metrics');
-            const data = await res.json();
+            if (!res.ok) throw new Error(`Scatter metrics failed with status ${res.status}`);
+            if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
             if (data.error) throw new Error(data.error);
             state.scatterData = data.scatter || [];
         } catch (err) {
@@ -1109,8 +1162,10 @@ async function fetchComparisonMatches(type, query, signal) {
     if (!res.ok) {
         throw new Error(`Search failed with status ${res.status}`);
     }
-    const data = await res.json();
-    return Array.isArray(data) ? data.slice(0, 10) : [];
+    if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
+   const data = await res.json();
+    const results = data.results || [];
+    return results.slice(0, 10);
 }
 
 function setupComparisonAutocomplete() {
@@ -1236,7 +1291,7 @@ async function updateComparisonUI() {
         const removeBtn = document.createElement('b');
         removeBtn.textContent = '✖';
         removeBtn.style.cssText = 'cursor:pointer; margin-left: 5px; color: #ff5555;';
-        removeBtn.onclick = () => removeEntityFromComparison(i);
+        removeBtn.addEventListener('click', () => removeEntityFromComparison(i));
         badge.appendChild(removeBtn);
         
         list.appendChild(badge);
@@ -1252,7 +1307,10 @@ async function updateComparisonUI() {
     
     try {
         const promises = state.compareEntities.map(ent => 
-            fetch(`/api/${ent.type}/${ent.id}/profile`).then(r => r.json())
+            fetch(`/api/${ent.type}/${ent.id}/profile`).then(r => {
+                if (!r.ok) throw new Error(`Comparison entity failed: ${r.status}`);
+                return r.json();
+            })
         );
         const results = await Promise.all(promises);
         
@@ -1404,11 +1462,12 @@ function updateCategoryBadges() {
   const badge = document.createElement('span');
   badge.className = 'badge category-badge';
   badge.innerHTML = `${cat.name} <span class="badge-remove-icon">&#10005;</span>`;
-  badge.querySelector('span').onclick = () => {
+  const removeIcon = badge.querySelector('span');
+  removeIcon.addEventListener('click', () => {
    state.categoryTrends.splice(i, 1);
    updateCategoryBadges();
    loadCategoryChartData();
-  };
+  });
   container.appendChild(badge);
  });
 }

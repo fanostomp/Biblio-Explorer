@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from db import get_db_connection, execute_query
+import re
 
 conferences_bp = Blueprint('conferences', __name__)
 
@@ -131,16 +132,25 @@ def search_conferences():
     params = []
 
     if q:
-        import re
         safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
-        if safe_q:
-            if len(safe_q) <= 3:
-                where_clauses.append("(acronym LIKE %s OR title LIKE %s)")
-                params.extend([f"%{safe_q}%", f"%{safe_q}%"])
-            else:
-                where_clauses.append("MATCH(title, acronym) AGAINST(%s IN BOOLEAN MODE)")
-                terms = [f"+{term}*" for term in safe_q.split() if term]
-                params.append(" ".join(terms))
+        if not safe_q:
+            return jsonify({
+                'results': [],
+                'pagination': {
+                    'page': page,
+                    'per_page': per_page,
+                    'total_records': 0,
+                    'total_pages': 0
+                }
+            })
+            
+        if len(safe_q) <= 3:
+            where_clauses.append("(acronym LIKE %s OR title LIKE %s)")
+            params.extend([f"%{safe_q}%", f"%{safe_q}%"])
+        else:
+            where_clauses.append("MATCH(title, acronym) AGAINST(%s IN BOOLEAN MODE)")
+            terms = [f"+{term}*" for term in safe_q.split() if term]
+            params.append(" ".join(terms))
     
     if rank:
         where_clauses.append("`rank` = %s")
