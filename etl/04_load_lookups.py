@@ -4,7 +4,7 @@
 Loads lookup tables into biblio_db:
   1. primary_for       (from icoreCategories.xlsx)
   2. best_subject_area (from bestSubjectArea.csv)
-  3. conferences       (from iCore26_KilledColumnsForLoading.csv)
+  3. conferences       (from iCore26_KilledColumnsForLoading.csv + iCORE_raw/*.csv)
   4. journals          (from journal_ranking_data_raw.csv)
   5. authors           (from cleaned author files)
 
@@ -32,7 +32,7 @@ import mysql.connector
 import openpyxl
 
 sys.path.insert(0, os.path.dirname(__file__))
-from config import DB_CONFIG, ICORE_CSV, ICORE_CATS_XLSX, JOURNAL_RANK_CSV, BEST_AREA_CSV
+from config import DB_CONFIG, ICORE_CSV, ICORE_RAW_DIR, ICORE_CATS_XLSX, JOURNAL_RANK_CSV, BEST_AREA_CSV
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 CLEANED_DIR = os.path.join(DATA_DIR, "cleaned")
@@ -52,6 +52,7 @@ TITLE_ABBREVIATION_RULES = (
 )
 NON_ALNUM_RE = re.compile(r"[^a-z0-9\s]")
 WHITESPACE_RE = re.compile(r"\s+")
+ICORE_RAW_HEADER_NAMES = ("id", "title", "acronym", "source", "rank", "dblp", "primaryfor")
 _ALLOWED_TABLES = frozenset(
     {"primary_for", "best_subject_area", "conferences", "journals", "authors", "papers", "paper_authors"}
 )
@@ -115,6 +116,203 @@ def clean_primary_for(for_code, valid_for_codes):
     if not value:
         return None
     return value if value in valid_for_codes else None
+
+
+def row_id_value(row):
+    return (row.get("ID") or row.get("Id") or row.get("id") or "").strip()
+
+
+def unique_nonempty(values):
+    ordered = []
+    seen = set()
+    for value in values:
+        cleaned = (value or "").strip()
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        ordered.append(cleaned)
+    return ordered
+
+
+def conference_source_identity(row_id, acronym, title):
+    row_id = (row_id or "").strip()
+    if row_id:
+        return ("id", row_id)
+    return ("text", acronym.casefold(), normalize_conference_title_fingerprint(title))
+
+
+def looks_like_icore_raw_header(cells):
+    normalized = [NON_ALNUM_RE.sub("", (cell or "").casefold()) for cell in cells[:7]]
+    return tuple(normalized) == ICORE_RAW_HEADER_NAMES
+
+
+def clean_rank_from_candidates(candidates):
+    for candidate in candidates:
+        cleaned = clean_conference_rank(candidate)
+        if cleaned is not None:
+            return cleaned
+    return None
+
+
+def clean_primary_for_from_candidates(candidates, valid_for_codes):
+    saw_candidate = False
+    for candidate in candidates:
+        cleaned = (candidate or "").strip()
+        if not cleaned:
+            continue
+        saw_candidate = True
+        normalized = clean_primary_for(cleaned, valid_for_codes)
+        if normalized is not None:
+            return normalized, False
+    return None, saw_candidate
+
+
+def merge_conference_source_record(merged_rows, record):
+    identity = conference_source_identity(record["row_id"], record["acronym"], record["title"])
+    existing = merged_rows.get(identity)
+    if existing is None:
+        merged_rows[identity] = {
+            "row_id": record["row_id"],
+            "acronym": record["acronym"],
+            "title": record["title"],
+            "first_seen_order": record["source_order"],
+            "rank_candidates": list(record["rank_candidates"]),
+            "primary_for_candidates": list(record["primary_for_candidates"]),
+            "source_types": {record["source_type"]},
+        }
+        return
+
+    if not existing["row_id"] and record["row_id"]:
+        existing["row_id"] = record["row_id"]
+    if not existing["title"] and record["title"]:
+        existing["title"] = record["title"]
+    if not existing["acronym"] and record["acronym"]:
+        existing["acronym"] = record["acronym"]
+    existing["first_seen_order"] = min(existing["first_seen_order"], record["source_order"])
+    existing["rank_candidates"] = unique_nonempty(existing["rank_candidates"] + record["rank_candidates"])
+    existing["primary_for_candidates"] = unique_nonempty(
+        existing["primary_for_candidates"] + record["primary_for_candidates"]
+    )
+    existing["source_types"].add(record["source_type"])
+
+
+def iter_flat_conference_source_records(conference_csv):
+    with open(conference_csv, "r", encoding="utf-8", errors="replace", newline="") as f:
+        reader = csv.DictReader(f)
+        for line_no, raw_row in enumerate(reader, start=2):
+            acronym = (raw_row.get("Acronym") or "").strip()
+            title = title_value(raw_row)
+            if not acronym or not title:
+                yield {"kind": "skipped"}
+                continue
+
+            yield {
+                "kind": "record",
+                "row_id": row_id_value(raw_row),
+                "acronym": acronym,
+                "title": title,
+                "rank_candidates": unique_nonempty([raw_row.get("Rank", "")]),
+                "primary_for_candidates": unique_nonempty([raw_row.get("PrimaryFoR", "")]),
+                "source_line_no": line_no,
+                "source_type": "flat",
+            }
+
+
+def iter_raw_conference_source_records(raw_dir):
+    if not os.path.isdir(raw_dir):
+        return
+
+    for filename in sorted(os.listdir(raw_dir)):
+        if not filename.lower().endswith(".csv"):
+            continue
+        path = os.path.join(raw_dir, filename)
+        with open(path, "r", encoding="utf-8", errors="replace", newline="") as f:
+            reader = csv.reader(f)
+            for line_no, row in enumerate(reader, start=1):
+                if not row or not any((cell or "").strip() for cell in row):
+                    yield {"kind": "skipped"}
+                    continue
+                if line_no == 1 and looks_like_icore_raw_header(row):
+                    continue
+
+                padded = list(row)
+                if len(padded) < 7:
+                    padded.extend([""] * (7 - len(padded)))
+
+                row_id = (padded[0] or "").strip()
+                title = (padded[1] or "").strip()
+                acronym = (padded[2] or "").strip()
+                if not acronym or not title:
+                    yield {"kind": "skipped"}
+                    continue
+
+                primary_candidates = unique_nonempty(padded[6:])
+                yield {
+                    "kind": "record",
+                    "row_id": row_id,
+                    "acronym": acronym,
+                    "title": title,
+                    "rank_candidates": unique_nonempty([padded[4]]),
+                    "primary_for_candidates": primary_candidates,
+                    "source_line_no": line_no,
+                    "source_type": "raw",
+                }
+
+
+def load_conference_source_rows(valid_for_codes, conference_csv=ICORE_CSV, raw_dir=ICORE_RAW_DIR):
+    merged_rows = {}
+    stats = defaultdict(int)
+    source_order = 0
+
+    for source_record in iter_flat_conference_source_records(conference_csv):
+        if source_record["kind"] == "skipped":
+            stats["source_rows_skipped"] += 1
+            continue
+        source_order += 1
+        stats["flat_rows_read"] += 1
+        source_record["source_order"] = source_order
+        merge_conference_source_record(merged_rows, source_record)
+
+    for source_record in iter_raw_conference_source_records(raw_dir):
+        if source_record["kind"] == "skipped":
+            stats["source_rows_skipped"] += 1
+            continue
+        source_order += 1
+        stats["raw_rows_read"] += 1
+        source_record["source_order"] = source_order
+        merge_conference_source_record(merged_rows, source_record)
+
+    source_rows = []
+    ordered_rows = sorted(
+        merged_rows.values(),
+        key=lambda item: (item["first_seen_order"], item["acronym"].casefold(), item["title"].casefold()),
+    )
+    for offset, row in enumerate(ordered_rows, start=2):
+        primary_for, had_only_invalid_primary_for = clean_primary_for_from_candidates(
+            row["primary_for_candidates"], valid_for_codes
+        )
+        if had_only_invalid_primary_for and primary_for is None:
+            stats["invalid_primary_for_rows"] += 1
+        source_rows.append(
+            {
+                "line_no": offset,
+                "acronym": row["acronym"],
+                "title": row["title"],
+                "title_key": normalize_conference_title_fingerprint(row["title"]),
+                "rank": clean_rank_from_candidates(row["rank_candidates"]),
+                "primary_for": primary_for,
+            }
+        )
+
+        if row["source_types"] == {"flat"}:
+            stats["flat_only_rows"] += 1
+        elif row["source_types"] == {"raw"}:
+            stats["raw_only_rows"] += 1
+        else:
+            stats["both_source_rows"] += 1
+
+    stats["merged_source_rows"] = len(source_rows)
+    return source_rows, stats
 
 
 def conference_winner_key(row):
@@ -264,33 +462,7 @@ def load_conferences(cursor, dry_run=False):
     cursor.execute("SELECT for_code FROM primary_for")
     valid_for_codes = {row[0] for row in cursor.fetchall()}
 
-    source_rows = []
-    source_rows_skipped = 0
-    invalid_primary_for_rows = 0
-    with open(ICORE_CSV, "r", encoding="utf-8", errors="replace", newline="") as f:
-        reader = csv.DictReader(f)
-        for line_no, raw_row in enumerate(reader, start=2):
-            acronym = (raw_row.get("Acronym") or "").strip()
-            title = title_value(raw_row)
-            if not acronym or not title:
-                source_rows_skipped += 1
-                continue
-
-            raw_primary_for = (raw_row.get("PrimaryFoR") or "").strip()
-            primary_for = clean_primary_for(raw_primary_for, valid_for_codes)
-            if raw_primary_for and primary_for is None:
-                invalid_primary_for_rows += 1
-
-            source_rows.append(
-                {
-                    "line_no": line_no,
-                    "acronym": acronym,
-                    "title": title,
-                    "title_key": normalize_conference_title_fingerprint(title),
-                    "rank": clean_conference_rank(raw_row.get("Rank", "")),
-                    "primary_for": primary_for,
-                }
-            )
+    source_rows, source_stats = load_conference_source_rows(valid_for_codes)
 
     by_acronym = defaultdict(list)
     for row in source_rows:
@@ -362,7 +534,16 @@ def load_conferences(cursor, dry_run=False):
     missing_unambiguous = sorted(insertable_acronyms - final_db_acronyms)
 
     verb = "would insert" if dry_run else "inserted"
-    print(f"  source rows: {len(source_rows):,} (skipped blanks: {source_rows_skipped:,})")
+    print(
+        "  merged source rows: "
+        f"{len(source_rows):,} "
+        f"(flat rows read: {source_stats['flat_rows_read']:,}, "
+        f"raw rows read: {source_stats['raw_rows_read']:,}, "
+        f"skipped blanks: {source_stats['source_rows_skipped']:,})"
+    )
+    print(f"  merged rows present in both flat + raw sources: {source_stats['both_source_rows']:,}")
+    print(f"  raw-only source rows added: {source_stats['raw_only_rows']:,}")
+    print(f"  flat-only source rows retained: {source_stats['flat_only_rows']:,}")
     print(f"  distinct source acronyms: {len(source_acronyms):,}")
     print(f"  single-row acronym groups: {single_row_acronyms:,}")
     print(f"  repeated acronym groups: {repeated_acronym_groups:,}")
@@ -370,7 +551,7 @@ def load_conferences(cursor, dry_run=False):
     print(f"  exact duplicate groups: {exact_duplicate_groups:,}")
     print(f"  same-normalized-title variant groups collapsed: {same_normalized_title_variant_groups:,}")
     print(f"  ambiguous acronym groups skipped intentionally: {len(ambiguous_acronyms):,}")
-    print(f"  rows with invalid PrimaryFoR cleared to NULL: {invalid_primary_for_rows:,}")
+    print(f"  rows with invalid PrimaryFoR cleared to NULL: {source_stats['invalid_primary_for_rows']:,}")
     print(f"  existing conference acronyms before sync: {len(existing_acronyms):,}")
     print(f"  {verb}: {inserted_rows:,}")
     print(f"  final conference rows after sync: {final_count:,} (was {before_count:,})")

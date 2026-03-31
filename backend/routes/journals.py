@@ -23,8 +23,8 @@ def get_lookups():
 @journals_bp.route('/', methods=['GET'])
 def list_journals():
     """List all journals for autocomplete and browsing with pagination."""
-    page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=50, type=int)
+    page = max(request.args.get('page', default=1, type=int), 1)
+    per_page = min(max(request.args.get('per_page', default=50, type=int), 1), 200)
     offset = (page - 1) * per_page
 
     conn = get_db_connection()
@@ -64,7 +64,7 @@ def get_profile(journal_id):
             "SELECT * FROM vw_journal_yearly_stats WHERE journal_id = %s ORDER BY year ASC",
             (journal_id,)
         )
-        has_dblp_coverage = bool((profile.get('total_papers') or 0) > 0)
+        has_dblp_coverage = (profile.get('total_papers') or 0) > 0
 
         return jsonify({
             'profile': profile,
@@ -127,8 +127,8 @@ def search_journals():
     quartile = request.args.get('quartile', '').strip()
     area_id = request.args.get('subject_area', '').strip()
     publisher = request.args.get('publisher', '').strip()
-    page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=10, type=int)
+    page = max(request.args.get('page', default=1, type=int), 1)
+    per_page = min(max(request.args.get('per_page', default=10, type=int), 1), 100)
     offset = (page - 1) * per_page
 
     where_clauses = []
@@ -165,8 +165,10 @@ def search_journals():
         where_clauses.append("publisher LIKE %s")
         params.append(f"%{publisher}%")
 
+    # SAFETY: where_sql is built entirely from hardcoded column names;
+    # all user-supplied values go through parameterized %s placeholders.
     where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
-    
+
     conn = get_db_connection()
     try:
         # Get total for pagination
