@@ -52,7 +52,7 @@ def client(monkeypatch):
 
         if "COUNT(*) as total FROM conferences" in compact_query:
             return {"total": 1}
-        if "SELECT conf_id, title, acronym, rank FROM conferences" in compact_query:
+        if "SELECT conf_id, title, acronym, `rank` FROM conferences" in compact_query:
             return [{"conf_id": 1, "title": "Conf A", "acronym": "CA", "rank": "A"}]
         if "MATCH(title, acronym)" in compact_query or "acronym LIKE" in compact_query:
             return [{"conf_id": 1, "title": "Conf A", "acronym": "CA"}]
@@ -121,7 +121,8 @@ def test_journal_search_with_special_characters_does_not_crash(client):
     payload = response.get_json()
 
     assert response.status_code == 200
-    assert isinstance(payload, list)
+    assert "results" in payload
+    assert "pagination" in payload
 
 
 def test_journal_profile_includes_dblp_coverage_flag(client, monkeypatch):
@@ -168,9 +169,11 @@ def test_journal_profile_includes_dblp_coverage_flag(client, monkeypatch):
 
 def test_conference_search_with_only_special_characters_returns_empty_list(client):
     response = client.get("/api/conference/search?q=++&&")
+    payload = response.get_json()
 
     assert response.status_code == 200
-    assert response.get_json() == []
+    assert payload["results"] == []
+    assert "pagination" in payload
 
 
 def test_author_search_with_special_characters_does_not_crash(client):
