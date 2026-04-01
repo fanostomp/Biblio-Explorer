@@ -13,7 +13,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
-from urllib import parse, request
+from urllib import error as urlerror, parse, request
 import xml.etree.ElementTree as ET
 
 
@@ -1040,10 +1040,20 @@ class JsonApiClient:
         if not self.enabled:
             return None
 
-        url = f"{self.base_url}?{parse.urlencode(params)}"
+        sep = "&" if "?" in self.base_url else "?"
+        url = f"{self.base_url}{sep}{parse.urlencode(params)}"
         req = request.Request(url, headers=self.headers)
-        with request.urlopen(req, timeout=self.timeout) as response:  # noqa: S310
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with request.urlopen(req, timeout=self.timeout) as response:  # noqa: S310
+                payload = json.loads(response.read().decode("utf-8"))
+        except (
+            TimeoutError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+            urlerror.HTTPError,
+            urlerror.URLError,
+        ):
+            return None
         return self.cache.set(self.namespace, query_key, payload)
 
 
@@ -1503,7 +1513,7 @@ class VenueMatcher:
 
 
 def _iter_delimited_rows(path: str | Path, delimiter: str = ";") -> Iterable[dict[str, str]]:
-    with Path(path).open("r", encoding="utf-8", newline="") as handle:
+    with Path(path).open("r", encoding="utf-8", errors="replace", newline="") as handle:
         reader = csv.DictReader(handle, delimiter=delimiter)
         for row in reader:
             yield {str(key): (value or "").strip() for key, value in row.items()}

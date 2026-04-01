@@ -331,7 +331,11 @@ def load_manual_overrides(valid_conf_ids, by_acronym, by_title):
     with open(MANUAL_ALIAS_CSV, "r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         if not reader.fieldnames or "booktitle" not in reader.fieldnames:
-            raise ValueError(f"{MANUAL_ALIAS_CSV} must contain a booktitle column")
+            print(
+                f"WARNING: skipping manual alias file {MANUAL_ALIAS_CSV}: "
+                "missing required column booktitle"
+            )
+            return overrides
 
         for line_no, row in enumerate(reader, start=2):
             booktitle = (row.get("booktitle") or "").strip()

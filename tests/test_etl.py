@@ -1,3 +1,4 @@
+import importlib.util
 from pathlib import Path
 from uuid import uuid4
 
@@ -23,6 +24,18 @@ from etl.match_journals import (
     tokens,
 )
 from etl.venue_matching import VenueRecord
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_local_module(module_name: str, relative_path: str):
+    module_path = PROJECT_ROOT / relative_path
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec is not None and spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_expand_abbrev_expands_common_journal_terms():
@@ -201,6 +214,100 @@ def test_load_manual_aliases_ignores_non_csv_placeholder_files(capsys):
         assert "WARNING: skipping manual alias file" in capsys.readouterr().out
     finally:
         alias_file.unlink(missing_ok=True)
+
+
+def test_conference_manual_overrides_ignore_non_csv_placeholder_files(monkeypatch, capsys):
+    module = load_local_module("conference_match_for_test", "etl/05_match_conferences.py")
+    alias_file = Path(".tmp") / f"conference_manual_aliases_{uuid4().hex}.csv"
+    alias_file.parent.mkdir(parents=True, exist_ok=True)
+    alias_file.write_text(
+        "\n".join(
+            [
+                "version https://git-lfs.github.com/spec/v1",
+                "oid sha256:placeholder",
+                "size 1234",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        monkeypatch.setattr(module, "MANUAL_ALIAS_CSV", str(alias_file))
+
+        overrides = module.load_manual_overrides(set(), {}, {})
+
+        assert overrides == {}
+        assert "WARNING: skipping manual alias file" in capsys.readouterr().out
+    finally:
+        alias_file.unlink(missing_ok=True)
+
+
+def test_journal_main_loads_saved_variant_cache_before_building_records(monkeypatch):
+    module = load_local_module("journal_match_for_test", "etl/06_match_journals.py")
+    tmp_dir = Path(".tmp") / f"journal-main-variant-cache-{uuid4().hex}"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    observed = {}
+    sentinel_variant_cache = {"loaded": "variant-cache"}
+
+    class FakeCursor:
+        def close(self):
+            return None
+
+    class FakeConnection:
+        def cursor(self):
+            return FakeCursor()
+
+        def close(self):
+            return None
+
+    def fake_load_variant_cache(path=None):
+        observed["variant_cache_path"] = path
+        return sentinel_variant_cache
+
+    def fake_load_journal_records(cursor, variant_cache=None):
+        observed["cursor_type"] = type(cursor).__name__
+        observed["variant_cache"] = variant_cache
+        return []
+
+    monkeypatch.setattr(module, "get_local_dblp_csv_index", lambda: {})
+    monkeypatch.setattr(module.mysql.connector, "connect", lambda **_kwargs: FakeConnection())
+    monkeypatch.setattr(module, "load_variant_cache", fake_load_variant_cache)
+    monkeypatch.setattr(module, "load_journal_records", fake_load_journal_records)
+    monkeypatch.setattr(module, "build_local_dblp_journal_registry_map", lambda records, index: {})
+    monkeypatch.setattr(module, "load_journal_name_counts", lambda: {})
+    monkeypatch.setattr(module, "load_persistent_venue_aliases", lambda *args, **kwargs: {})
+    monkeypatch.setattr(module, "load_manual_aliases", lambda *args, **kwargs: {})
+
+    monkeypatch.setattr(module, "OUT_MAPPING", str(tmp_dir / "journal_name_to_id.csv"))
+    monkeypatch.setattr(module, "OUT_UNMATCHED", str(tmp_dir / "unmatched_journals.txt"))
+    monkeypatch.setattr(module, "OUT_REVIEW", str(tmp_dir / "journal_match_review.csv"))
+    monkeypatch.setattr(module, "OUT_PROPOSALS", str(tmp_dir / "journal_alias_proposals.csv"))
+    monkeypatch.setattr(
+        module,
+        "OUT_APPROVE_CANDIDATES",
+        str(tmp_dir / "journal_alias_approve_candidates.csv"),
+    )
+    monkeypatch.setattr(
+        module,
+        "OUT_INTENTIONAL_NULL_CANDIDATES",
+        str(tmp_dir / "journal_intentional_null_candidates.csv"),
+    )
+    monkeypatch.setattr(
+        module,
+        "OUT_INTENTIONAL_NULL_AUDIT",
+        str(tmp_dir / "journal_intentional_null_audit.csv"),
+    )
+    monkeypatch.setattr(module, "OUT_VARIANT_CACHE", str(tmp_dir / "journal_variant_cache.csv"))
+    monkeypatch.setattr(module, "OUT_ALIAS_REVIEW", str(tmp_dir / "venue_alias_review.csv"))
+    monkeypatch.setattr(module, "OUT_ALIAS_MEMORY", str(tmp_dir / "venue_aliases.csv"))
+    monkeypatch.setattr(module, "OUT_MATCH_AUDIT", str(tmp_dir / "venue_match_audit.csv"))
+    monkeypatch.setattr(module, "MANUAL_ALIAS_CSV", str(tmp_dir / "journal_manual_aliases.csv"))
+
+    module.main()
+
+    assert observed["variant_cache"] == sentinel_variant_cache
+    assert observed["cursor_type"] == "FakeCursor"
 
 
 def test_merge_intentional_null_candidate_rows_adds_report_like_review_rows():

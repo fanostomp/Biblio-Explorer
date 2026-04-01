@@ -1299,7 +1299,7 @@ def main():
     local_dblp_index = get_local_dblp_csv_index()
     conn = mysql.connector.connect(**DB_CONFIG)
     cur = conn.cursor()
-    records = load_journal_records(cur)
+    records = load_journal_records(cur, load_variant_cache())
     cur.close()
     conn.close()
 

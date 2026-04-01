@@ -1,10 +1,12 @@
 import json
 import csv
+import urllib.error
 from pathlib import Path
 from uuid import uuid4
 
 import pytest
 
+import etl.venue_matching as venue_matching_module
 from etl.venue_matching import (
     ExternalSourceCandidate,
     FileBackedJsonCache,
@@ -513,6 +515,94 @@ def test_json_api_client_stays_offline_when_disabled(monkeypatch):
     monkeypatch.setattr("etl.venue_matching.request.urlopen", fail_urlopen)
 
     assert client.fetch_json("offline", {"q": "example"}) is None
+
+
+def test_json_api_client_uses_ampersand_when_base_url_already_has_query(monkeypatch):
+    cache_dir = Path(".tmp") / f"json-client-query-{uuid4().hex}"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache = FileBackedJsonCache(cache_dir)
+    client = JsonApiClient(
+        cache=cache,
+        namespace="test",
+        base_url="https://example.test/api?existing=1",
+        enabled=True,
+    )
+    seen = {}
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b'{"ok": true}'
+
+    def fake_urlopen(req, timeout):
+        seen["url"] = req.full_url
+        seen["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr("etl.venue_matching.request.urlopen", fake_urlopen)
+
+    payload = client.fetch_json("query-with-existing-param", {"q": "example"})
+
+    assert payload == {"ok": True}
+    assert seen["url"] == "https://example.test/api?existing=1&q=example"
+    assert seen["timeout"] == 10
+
+
+@pytest.mark.parametrize(
+    ("urlopen_impl", "query_key"),
+    [
+        (
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(urllib.error.URLError("boom")),
+            "network-error",
+        ),
+        (
+            lambda *_args, **_kwargs: type(
+                "BadJsonResponse",
+                (),
+                {
+                    "__enter__": lambda self: self,
+                    "__exit__": lambda self, exc_type, exc, tb: False,
+                    "read": lambda self: b"{not json",
+                },
+            )(),
+            "bad-json",
+        ),
+    ],
+)
+def test_json_api_client_returns_none_for_optional_fetch_failures(
+    monkeypatch, urlopen_impl, query_key
+):
+    cache_dir = Path(".tmp") / f"json-client-failure-{uuid4().hex}"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache = FileBackedJsonCache(cache_dir)
+    client = JsonApiClient(
+        cache=cache,
+        namespace="test",
+        base_url="https://example.test/api",
+        enabled=True,
+    )
+
+    monkeypatch.setattr("etl.venue_matching.request.urlopen", urlopen_impl)
+
+    assert client.fetch_json(query_key, {"q": "example"}) is None
+
+
+def test_iter_delimited_rows_replaces_invalid_utf8_bytes():
+    csv_path = Path(".tmp") / f"invalid-utf8-{uuid4().hex}.csv"
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    csv_path.write_bytes(b"name;value\nalpha;\xffbeta\n")
+
+    try:
+        rows = list(venue_matching_module._iter_delimited_rows(csv_path))
+
+        assert rows == [{"name": "alpha", "value": "\ufffdbeta"}]
+    finally:
+        csv_path.unlink(missing_ok=True)
 
 
 def test_conference_query_does_not_derive_two_token_initialism_from_acronym_like_label():
