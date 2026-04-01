@@ -202,6 +202,19 @@ svg {
     margin: 0 auto 2rem;
 }
 
+.journal-search-section {
+    max-width: min(1180px, 100%);
+}
+
+.journal-title-search {
+    position: relative;
+    flex: 1 1 100%;
+}
+
+.journal-title-search #journalSearch {
+    width: 100%;
+}
+
 .search-section input {
     width: 100%;
     padding: 1rem 1.5rem;
@@ -269,6 +282,30 @@ svg {
     font-size: 0.9rem;
     font-weight: 600;
     color: white;
+}
+
+.coverage-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.coverage-badge-covered {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.coverage-badge-ranked-only {
+    background: #64748b;
+    color: #ffffff;
+}
+
+.coverage-badge-search {
+    min-width: 102px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
 }
 
 .badge.rank-badge {
@@ -833,6 +870,17 @@ tr:hover td {
     animation: fadeIn 0.3s ease-out;
 }
 
+.journal-search-results {
+    width: 100%;
+}
+
+.journal-title-dropdown {
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    margin-top: 0;
+}
+
 .results-header {
     display: flex;
     justify-content: space-between;
@@ -863,6 +911,21 @@ tr:hover td {
 
 .interactive-table tr:hover td {
     background: rgba(56, 189, 248, 0.05);
+}
+
+.journal-results-table th,
+.journal-results-table td {
+    vertical-align: middle;
+}
+
+.journal-results-table .coverage-column,
+.journal-results-table .coverage-cell {
+    width: 132px;
+    white-space: nowrap;
+}
+
+.journal-results-table td:first-child {
+    min-width: 260px;
 }
 
 .btn.small {

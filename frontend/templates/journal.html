@@ -2,9 +2,12 @@
 {% block title %}Journals — BiblioExplorer{% endblock %}
 {% block content %}
 <div class="profile-header">
-    <div class="search-section full-width">
+    <div class="search-section full-width journal-search-section">
         <div class="filter-bar">
-            <input type="text" id="journalSearch" placeholder="Search journal title..." autocomplete="off">
+            <div class="journal-title-search">
+                <input type="text" id="journalSearch" placeholder="Search journal title..." autocomplete="off">
+                <ul id="journalDropdown" class="autocomplete-list journal-title-dropdown" style="display: none;"></ul>
+            </div>
             <select id="filterQuartile">
                 <option value="">All Quartiles</option>
             </select>
@@ -12,23 +15,27 @@
                 <option value="">All Subject Areas</option>
             </select>
             <input type="text" id="filterPublisher" placeholder="Filter by publisher..." style="flex: 1; min-width: 150px;">
+            <label style="display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; font-size: 0.95rem;">
+                <input type="checkbox" id="filterCoverageOnly">
+                Only journals with DBLP stats
+            </label>
             <button id="searchBtn" class="btn">Search</button>
             <button id="clearFiltersBtn" class="btn secondary-btn">Clear</button>
         </div>
-        <ul id="journalDropdown" class="autocomplete-list" style="display: none;"></ul>
 
-        <div id="searchResults" class="search-results-container" style="display: none;">
+        <div id="searchResults" class="search-results-container journal-search-results" style="display: none;">
             <div class="results-header">
                 <h3>Search Results</h3>
                 <span id="resultsCount" class="text-muted"></span>
             </div>
             <div class="table-responsive">
-                <table id="resultsTable" class="interactive-table">
+                <table id="resultsTable" class="interactive-table journal-results-table">
                     <thead>
                         <tr>
                             <th>Journal Title</th>
                             <th>Publisher</th>
                             <th>Quartile</th>
+                            <th class="coverage-column">Coverage</th>
                             <th>SJR</th>
                             <th>Action</th>
                         </tr>
@@ -49,6 +56,7 @@
         <h1 id="journalTitle">Journal Title</h1>
         <div class="badges">
             <span class="badge rank-badge" id="journalRank">Quartile: Q1</span>
+            <span class="badge" id="journalCoverageBadge">DBLP coverage available</span>
             <span class="badge" id="journalSjr">SJR: 0.0</span>
             <span class="badge" id="journalCiteScore">CiteScore: 0.0</span>
             <span class="badge" id="journalHIndex">H-Index: 0</span>
@@ -81,6 +89,23 @@
         <h3>Authorship Trends</h3>
         <div id="authorsChart"></div>
     </div>
+
+    <div class="table-container full-width">
+        <h3>Top Authors</h3>
+        <div class="table-responsive">
+            <table id="topAuthorsTable">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Author Name</th>
+                        <th>Papers Published</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
     
     <div class="table-container full-width">
         <h3>Published Articles</h3>
@@ -91,7 +116,7 @@
                         <th>Year</th>
                         <th>Title</th>
                         <th>Volume/Issue</th>
-                        <th>Article No.</th>
+                        <th>Pages</th>
                         <th>Links</th>
                     </tr>
                 </thead>
@@ -104,7 +129,7 @@
 <div class="chart-container" id="journalNoCoverage" style="display: none;">
     <h3>DBLP Coverage</h3>
     <p class="text-muted">
-        This journal is ranked in the database, but currently has no indexed publication data available in DBLP.
+        Ranking metadata is still available for this journal, but DBLP-linked papers have not been indexed yet. Publication charts, article tables, and top-author stats require DBLP-linked papers.
     </p>
 </div>
 {% endblock %}
