@@ -1,0 +1,3197 @@
+# 3193 unresolved booktitles sorted by row frequency
+# 309624 unresolved conference rows
+# rows	booktitle
+
+1305	IAS
+1227	ICEC
+1075	TSD
+1027	ICIC (1)
+1015	ICIC (2)
+969	ICEIS (1)
+960	ICCA
+938	NEMS
+920	DFT
+906	ICEIS (2)
+795	ICEIS (3)
+753	IDC
+751	CSMR
+746	KI
+709	CTS
+691	HSCC
+684	PARA
+679	GCC
+678	LISA
+676	PATMOS
+654	ICEIS
+646	CSCL
+641	MSN
+641	MUE
+632	PCM
+629	NBiS
+626	ICEBE
+623	ICITST
+611	ISPD
+610	VMV
+605	CIMCA/IAWTIC
+605	CRV
+590	ARCS
+590	ICDMA
+589	RIAO
+586	ICIC (3)
+586	ICWN
+586	INCoS
+579	JISBD
+577	INFORSID
+575	BDA
+573	ISWC
+569	EGOV
+561	GIL Jahrestagung
+560	PICS
+559	SoSE
+555	NCM
+554	RAM
+547	AAECC
+545	APL
+534	ICYCS
+529	LSSC
+528	Asia International Conference on Modelling and Simulation
+526	ICEIS (4)
+525	CGIV
+519	CSE
+519	IMR
+512	BIC-TA
+510	BCB
+510	SiPS
+505	BNCOD
+501	WKDD
+500	ELPUB
+497	EMS
+497	ICGA
+495	INFOS
+493	ACRI
+492	PReMI
+490	VRCAI
+483	AHS
+476	CNSR
+474	FSE
+471	ISPE CE
+466	TSP
+464	Kommunikation in Verteilten Systemen
+458	AMAST
+456	DELTA
+448	BWCCA
+446	AVSP
+445	ICCC
+445	ISC
+445	SimuTools
+442	AIPR
+436	NTMS
+432	DMIN
+430	ITCC
+429	PETRA
+427	BIOSIGNALS
+426	IHM
+425	Peer-to-Peer Computing
+424	RSFDGrC
+423	HEALTHINF
+423	WPMC
+422	Conf. Computing Frontiers
+422	Fuzzy Days
+422	IMIS
+422	MLDM
+418	URAI
+417	SIGSOFT FSE
+415	VECPAR
+414	RCIS
+412	EC-Web
+412	ICIRA (1)
+412	ICT
+411	CAD/Graphics
+411	CONIELECOMP
+411	IRMA Conference
+410	3DPVT
+410	ESM
+409	IBERAMIA
+408	DeLFI
+407	ICMB
+404	CSB
+404	EW
+404	Simulationstechnik
+402	AMS
+399	ICIRA (2)
+399	SI3D
+398	GWAI
+396	CCIA
+396	QEST
+396	SEAL
+395	MBMV
+393	ICON
+392	IbPRIA
+391	ACSC
+390	EUROSIM
+386	CICSyN
+385	IEEM
+383	RIVF
+382	ASIAN
+382	WHC
+379	CORIA
+378	MMB
+375	IEEE VAST
+375	SCAI
+374	SCCC
+373	ECCTD
+373	ISCSLP
+373	SIGMAP
+372	ANTS
+372	Software Engineering (Workshops)
+371	CONPAR
+371	FECS
+371	Software Engineering
+371	VECIMS
+369	IMCSIT
+368	WASA
+367	POLICY
+365	OSS
+363	IMSA
+362	Wireless Days
+361	Rough Sets and Current Trends in Computing
+361	WIAMIS
+360	I3E
+359	CPR
+359	SmartGridComm
+358	ASYNC
+358	DMS
+357	DBTA
+357	OR
+356	Software-Ergonomie
+354	CSC
+353	ICMENS
+352	EIT
+352	HAPTICS
+351	EWDTS
+345	BIODEVICES
+345	MMVR
+344	3DIC
+344	CSNDSP
+344	MAVEBA
+343	3DIM
+343	COMSWARE
+343	CSSE (5)
+343	FGCS
+343	OOIS
+343	Parallel and Distributed Computing and Networks
+341	ICEEI
+341	PROLAMAT
+341	SKG
+338	ECCE
+338	ISSPIT
+337	AMT
+337	BIFE
+336	3PGCIC
+336	ERSA
+336	HLDVT
+335	ANLP
+335	AVBPA
+334	COSIT
+334	Informatiktage
+334	NAS
+333	SBRN
+332	NEW2AN
+328	SoCPaR
+328	Web3D
+327	DEBS
+327	ICARIS
+327	SETN
+325	ENC
+324	AIIDE
+324	INEX
+324	SOCA
+323	ADHOC-NOW
+322	CASoN
+321	SLT
+319	EURO-DAC
+318	CSR
+318	ICSAMOS
+317	iConference
+317	MCIS
+316	International Conference on Evolutionary Computation
+316	Shape Modeling International
+315	IScIDE
+315	ISSA
+314	FIMH
+314	ITCC (2)
+312	MSV
+311	ARCS Workshops
+311	IEEE Pacific Rim Conference on Multimedia
+310	CCE
+310	VISUAL
+309	3DUI
+308	PARELEC
+308	PWC
+308	ROCLING
+308	WORDS
+305	DRR
+305	FIT
+305	ICDSC
+305	NAA
+304	Ershov Memorial Conference
+304	SIES
+303	IQ
+303	IWSLT
+303	SPIN
+302	CSSE (1)
+302	EMMCVPR
+302	ICSI (1)
+302	ITA
+301	APCHI
+301	SEDE
+300	CSER
+300	ICMAS
+299	CSIIRW
+299	ICSI (2)
+299	PLILP
+298	IS&N
+298	SBBD
+296	FTDCS
+296	WPNC
+294	DCFS
+293	ICFIE
+293	SASO
+292	APPT
+292	Communications and Multimedia Security
+292	CONTEXT
+292	INFOVIS
+292	Intelligent Environments (Workshops)
+289	PCM (2)
+289	WCNIS
+288	AICT
+288	ICGI
+287	DSV-IS
+286	ANT/MobiWIS
+285	RSCTC
+284	WILF
+284	WOCN
+283	ITCC (1)
+283	LWA
+283	Mobility Conference
+282	ESEC/SIGSOFT FSE
+282	GMDS
+282	ICE-B
+281	ICGEC
+281	ISHPC
+281	WWIC
+280	Gesture Workshop
+280	GRAPHITE
+278	SAICSIT Conf.
+277	CIA
+277	CSSE (2)
+275	WER
+274	SBIA
+273	GREC
+272	CSREA EEE
+271	CyberC
+271	IALP
+271	IC3
+271	VALUETOOLS
+270	ICEB
+270	WASPAA
+269	ANCS
+268	CSSE (4)
+268	MMNS
+268	MobiMedia
+268	ONDM
+268	Optimization Techniques
+267	SAMOS
+266	CEEMAS
+266	ISD
+265	IASTED PDCS
+264	CAEPIA
+264	CSSE (3)
+263	ICEIS (5)
+263	WebMedia
+262	ISBRA
+261	CISST
+261	DBPL
+261	IFIP TCS
+260	ICAT
+260	Intelligent Environments
+258	JFSMA
+258	ROSE
+258	SSVM
+257	AmI
+257	IHC
+256	SIGAda
+255	BIS
+255	SBP
+254	IWDC
+254	OWLED
+253	RACS
+252	ESSCIRC
+251	BigData Conference
+251	MIAR
+251	PEARL
+250	BHI
+250	W4A
+249	SOSE
+248	Complex Adaptive Systems
+248	PRIB
+247	Essen Symposium
+247	FSR
+247	WIRN
+245	ITI
+244	AOSD
+244	CISIM
+244	International Conference on Wireless Networks
+243	MATES
+243	MTSR
+242	MSE
+241	CSO (1)
+241	DSOM
+241	Hot Interconnects
+241	PERSUASIVE
+241	T4E
+240	ITEE
+240	Scale-Space
+240	WOA
+239	PARLE
+238	IWSOC
+238	Smart Graphics
+237	Communications, Internet, and Information Technology
+237	IHI
+237	World Haptics
+235	CSO (2)
+235	PCM (1)
+234	Communications in Computing
+234	ISCID (1)
+234	ISCID (2)
+233	ARTCom
+233	ICCSCE
+233	Multiple Classifier Systems
+233	SUM
+232	GENSiPS
+232	RuleML
+231	ICHL
+231	ICLS
+231	WOCC
+230	IEEE Conf. of Intelligent Systems
+230	RWS
+229	FCS
+229	ICN/ICONS/MCL
+229	SCM
+227	COM.Geo
+226	NOCS
+226	SAB
+225	EEE
+224	AWIC
+224	IITSI
+224	NETGAMES
+224	PE-WASUN
+223	CIMCA/IAWTIC/ISE
+223	ICAL
+223	LION
+223	METMBS
+223	ReCoSoC
+223	RFID-TA
+223	TYPES
+222	ISICA
+222	USAB
+221	CBSE
+221	CMSB
+221	ISECS
+221	Modellierung
+220	Artificial Evolution
+220	Int. Sym. Wikis
+219	MOBIWAC
+219	SIGCPR
+219	VAST
+218	Evolutionary Programming
+218	IMA Conference on the Mathematics of Surfaces
+218	SARA
+217	DASIP
+217	EWSPT
+217	FGCN (2)
+217	IFIP Int. Conf. Digital Forensics
+217	Spatial Cognition
+217	SWWS
+216	PRIS
+215	AICT/ICIW
+215	AMDO
+215	IESS
+214	C5
+214	Stringology
+214	WSKS (2)
+213	CIbSE
+213	ESTImedia
+213	FORMATS
+213	GI-Fachgespräch über Rechenzentren
+213	JCAI
+211	BIOINFORMATICS
+211	SLIP
+211	WISM
+211	WSE
+210	ICITCS
+209	APPIA-GULP-PRODE
+209	BASYS
+209	FGCN (1)
+209	ICCABS
+209	MKWI
+209	MLSP
+209	PACIIA (2)
+209	TRI-Ada
+208	CDES
+208	EMISA
+208	MCS
+208	WAA
+208	WGEC
+207	FTRTFT
+207	MVHI
+207	WebDB
+207	WINSYS
+206	ALPIT
+206	CHARME
+206	ICLS (1)
+206	SDL Forum
+205	EISIC
+205	PAKM
+205	WEIS
+204	ICARA
+204	ISVD
+204	PECCS
+204	SCSS (1)
+204	TST
+204	WPES
+203	ACM DL
+203	CSO
+203	IPTPS
+202	CLIMA
+201	Teleteaching
+199	DIGITEL
+199	PACIIA (1)
+199	TPCG
+199	WSKS (1)
+198	CAAP
+197	IESA
+197	LISP and Functional Programming
+197	Workshop on Membrane Computing
+196	ACPR
+196	WICON
+195	GeoInfo
+195	Sicherheit
+194	DNIS
+194	FGIT
+194	ICSIPA
+194	PACCS
+193	AOSE
+193	EIDWT
+193	Fachtagung Prozessrechner
+193	GbRPR
+193	WADT
+192	CORES
+192	ISR/ROBOTIK
+191	ADVIS
+191	ESAW
+191	GCC Workshops
+191	GHTC
+190	GCA
+190	GCC (1)
+190	ICBO
+190	MediaEval
+189	Multikonferenz Wirtschaftsinformatik
+189	RR
+188	IBICA
+188	ICAS
+188	ICHIT (1)
+188	ISIPTA
+188	NSIP
+188	SCSC
+187	CSE (4)
+187	DESRIST
+187	ECCBR
+187	EUNICE
+187	ICHIT
+187	ICHIT (2)
+187	ISCSCT (1)
+187	WIMS
+186	Haifa Verification Conference
+185	ICCBSS
+185	ISCSCT (2)
+184	AIS
+184	AUIC
+184	BICA
+184	ICIMCS
+183	TAPSOFT
+182	BIOSIG
+182	CLA
+182	PROPOR
+182	VS-GAMES
+181	ICICIC (2)
+180	BIS (Workshops)
+180	EWCBR
+180	ICICIC (1)
+180	IDMS
+180	SEMCCO
+179	JIISIC
+178	VaMoS
+178	WMTE
+177	CA
+177	HoloMAS
+177	ICAIT
+177	IGCC
+176	DPPI
+176	JSAI Workshops
+176	MATA
+176	NGITS
+175	AICI
+175	CMMR
+175	MOBILWARE
+175	SASO Workshops
+175	TRECVID
+175	VSMM
+174	NOLISP
+173	ICISTM
+172	DILS
+172	ESIAT (2)
+172	FPCA
+172	ISESE
+172	Wissensbasierte Systeme
+171	CPA
+171	ESEC
+171	FMCO
+171	MMM-ACNS
+170	AIMS
+170	Computational Intelligence
+170	EuroITV
+170	MTV
+170	SSIAI
+169	CAMP
+169	FODO
+169	GCC (2)
+169	IbPRIA (2)
+169	NASA Formal Methods
+169	PDC
+168	ESIAT (1)
+168	Extreme Markup Languages®
+168	LA-WEB
+168	NC
+168	WIDM
+167	CSIE (7)
+167	ICICIC (3)
+166	GreenCom
+166	Infoscale
+166	SEUS
+166	ÖGAI
+165	ACFIE
+165	ANT/SEIT
+165	CATS
+164	CADUI
+164	CAMAD
+164	CSE (2)
+164	CVRMed
+164	SII
+164	System Modelling and Optimization
+164	WMUTE
+163	CSIE (4)
+163	IASSE
+163	VNC
+163	WOSIS
+162	AGI
+162	ECMR
+162	ITQM
+162	LANOMS
+161	FoIKS
+161	IbPRIA (1)
+161	ISIP
+160	ESEC / SIGSOFT FSE
+159	Broadband Communications
+159	IISWC
+159	MLMTA
+159	NGMAST
+159	SMPS
+159	VDB
+159	WLP
+158	CSIE (1)
+158	GEM
+158	HSNMC
+158	IHCI
+158	ITRE
+158	SocProS
+158	WCCE
+157	AINTEC
+157	IVIC
+156	AFRICACRYPT
+156	CLSW
+156	CSIE (5)
+156	FBIT
+156	ICSNC
+156	IRCDL
+156	MM&Sec
+156	Security, Steganography, and Watermarking of Multimedia Contents
+155	ACSE
+155	CEAS
+155	DOOD
+155	FIW
+155	FJCC
+155	IWAN
+155	SWAT4LS
+154	Informatik für den Umweltschutz
+154	PDIS
+154	SEMCCO (1)
+153	AGTIVE
+153	FIRA RoboWorld Congress
+153	ICHIM
+153	KiVS
+152	ADHOCNETS
+152	ASMTA
+152	CSIE (3)
+152	I3D
+152	IWOMP
+152	WUWNet
+151	DIPES
+151	IFITA (3)
+151	SECURWARE
+150	ICFCE
+150	ISICT
+149	ISR
+148	BSB
+148	CUBE
+148	ICIQ
+148	ICTCS
+148	MCPR
+148	SOFTVIS
+147	ACPC
+147	ICAPR
+147	NPAR
+146	Circuits, Signals, and Systems
+146	MobiCASE
+146	QofIS
+146	SIIT
+146	SOCO
+146	TGC
+146	Transputer-Anwender-Treffen
+145	HPN
+145	NMR
+144	CODASPY
+144	DATESO
+144	GIScience
+144	HOST
+143	AICI (1)
+143	AsiaSim
+143	C3S2E
+143	DALT
+143	IMSCCS (2)
+143	WISEC
+142	Afrigraph
+142	Berkeley Workshop
+142	Computational Aesthetics
+142	CSIE (2)
+142	EPEW
+142	ICAT Workshops
+142	ISESS
+142	ITHET
+142	KRDB
+142	SoICT
+141	HiPEAC
+141	MobiHealth
+140	Brain Informatics
+140	CSB Workshops
+140	ICCPS
+139	DeLFI Workshops
+139	EUVIP
+139	MBEES
+139	MUSIC
+139	SMI
+138	CCBR
+138	Hybrid Systems
+138	ISSEP
+137	Artificial Intelligence and Pattern Recognition
+137	BCI
+137	ICANNGA (1)
+137	INTETAIN
+137	PASTE
+136	AICI (2)
+136	CODAS
+136	FOCI
+136	KONVENS
+136	MIRAGE
+136	SEUH
+136	SummerSim
+136	WSTST
+135	ECHT
+135	I-ESA
+135	ICCNMC
+135	TACS
+135	VSTTE
+135	WBIR
+134	DET
+134	FroCoS
+134	ICT-EurAsia
+134	IMSCCS (1)
+134	MOBILIGHT
+134	MTDT
+134	WONS
+133	ISBMDA
+133	ISTCS
+133	JCKBSE
+133	MobiDE
+133	Modelling and Evaluation of ATM Networks
+133	UNISCON
+132	ACE
+132	CGVR
+132	CITA
+132	DFN-Arbeitstagung über Kommunikationsnetze
+132	ICCAL
+132	SCSS
+131	eHealth
+131	EuroIMSA
+131	NCM (2)
+131	QoS-IP
+130	ADL
+130	CCSEIT
+130	CLAWAR
+130	CSIE (6)
+130	IPCC
+130	Koli Calling
+130	LADC
+130	Software Composition
+130	SWAP
+130	Trends in Functional Programming
+129	3DIMPVT
+129	ACSW Frontiers
+129	ASCILITE
+129	Biologically Motivated Computer Vision
+129	CSSE (6)
+129	Databases and Applications
+129	Eurographics Italian Chapter Conference
+129	IIA/SOCO
+129	MeMeA
+129	SCCG
+129	SSME
+128	Adaptive Multimedia Retrieval
+128	CHINZ
+128	ICIRA
+128	ICSAP
+128	IPAW
+128	IWSOS
+128	NCM (1)
+128	PLM
+127	ICCCS
+127	ISAmI
+127	LACL
+127	LMO
+127	RIDE
+127	TAMODIA
+126	CIIA
+126	CONFENIS
+126	Critical Infrastructure Protection
+126	PAISI
+126	PSATS
+125	CMC
+125	ECMAST
+125	EDAC-ETC-EUROASIC
+125	Fehlertolerierende Rechensysteme
+125	History of Nordic Computing
+125	ICANNGA (2)
+125	iTrust
+125	Theoretical Foundations of Computer Vision
+125	TRUST
+125	UCAmI
+125	VIIP
+124	ArgMAS
+124	DISCO
+124	EDA
+124	Erlang Workshop
+124	Multimedia Information Systems
+123	AGILE Conf.
+123	ALP
+123	AmI Workshops
+123	BAIP
+123	CSISE (1)
+123	CSISE (2)
+123	FMLDO
+123	ICSDM
+123	IDT
+123	TAROS
+123	Theoretical Computer Science
+123	WIFS
+122	CGAMES
+122	CGC
+122	CTRS
+122	HAID
+122	WCET
+121	CAD
+121	IRREGULAR
+121	ISMDA
+121	IWBBIO
+120	ADCONS
+120	ANTS Conference
+120	SBM
+120	ScalCom-EmbeddedCom
+120	SIGPLAN Symposium on Compiler Construction
+120	SLaTE
+119	Complex (2)
+119	EuroHaptics
+119	FIFF Jahrestagung
+119	I-KNOW
+119	ISTA
+118	Complex (1)
+118	CSISE (3)
+118	JTRES
+118	MONAMI
+118	SIMPAR
+117	HISB
+117	Parallel and Distributed Computing and Systems
+117	WEDELMUSIC
+116	BICoB
+116	EurAsia-ICT
+116	IBERAMIA-SBIA
+116	ICLS (3)
+116	Logic of Programs
+115	Automated Deduction in Geometry
+115	Bangalore Compute Conf.
+115	BIONETICS
+115	IJCBS
+115	IWCC
+115	Modelling and Simulation
+115	MSVVEIS
+115	NDT (2)
+114	COST 2102 Training School
+114	EnviroInfo
+114	GECON
+114	ICANNGA
+114	IEEE Workshop on Multimedia Signal Processing
+114	Jerusalem Conference on Information Technology
+114	Parcella
+114	PNPM
+114	STAIRS
+114	VRIPHYS
+113	CAIA
+113	ICONS
+113	Modelling, Identification and Control
+113	WSOM
+112	ANTS Workshop
+112	EuroHaptics (1)
+112	FBT
+112	Hybrid Metaheuristics
+112	IFIPTM
+112	JCDCG
+111	BVAI
+111	CSTST
+111	DIISM
+111	EUROVAV
+111	ISMSE
+110	ISIA
+110	JBIDI
+110	NDT (1)
+110	SAMT
+109	Berliner XML Tage
+109	NLPRS
+109	QoSA
+109	WorldCIST
+108	AADEBUG
+108	IPC
+108	ISAS-SCI (1)
+108	PoEM
+108	SMARTNET
+107	CDS
+107	EuroHaptics (2)
+107	FCST
+107	ICBA
+107	SSR
+106	C++ Conference
+106	CLIHC
+106	DEON
+106	EUROCAL
+106	GAME-ON
+106	ICMT
+106	JMLC
+106	Prozeßrechnersysteme
+106	SBCARS
+105	CAR
+105	FSEN
+105	ICSTM
+105	MAAMAW
+105	Networked Group Communication
+105	NICSO
+105	RCDL
+104	APWCS
+104	COOTS
+104	IWPT
+104	MRCS
+104	SFM
+103	CLIN
+103	DSAI
+103	Fachtagung über Programmiersprachen
+103	GIR
+103	IE
+103	JSAI-isAI Workshops
+102	FGIT-FGCN (2)
+102	ICDL-EPIROB
+102	IDAACS (1)
+102	Int. Conf. on Membrane Computing
+102	IWPSE
+102	NGI
+102	QI
+102	UbiMob
+102	Volume Graphics
+102	WebSci
+102	WISES
+101	Actes d'IC
+101	ARVLSI
+101	IS-EUD
+101	iStar
+101	Java Grande
+101	JFIADSMA
+101	LORI
+101	RiTA
+100	ANNPR
+100	CATE
+100	DCNET/ICE-B/OPTICS
+100	ECUMN
+100	EIAT/IETA
+100	ESSoS
+100	IIR
+100	IWIPS
+100	SCSS (2)
+100	TAPSOFT, Vol.2
+99	e-Energy
+99	ICMS
+98	AP2PC
+98	GSI
+98	HPTS
+98	ICAS/ICNS
+98	SADFE
+98	SAM
+98	VDAT
+97	DICTAP
+97	SNDS
+97	SocProS (1)
+97	SocProS (2)
+97	Symposium on Programming
+97	VIP
+97	Wireless and Optical Communications
+96	D-CSCW
+96	Functional Programming
+96	ICCPOL
+96	JSAI
+96	MIWAI
+96	PCM (3)
+96	ROBOTIK
+96	SEMCCO (2)
+95	CSCL (2)
+95	ICSEng
+95	IDAACS (2)
+95	MALLOW
+95	Neural Networks and Computational Intelligence
+95	NordSec
+95	SRII Global Conference
+94	Amsterdam Colloquium on Logic, Language and Meaning
+94	BNAIC
+94	DARS
+94	EuroSSC
+94	ICETE
+94	TAPSOFT, Vol.1
+93	ACG
+93	ACITY (2)
+93	CONFENIS (2)
+93	CSCL (1)
+93	CSDM
+93	FSMNLP
+93	ICAIC (1)
+93	ISSE
+93	LP
+92	ASWEC
+92	HSC
+92	ICAIC (2)
+92	ICAIC (4)
+92	IPOM
+92	LTC
+92	MALWARE
+91	ANNES
+91	BICS
+91	CILC
+91	Computational Imaging
+91	Computational Logic
+91	FAABS
+91	IITA
+91	IMSCCS
+91	PuK
+90	3DOR
+90	AICT/SAPIR/ELETE
+90	Algorithm Engineering
+90	CONFENIS (1)
+90	EMV
+90	High Performance Graphics
+90	IWLCS
+90	MMS
+90	Monterey Workshop
+89	BIOSIGNALS (2)
+89	Category Theory and Computer Science
+89	DSS
+89	FoSER
+89	ISSNIP
+89	Net-Con
+89	NLPKE
+89	PROMAS
+89	ZEUS
+88	AMFG
+88	ePart
+88	EUROSAM
+88	ICIMTH
+88	ICWMC
+87	Audio Mostly Conference
+87	Digital Identity Management
+87	ELP
+87	ESC
+87	ICAPR (2)
+87	INDC
+87	Numerical Methods and Applications
+87	TeNe
+87	TES
+87	WEB
+86	APAQS
+86	BIR
+86	CIBB
+86	ICAIC (3)
+86	LA-NMR
+86	MLDM Posters
+86	RSEISP
+86	SBMF
+85	BIRD
+85	IAS (2)
+85	ICSI
+85	LoCA
+85	Med-Hoc-Net
+85	Protocols for High-Speed Networks
+85	WS-FM
+84	ARSO
+84	BLISS
+84	Communications and Computer Networks
+84	Geometric Modelling
+84	ICHI
+84	LSMS (1)
+84	MAICS
+84	NL-MUA
+84	PARLE (1)
+84	RP
+84	S-BPM ONE
+84	WSKS
+83	EUNIS
+83	High Performance Computing Workshop
+83	IAS (1)
+83	IWAENC
+83	LSMS/ICSEE
+83	Visual Information Processing
+83	WOB
+82	AICI (3)
+82	ANZIIS
+82	CLEAR
+82	ECKM
+82	GTIT-C
+82	IMF
+82	MIKE
+82	MSV/AMCS
+82	Supercomputer
+82	UCS
+82	User Interfaces for All
+81	ACITY (1)
+81	Autonomics
+81	Broadband Islands
+81	CS&P
+81	DaEng
+81	DBISP2P
+81	DISCEX (2)
+81	IWSC
+81	MACOM
+81	PROMISE
+81	World Conference on Information Security Education
+80	CSCLP
+80	CSS
+80	Electronic Voting
+80	ICPCA/SWS
+80	Media Forensics and Security
+80	PARLE (2)
+80	SASP
+80	UKCI
+79	AMAI
+79	BroadCom
+79	CLOUDNET
+79	HPCNCS
+79	ISUC
+79	NetCoM
+79	Richard Tapia Celebration of Diversity in Computing Conference
+79	SINOBIOMETRICS
+79	SwSTE
+79	TbiLLC
+79	XSym
+78	AccessNets
+78	Computer Performance Evaluation / TOOLS
+78	DFN-Forum Kommunikationstechnologien
+78	DiSS
+78	ETX
+78	Eurobot Conference
+78	Future Security
+78	ISAS
+78	ISCOPE
+78	OODBS
+78	OpNeTec
+78	Reasoning Web
+78	SAGA
+78	SBES
+78	SVR
+78	TIDSE
+77	CICA
+77	I3E (1)
+77	ISW
+77	RSFDGrC (2)
+76	ECI
+76	eTELEMED
+76	FGIT-ASEA/DRBC/EL
+76	ICSS
+76	IOT
+76	SMARTGREENS
+75	Automata
+75	CSE (3)
+75	FGIT-FGCN
+75	FinTAL
+75	KSE
+75	NCMA
+75	P2P
+75	PFE
+75	PrimeLife
+75	RSFDGrC (1)
+75	SELMAS
+75	SLTU
+75	Three-Dimensional Image Capture and Applications
+75	WRAC
+74	DAISD
+74	Echtzeit
+74	ICAPR (1)
+74	ICIST
+74	SOCO-CISIS-ICEUTE
+74	TQC
+74	VBC
+73	AFSS
+73	AT
+73	Culture and Computing
+73	EuroNGI Workshop
+73	FGIT-GDC
+73	ISSADS
+73	IWLS
+73	IWVF
+73	XSEDE
+72	ESSDERC
+72	I3E (2)
+72	ICDF2C
+72	LPE
+72	MMB/DFT
+72	Mobile Agents
+71	CSMR-WCRE
+71	EHCI
+71	FPS
+71	ICMMI
+71	MEMICS
+71	Rule Languages for Interoperability
+71	SWS
+71	TPCTC
+71	VLBV
+71	WNAA
+70	CogART
+70	COMPENG
+70	CSREA EE
+70	Enterprise Information Systems and Web Technologies
+70	EST
+70	FGIT-UNESST
+70	ICCASA
+70	INTRUST
+70	ISBAST
+70	IUCS
+70	JCDKB
+70	JIDBD
+70	Kyoto International Conference on Digital Libraries
+70	LARC
+70	LDAV
+70	MFDBS
+70	PDSE
+70	TAGT
+70	WFLP
+69	A2CWiC
+69	ACITY (3)
+69	ADMI
+69	DIAL
+69	DSL
+69	European Across Grids Conference
+69	GameSec
+69	Informatics and Psychology Workshop
+69	ITCH
+69	Metainformatics
+69	RobVis
+69	SENSORNETS
+69	TMRA
+69	VIS
+68	BigData Congress
+68	BioADIT
+68	CCIW
+68	CIDU
+68	EUSAI
+68	IFIP CAI
+68	STIDS
+68	STM
+68	ULPAA
+68	VRML
+68	Woman, Work and Computerization
+67	C&T
+67	DRCN
+67	EWHCI
+67	IADT
+67	ICCMS
+67	ICEIS (3-2)
+67	ICETC
+67	KMGov
+67	Open Distributed Processing
+67	Probabilistic Graphical Models
+67	SGDA
+67	STEP
+67	Virtual Worlds
+67	WAPCV
+66	CALISCE
+66	COST 237 Workshop
+66	DMSN
+66	EWRL
+66	ExaCt
+66	ICCSW
+66	ITAMS
+66	MobiSec
+66	NCCA
+66	Pattern Recognition
+66	QL
+66	UCMedia
+66	WWCA
+65	Computer Performance and Reliability
+65	CSE (1)
+65	DICTAP (1)
+65	GAMENETS
+65	GTTSE
+65	SouthCHI
+65	TLDI
+65	VRCIA
+64	ATACCS
+64	CAL
+64	CANPC
+64	CCL
+64	CHItaly
+64	DEIS
+64	Digital Photography
+64	FGIT-FGCN (1)
+64	Globe
+64	IAIT
+64	ICLS (2)
+64	IPTC
+64	IWEC
+64	IWEI
+64	MCO
+64	NET-COOP
+64	Numerical Methods and Application
+64	RIDE-IMS
+64	Summer School on Neural Networks
+63	AsiaSim (1)
+63	BCI (Local)
+63	CNSA
+63	DBKDA
+63	ECP
+63	ESAS
+63	FICTA
+63	GAMEON
+63	GeoS
+63	HPEC
+63	ICEIS (3-1)
+63	ICETE (3)
+63	IPCAI
+63	ITBAM
+63	IWFM
+63	LSMS (2)
+63	Modelling the Innovation
+63	PIT
+63	PPCP
+63	SPC
+63	SYBEN
+62	AWCC
+62	Business Process Re-Engineering
+62	DICTAP (2)
+62	DMDW
+62	EHCI/DS-VIS
+62	ETT
+62	Graphics Hardware
+62	Great Lakes Computer Science Conference
+62	ICSECS (2)
+62	IPCC (2)
+62	Kurt Gödel Colloquium
+62	mLearn
+62	ReTIS
+62	Workshop on Parallel and Distributed Debugging
+61	ACAL
+61	ACST
+61	AFL
+61	DIALM-POMC
+61	EWSA
+61	Expert Database Conf.
+61	FGIT-SecTech
+61	ICSECS (3)
+61	IW-MMDBMS
+61	KDID
+61	Multimedia Technology and Applications
+61	SustainIT
+61	WISM (3)
+60	Advances in Computer Graphics Hardware
+60	CyberSec
+60	DANTE
+60	EG-ICE
+60	ICEIS (Selected Papers)
+60	INTERWORKING
+60	ITIB
+60	Learning to Live in the Knowledge Society
+60	Modelling, Simulation, and Optimization
+60	NMA
+60	ONTOBRAS-MOST
+60	PPSWR
+60	Rules in Database Systems
+60	SeGAH
+60	SETP
+60	Software Quality and Productivity
+60	VRIC
+60	Wireless Information Systems
+59	Advances in Computer Graphics
+59	AFRICOMM
+59	AIR
+59	AMLTA
+59	CACSD
+59	DSDE
+59	East/West Database Workshop
+59	EWIMT
+59	Green Computing Conference
+59	Heinz Nixdorf Symposium
+59	HERCMA
+59	ICIRA (3)
+59	ICSECS (1)
+59	IISA
+59	KICSS
+59	MCAM
+59	MIPS
+59	SASN
+59	SERENE
+59	SPPRA
+59	Woman into Computing
+58	APDC
+58	EGOV (Workshops and Posters)
+58	HCIS
+58	HPAGC
+58	ICLA
+58	IMYCS
+58	INAP/WLP
+58	IRAL
+58	Linguistic Annotation Workshop
+58	S-CUBE
+58	SEM
+58	VVS
+57	AMiRE
+57	Education for the 21st Century
+57	FACS
+57	IWPACBB
+57	IWRT
+57	NanoNet
+57	PROCOMET
+57	ProMAS
+57	TAIC PART
+56	3D-GIS
+56	3DV
+56	AOSD (Companion)
+56	CoLIS
+56	CVBIA
+56	Data Warehousing
+56	DMO
+56	HAISA
+56	HEALTHINF (1)
+56	IC3 (1)
+56	ICHIM (2)
+56	Interaction between Compilers and Computer Architectures
+56	IPTComm
+56	ITAT
+56	LSMS/ICSEE (2)
+56	VARE
+56	VCBM
+56	WISM (1)
+56	WISM (2)
+56	Workshop on Wireless Security
+56	WSTFEUS
+55	CISIS/ICEUTE/SOCO Special Sessions
+55	EGOVIS
+55	GandALF
+55	GULP-PRODE
+55	Informatik cui bono?
+55	Innovationen im E-Business
+55	LSMS/ICSEE (1)
+55	Nets4Cars/Nets4Trains
+55	RFIDSec
+55	RSKD
+55	SMAP
+54	ACM Pacific
+54	AIWoRC
+54	ASA/MA
+54	BIODEVICES (2)
+54	BioVis
+54	BUIS-Tage
+54	e-Forensics
+54	EOOLT
+54	ICTA
+54	International Working Conference on Model Realism
+54	LCR
+54	Modeling in Computer Graphics
+54	NLUCS
+54	OSC
+54	PLPV
+54	ROBOCOMM
+54	ROBOT (1)
+54	UTP
+54	VOTE-ID
+54	WEIT
+54	Workshop on the Management of Replicated Data
+53	ACM DEV (3)
+53	BIOID
+53	Brain and Health Informatics
+53	CHIMIT
+53	Future Play
+53	IDCS
+53	ISICA (1)
+53	KMO
+53	LAPTEC
+53	MCM
+53	MobIS
+53	Modelle im E-Business
+53	NESEA
+53	Sanskrit Computational Linguistics
+53	SEAFOOD
+53	SemWiki
+53	Terminology and Knowledge Engineering
+53	VCHCI
+52	BIODEVICES (1)
+52	FGIT-DTA/BSBT
+52	Interval Mathematics
+52	IWICPAS
+52	POST
+52	POSTA
+52	ROBOT (2)
+52	SafeConfig
+52	SBSC
+52	SYRCoDIS
+51	Algebraic Coding
+51	B
+51	Belief Functions
+51	Communication Systems and Networks
+51	E-Business and Virtual Enterprises
+51	EFIS
+51	EUROS
+51	HC
+51	IAW
+51	IIiX
+51	PACS
+51	RGU
+51	TDIT
+50	AIMDM
+50	AIS-ADM
+50	AsiaSim (2)
+50	BIRTE
+50	Component Deployment
+50	HiCoNS
+50	IF&GIS
+50	ISOTAS
+50	IWIA
+50	Mobile Communications
+50	WAC
+50	Workshop Mobile Commerce
+49	ACAI
+49	ACM DEV
+49	AFPAC
+49	AIRWeb
+49	AsiaSim (3)
+49	AXMEDIS
+49	BIOSIGNALS (1)
+49	CompLife
+49	EDMCC
+49	FIDJI
+49	FOSAD
+49	ICDEM
+49	ICWCA
+49	IHC+CLIHC
+49	ISBMS
+49	Leipziger Informatik-Tage
+49	WORDS Fall
+49	Workshop on New Paradigms in Information Visualization and Manipulation
+48	AMIF
+48	Curves and Surfaces
+48	DCW
+48	DDI
+48	DFMA
+48	ECCBR Workshops
+48	Electronic Imaging
+48	FGIT-MulGraB (2)
+48	HCCE
+48	ICSSI
+48	IMTIC
+48	ISDB
+48	LSO
+48	SAMT (Posters and Demos)
+48	SPECOM
+48	Symposium on Haptic Interfaces for Virtual Environment and Teleoperator Systems
+48	Theory and Formal Methods
+47	Active Middleware Services
+47	Advanced Functional Programming
+47	Australian Computer, Network & Information Forensics Conference
+47	CENTERIS (2)
+47	Engineering of Reconfigurable Systems and Algorithms
+47	EuroHCIR
+47	FGIT-CA/CES3
+47	FGIT-SIP
+47	FOAL
+47	GoTAL
+47	HCSE
+47	IEEE NAS
+47	Information Theory and Applications
+47	ISCN
+47	ISWSA
+47	IuK
+47	JAC
+47	KBCS
+47	LISS (2)
+47	PCRCW
+47	Reflection
+47	ScanGIS
+47	SocialInformatics
+47	Virtual Reality, Archeology, and Cultural Heritage
+47	WOMPAT
+46	ACM SIGBDP Conference on Trends and Directions in Expert Systems
+46	AWOC
+46	BIC-TA (1)
+46	CENTERIS (1)
+46	DIAL-M
+46	eKNOW
+46	EMCR
+46	ESCAPE
+46	FGIT-MulGraB (1)
+46	Future Databases
+46	GMM EMV
+46	Graph Structure Theory
+46	HEALTHINF (2)
+46	Informatik im Umweltschutz
+46	IUKM
+46	KIFS
+46	New Directions in Question Answering
+46	Parallel Tools Workshop
+46	SNS
+46	WMASH
+45	Advanced Network Enterprises
+45	AutoID
+45	BIC-TA (2)
+45	BPSC
+45	CoBuild
+45	COST 2101/2102 Conference
+45	DCNET/OPTICS
+45	E4MAS
+45	FHIES
+45	GCSE
+45	IceTAL
+45	ICISO
+45	IWSSD
+45	IWUC
+45	KR-MED
+45	LESS
+45	MCETECH
+45	PARA (2)
+45	PerMIn
+45	SPBG
+45	SWQD
+45	Text Understanding in LILOG
+45	Workshop on Human Motion
+45	WWV
+44	Active Media Technology
+44	CIASG
+44	DDB
+44	DL
+44	ECEH
+44	ECIW
+44	EDCIS
+44	ESOCC
+44	EuroPACS
+44	FICS
+44	FMN
+44	GMAI
+44	ICETE (2)
+44	ICHIM (1)
+44	Informatik in der DDR
+44	Key Competencies in the Knowledge Society
+44	MIMI
+44	NLPCS
+44	Physik und Informatik
+44	RTDB
+44	WOCFAI
+44	WOSS
+43	AB
+43	ADNTIIC
+43	Analysis and Optimization of Differential Systems
+43	Cognitive Technology
+43	Computer Performance Evaluation
+43	EGOVIS/EDEM
+43	EP
+43	ESEC/SIGSOFT FSE (Companion)
+43	GridNets
+43	ICETE (1)
+43	IRFC
+43	ISD (2)
+43	Object Representation in Computer Vision
+43	Organisation informationstechnik-gestützter öffentlicher Verwaltung
+43	QCQC
+43	RISE
+43	SLATE
+43	StorageSS
+43	WSS
+42	AACC
+42	ALPUK
+42	CAAN
+42	CCP
+42	CDB
+42	CHDL
+42	CLADE
+42	DAI
+42	Digital Libraries
+42	EsTAL
+42	GULP
+42	ICEIMT
+42	IMACS World Congress
+42	ISD (1)
+42	OKCon
+42	PerDis
+42	SIMBAD
+42	WIRN/NAIS
+42	Workshop on Computational Geometry
+42	WORM
+41	Computer Supported Acitivity Coordination
+41	CSA
+41	DDSS
+41	DTIS
+41	Electronic Technology Directions
+41	eTRAIN
+41	GeNeMe
+41	GI-Fachtagung über Rechenzentren
+41	ICFI
+41	ICWIT
+41	John Vincent Atanasoff Symposium
+41	Microcomputing
+41	MMCP
+41	NEW PROLAMAT
+41	NOTERE
+41	PLAN-X
+41	Scottish Functional Programming Workshop
+41	SEE
+41	Terminology and Knowledge Engineering (Vol. 1)
+41	TTC
+41	UK Hypertext
+41	WDAS
+40	BIOSTEC (Selected Papers)
+40	BPMN
+40	COST 2102 Conference
+40	Datalog
+40	e-Democracy
+40	Emergent Neural Computational Architectures Based on Neuroscience
+40	Ethics in Computer Age
+40	Expert Database Workshop
+40	FIS
+40	Fractals in the Natural and Applied Sciences
+40	IS/KI
+40	Java Virtual Machine Research and Technology Symposium
+40	Kommunikation in Verteilten Systemen (1)
+40	LaTiCE
+40	On Knowledge Base Management Systems (Islamorada)
+40	PDC (2)
+40	QAPL
+40	Rechner- und sensorgestützte Chirurgie
+40	Robotics and Applications
+40	UYMS
+39	ANNIIP
+39	AsiaJCIS
+39	CNL
+39	Computing Methods in Applied Sciences and Engineering
+39	Control of Distributed Parameter and Stochastic Systems
+39	COST 2102 Conference (Prague)
+39	DAARC
+39	DPDS
+39	EIG
+39	Humans and Computers
+39	InfoSecCD
+39	IVIC (2)
+39	KSE (2)
+39	LISS (1)
+39	Natural Language Processing
+39	Natural Language Understanding and Logic Programming Workshop
+39	NetGCoop
+39	PDK
+39	SSCC
+39	Terminology and Knowledge Engineering (Vol. 2)
+39	WDFIA
+39	WOCCI
+38	AMMA
+38	CEFP
+38	CHI-KDD
+38	ECSQ
+38	EPK
+38	EWSDN
+38	Future Directions in Distributed Computing
+38	GULP-PRODE (2)
+38	HART
+38	ICE
+38	ICOD
+38	Integrated Broadband Communications
+38	ITEM
+38	KnowRight
+38	MCSS
+38	Menschengerechte Software als Wettbewerbsfaktor
+38	MLSLP
+38	Online-Systeme im Finanz- und Rechnungswesen
+38	RIDE-TQP
+38	SCIS
+38	SeCO Workshop
+38	VISION
+38	WebDB (Informal Proceedings)
+37	ACL2
+37	AISM
+37	Automatentheorie und Formale Sprachen
+37	BCS Int. Acad. Conf.
+37	COOP
+37	DANCE
+37	DCM
+37	Diffusion, Transfer and Implementation of Information Technology
+37	EGOV/ePart Ongoing Research
+37	EUROCODE
+37	FGIT-SIP/MulGraB
+37	Fun and Games
+37	ICGS3/e-Democracy
+37	IIMSS
+37	IWNAS
+37	IWSAS
+37	LocWeb
+37	QuantumComm
+37	SLS
+37	SMILE
+37	TPNC
+37	WIRI
+36	AC
+36	Ant Algorithms
+36	Applications in Parallel and Distributed Computing
+36	BDIM
+36	BIOWIRE
+36	Broadband Networking Technologies
+36	Communication Systems and Applications
+36	Communication, Network, and Information Security
+36	Critical Computing
+36	ETRICS
+36	EVALITA
+36	ICOODB
+36	Informatik und Ausbildung
+36	IS4TH
+36	IWACA
+36	IWCF
+36	LATINCRYPT
+36	LDTA
+36	MARC Symposium
+36	MMEDIA
+36	MOMPES
+36	PorTAL
+36	SECURIT
+36	TEAA
+36	Web Technologies, Applications, and Services
+35	Adaptive Agents and Multi-Agents Systems
+35	ADS
+35	Advances in Computational Intelligence and Learning
+35	CIIC
+35	Computer Performance Evaluation (Tools)
+35	E-Business: Multidisciplinary Research and Practice
+35	EUROCAM
+35	EUROSEC
+35	FAA
+35	Fault-Tolerant Computing Systems
+35	FOMI
+35	Frauenwelt - Computerräme
+35	ICCG
+35	IVIC (1)
+35	KI/ÖGAI
+35	KiVS Kurzbeiträge und Workshop
+35	KSE (1)
+35	MOL
+35	Open IT-Based Innovation
+35	PLC
+35	Quality Education @ a Distance
+35	Recent Issues in Pattern Analysis and Recognition
+35	Rechnerunterstütztes Entwerfen und Konstruieren (CAD)
+35	Sagamore Computer Conference
+35	Software Management
+35	SPDECE
+35	TPCD
+35	XIME-P
+34	50 Years of Artificial Intelligence
+34	ABiALS
+34	Advances in Petri Nets
+34	AP2PS
+34	BSDCon
+34	COST 2102 School (Vietri)
+34	E2EMON
+34	FGIT-SecTech/DRBC
+34	Global Scourcing Workshop
+34	IDMAN
+34	IDMS/PROMS
+34	LADS
+34	MineNet
+34	OOIS Workshops
+34	SOAS
+34	TAMoCo
+34	WEWoRC
+34	XPS
+33	ADB
+33	Advanced Topics in Artificial Intelligence
+33	CODATA
+33	Conference on Information Security Management & Small Systems Security
+33	CVHI
+33	DELOS Conference
+33	DRW
+33	ESSA
+33	Forum Wissenschaft und Technik
+33	IBERAMIA-SBIA 2000 Open Discussion Track
+33	ICHIM, Hands on: Hypermedia and Interactivity in Museums
+33	ICTL
+33	IEEE Symposium on Parallel and Large-Data Visualization and Graphics
+33	Joint International Conference on Cognitive and Systematic Musicology
+33	Konzeption und Einsatz von Umweltinformationssystemen
+33	LATW
+33	MTPP
+33	NETYS
+33	NPH
+33	ORE
+33	Peer-to-Peer Systems and Applications
+33	Program Construction
+33	Quality of Numerical Software
+33	SOCASE
+33	STeP
+33	WAPA
+33	WCC
+33	WES
+33	WISI
+33	WLPE
+32	ACiD
+32	Algebraic Methods
+32	Analyse dynamischer Systeme in Medizin, Biologie und Ökologie
+32	Automata Theory and Formal Languages
+32	BMAS
+32	CAD-Fachgespräch
+32	CloudComp
+32	CVM
+32	DiSS-LPSS
+32	DS-3
+32	EuropeComm
+32	EVOL/IWPSE
+32	Expertensysteme
+32	FGIT-ASEA
+32	ICQNM
+32	IDtrust
+32	International Hong Kong Computer Society Database Workshop
+32	ISMS
+32	IWAR
+32	JapTAL
+32	JFLA
+32	Knowledge Intensive CAD
+32	LKR
+32	MACE
+32	MCDM
+32	MESOCA
+32	Mobile Response
+32	MODULARITY
+32	Neue Informationstechnologien und Verwaltung
+32	PARA (1)
+32	PBFT
+32	PLACES
+32	Realigning Research and Practice in Information Systems Development
+32	Reliability and Optimization of Structural Systems
+32	RuleML (2)
+32	Soft-Ware
+32	SoftSpez Final Report
+32	SoRuCom
+32	SVM
+32	VVG
+32	WIMPEL
+32	Workshop on Database Issues for Data Visualization
+32	WS-REST
+31	AMCP
+31	ARTDB
+31	Automatic Verification Methods for Finite State Systems
+31	BIOTECHNO
+31	C++ Workshop
+31	CISMOD
+31	Computer Applications in the Automation of Shipyard Operation and Ship Design
+31	CoreGRID Workshop - Making Grids Work
+31	COSADE
+31	Data Base Techniques for Pictorial Applications
+31	EVOLVE
+31	GSN
+31	HCITOCH
+31	ICGS3
+31	IMACS European Simulation Meeting
+31	Information Management in Computer Integrated Manufacturing
+31	IPCAT
+31	ISICA (2)
+31	IWBRS
+31	LA-WEB/CLIHC
+31	Local Area Network Applications
+31	NDT
+31	NSW
+31	PLILP/ALP
+31	PoEM (Short Papers)
+31	PRET
+31	RuleML Europe
+31	SBGames
+31	SHAPES
+31	Software Engineering for Parallel and Distributed Systems
+31	Symposium on Computation Theory
+31	UIDIS
+31	USM
+31	UXTV
+31	Virtuality and Virtualization
+31	VolVis
+31	WCCI
+31	WiPSCE
+31	WORDS (Jan.)
+31	Öffentliche Verwaltung und Informationstechnik
+30	ACM DEV (4)
+30	Advanced Course: Distributed Systems
+30	Arbeit und Informationstechnik
+30	Artificial Intelligence in Higher Education
+30	ASCM
+30	CJCDGCGT
+30	CMN
+30	COCOS
+30	CVMP
+30	Decentralized and Distributed Systems
+30	DELOS Workshop: Information Seeking, Searching and Querying in Digital Libraries
+30	Designing Augmented Reality Environments
+30	DIR
+30	FIRE
+30	FTVI/FTRI
+30	Governance and Sustainability in Information Systems
+30	GULP-PRODE (1)
+30	HOA
+30	IATA
+30	ICFPC
+30	ICHIM, Multimedia Computing and Museums
+30	ICUCT
+30	II3E
+30	Information Retrieval
+30	Information Technology in Educational Management
+30	IOPADS
+30	LISP Conference
+30	MHVR
+30	MoChArt
+30	Nonmonotonic and Inductive Logic
+30	Parallelism, Learning, Evolution
+30	Property Testing
+30	RuleML America
+30	SIAM Conf. on Control and its Applications
+30	Specification and Verification of Concurrent Systems
+30	Systems, Control, Modeling and Optimization
+30	TAFA
+30	TAMODIA/HCSE
+30	Telecommunication Economics
+30	TICTTL
+30	VLSM
+30	WebMedia/LA-WEB
+29	A-MOST
+29	Aegean Workshop on Computing
+29	AGS
+29	Algorithms in Modern Mathematics and Computer Science
+29	AMKM
+29	CAC
+29	Category Theory Applied to Computation and Control
+29	CETS
+29	CIES
+29	Complex
+29	CTCS
+29	CVE
+29	DEECS
+29	DIPES/BICC
+29	ESOCC Workshops
+29	Formal Methods in Programming and Their Applications
+29	I-USED
+29	IberSPEECH
+29	IEEE Security in Storage Workshop
+29	Information Systems Perspectives and Challenges in the Context of Globalization
+29	INTELLCOMM
+29	IWDOM
+29	IWIC
+29	IWMM/GIAE
+29	KESE
+29	Koordination von Informationen
+29	Logic and Machines
+29	MeCBIC
+29	MIT-JSME Workshop
+29	NORMAS
+29	PAPM-PROBMIV
+29	RED
+29	SAPIR
+29	Towards World Class Manufacturing
+29	Universal Access in Ambient Intelligence Environments
+29	WImBI
+29	WMC-CdeA
+28	AISA
+28	Arbeitsplätze morgen
+28	CASDMKM
+28	CompIMAGE
+28	CSEIA
+28	CyberSecurity
+28	DigCurV
+28	DIWeb
+28	EON
+28	EuroISI
+28	Exploring a New Partnership: Children, Teachers and Technology
+28	FGIT-GDC/CA
+28	FIMI
+28	FoVeOOS
+28	FTSCS
+28	Föderierte Datenbanken
+28	HotSWUp
+28	IEEE ANTS
+28	IHC (Companion)
+28	Interaction Challenges for Intelligent Assistants
+28	IPSEN Book
+28	KiVS Kurzbeiträge
+28	KNOWHSEM
+28	MLG
+28	NOSTRADAMUS
+28	Self-star Properties in Complex Information Systems
+28	SIGPLAN Workshop
+28	SNA
+28	SOQUA
+28	Symposium on LISP and Functional Programming
+28	TCGOV
+28	Workshop on Web Information and Data Management
+28	WRLA
+27	Advances in Data Base Theory
+27	Architectures and Compilation Techniques for Fine and Medium Grain Parallelism
+27	Automation, Control, and Information Technology
+27	CBDAR
+27	COST 2102 Workshop (Vietri)
+27	Cryptography: Policy and Algorithms
+27	Data Mining and Knowledge Discovery: Theory, Tools, and Technology
+27	Databases in Telecommunications
+27	DISCEX (1)
+27	DSDM
+27	Entwurf großer Software-Systeme
+27	ESSLLI Student Sessions
+27	Eurographics (Short Papers)
+27	Global and Organizational Discourse about Information Technology
+27	GreeNets
+27	Herausforderungen an die Wissensorganisation (ISKO Tagung)
+27	Hybrid Neural Systems
+27	International Zurich Seminar on Digital Communications
+27	InterSense
+27	ISWS
+27	IW-SAPF
+27	IWSOS/EuroNGI
+27	LANC
+27	Microelectronics Reliability
+27	PROSPECTRA Book
+27	PSL
+27	S-BPM ONE (Scientific Research)
+27	SAIG
+27	Situational Method Engineering
+27	Social Inclusion
+27	TFM
+27	The Analysis of Concurrent Systems
+27	UPP
+27	VLUDS
+27	Workshop on Information Integration on the Web
+26	10th Anniversary Colloquium of UNU/IIST
+26	AFRICOM
+26	AIM Conference
+26	Applications of Invariance in Computer Vision
+26	AWPN
+26	BCEC
+26	BSDIA
+26	Cooperative Knowledge Processing for Engineering Design
+26	CoreGRID
+26	Data Communications and their Performance
+26	DRMTICS
+26	DS-6
+26	Expert Systems in Engineering
+26	FORMATS/FTRTFT
+26	Global Computing
+26	ICARA (selected extended papers)
+26	ICEIS Doctoral Consortium
+26	ICQT
+26	IEEE/Nagoya-University World Wisepersons Workshop
+26	iNetSeC
+26	ISARCS
+26	ISCNZ
+26	ISDOC
+26	IWHD
+26	LISS (3)
+26	MMDB
+26	Mobile Robots
+26	MOZ
+26	Networking in Open Systems
+26	PRIMIUM
+26	Proc. 15èmes Journées Bases de Données Avancées, BDA
+26	REALWSN
+26	SDKB
+26	SLSP
+26	Software-Fehlertoleranz und -Zuverlässigkeit
+26	Swarm Robotics
+26	TAINN
+26	Workshop on Digital and Computational Video
+25	BioSurveillance
+25	ChileCHI
+25	CLAAP
+25	CMMR/ICAD
+25	COMPOS
+25	Conference on Data: Abstraction, Definition and Structure
+25	Decision Support Systems: Experiences and Expectations
+25	DFN Arbeitstagung über Kommunikationsnetze
+25	DUX
+25	EE-LSDS
+25	EXPRESS
+25	FORMS/FORMAT
+25	Foundations of Knowledge Base Management (Xania)
+25	Hardware and Software Architectures for Fault Tolerance
+25	Human, Organizational, and Social Dimensions of Information Systems Development
+25	ICSNW
+25	ICT-GLOW
+25	IMTCI
+25	INTEROP
+25	ISOOMS
+25	IWWERT
+25	KESW
+25	L Systems
+25	Language Engineering Conference
+25	LCC
+25	MLCW
+25	MMAS
+25	MMNET
+25	MOBIS
+25	MobiWIS
+25	PIA
+25	SCIE
+25	SIMPDA
+25	STAST
+25	Systems Implementation 2000
+25	VIETCRYPT
+25	WiVeC
+25	Workshop on Universal Accessibility of Ubiquitous Computing
+25	WSPI
+24	25th Anniversary of INRIA
+24	AgentLink
+24	All About Maude
+24	Autonomic Networking
+24	CCMB
+24	Compiler Construction
+24	CSWS
+24	DM-CCG
+24	DS-4
+24	DS-8
+24	EAI
+24	ECLAP
+24	EEWC
+24	ELeGI Conference
+24	Embodied Artificial Intelligence
+24	EPEW/WS-FM
+24	Festschrift for Dave Schmidt
+24	FMSP
+24	FroCos
+24	GREENS
+24	ICAA
+24	ICPIA
+24	ICST E-Energy
+24	IHN
+24	International Sympoisum on Theoretical Programming
+24	KyotoCGGT
+24	Logic in Databases
+24	Machine Intelligence 15
+24	MUD
+24	Multi-Agent-Systems and Applications
+24	NETWORKS
+24	Performance of Distributed Systems and Integrated Communication Networks
+24	Process in Distributed Operating Systems and Distributed Systems Management
+24	Rechnergestützter Entwurf und Architektur mikroelektronischer Systeme
+24	RISSEF
+24	SAISMC
+24	TAPAS
+24	The Adaptive Web
+24	The Transfer and Diffusion of Information Technology for Organizational Resilience
+24	Towards Trustworthy Elections
+24	WACC
+24	WAGA
+24	WCITD/NF
+24	WCLP
+24	XML Security
+24	XP2 Workshop on Relational Database Theory
+23	AMBI-SYS
+23	Attribute Grammars, Applications and Systems
+23	Bonn Workshop of Combinatorial Optimization
+23	Categorial Methods in Computer Science
+23	COSN
+23	CVDB
+23	DAPSYS
+23	Data Communication Networks and their Performance
+23	Datenverarbeitung im Marketing
+23	DEEC
+23	DESIRE
+23	DMTCS
+23	EURASIP Workshop
+23	FLAI
+23	GFHEU
+23	GOSLER Final Report
+23	Graph Reduction
+23	Graph-based Methods for Natural Language Processing
+23	IC3 (2)
+23	INEX Workshop
+23	INFINITY
+23	InfraSec
+23	IQIS
+23	ISSS/BPSC
+23	Lectures on Concurrency and Petri Nets
+23	LFMTP
+23	Methods and Tools for Computer Integrated Manufacturing
+23	Mobile Computing in Medicine
+23	MSA
+23	Nanotechnology: Science and Computation
+23	ONTOBRAS
+23	Parallel Algorithms and Architectures
+23	Portability of Numerical Software
+23	PRISMA Workshop
+23	Programmierumgebungen und Compiler
+23	QoSA/ISARCS
+23	Rechnernetze und Datenfernverarbeitung
+23	SPACE
+23	Timing Issues in the Specification and Synthesis of Digital Systems
+23	Towards the Learning Grid
+23	Types in Compilation
+23	VIEW
+23	Visualisierungstechniken und Algorithmen
+23	VLDS
+23	WACG
+23	WITASI
+23	XP7.52 Workshop on Database Theory
+22	Art-QoS
+22	Biomimetic Neural Learning for Intelligent Robots
+22	Canada-France Conference on Parallel and Distributed Computing
+22	CASA
+22	CGGA
+22	CNKBS
+22	Cognitive Ergonomics
+22	CQRE
+22	CSLP
+22	Design and Implementation of Programming Languages
+22	DS-2
+22	DSSCV
+22	EDO
+22	Experimental Computer Science
+22	Fault-Tolerant Distributed Computing
+22	Formal Development of Reactive Systems
+22	Geometrisches Modellieren
+22	GSEM
+22	HILT
+22	IJCCGGT
+22	Issues in Agent Communication
+22	IWSDS
+22	KORSO Book
+22	Lambda-Calculus and Computer Science Theory
+22	Logic at Botik
+22	Logic Programming Summer School
+22	Methods of Algorithmic Language Implementation
+22	MIDI
+22	MMB (Kurzvorträge)
+22	Mycrypt
+22	NDDL
+22	Offene Multifunktionale Büroarbeitsplätze und Bildschirmtext
+22	Operating Systems Engineering
+22	Optimal Algorithms
+22	ORM
+22	Reasoning with Uncertainty in Robotics
+22	SBLP
+22	SESENA
+22	SIGLEX Workshop
+22	Speaker Classification (2)
+22	Universal Access in Health Telematics
+22	Wide Area Networks and High Performance Computing
+22	Workshop on Agent Communication Languages
+21	Advances in Distributed Systems
+21	Applications of Uncertainty Formalisms
+21	ASWSD
+21	CAPTECH
+21	CASSIS
+21	Compiler Optimizations for Scalable Parallel Systems Languages
+21	Conference on Computer Logic
+21	COST 2102 Workshop (Patras)
+21	COST TD0904 International Workshop
+21	DCE Workshop
+21	DEFORM/AVATARS
+21	E-smart
+21	EWDC
+21	EWLR
+21	FGCN (3: BSBT)
+21	FGIT-DTA
+21	FOCLASA
+21	FOMC
+21	Formal Design Methods for CAD
+21	GameDays
+21	I-UxSED
+21	ICPW
+21	InetBib
+21	Informatik und "Dritte Welt"
+21	Interfaces in Industrial Systems for Production Engineering
+21	KONT/KPP
+21	Machine Learning and Its Applications
+21	MBT
+21	ME
+21	MediVis
+21	Mobile Object Systems
+21	Objektorientierte Software- und Hardwarearchitekturen
+21	OPAALS
+21	Organizational Semiotics
+21	Parallel Computer Architectures
+21	Performance Engineering
+21	Petri Net Technology for Communication-Based Systems
+21	PSLS
+21	Researching the Future in Information Systems
+21	RIDE-ADS
+21	RODIN Book
+21	RuleML Challenge
+21	SCC
+21	Security and Control of Information Technology in Society
+21	Textverarbeitung und Informatik
+21	Transforming Organizations with Information Technology
+21	TreDS
+21	Virtual Machine Research and Technology Symposium
+21	VIRTUAL-LAB
+21	WCW
+21	Workshop de Agentes Físicos
+21	WoT
+21	WSMAI
+20	ACM Policy
+20	ADCOG
+20	Advanced Database Systems
+20	AMCS
+20	BCBGC
+20	BICC
+20	BIR Workshops
+20	CreativeSME
+20	DBSocial
+20	Declarative Programming
+20	DELOS Workshop: Digital Library Architectures
+20	DigiBiz
+20	DS-7
+20	DS-9
+20	EASSS
+20	eCrime Researchers Summit
+20	EGES/GISP
+20	Engineering Information Systems in the Internet Context
+20	EuroWeb
+20	EWG-DSS
+20	EWNLG
+20	FAIR
+20	FGIT-BSBT
+20	FIDIS
+20	Geometry and Robotics
+20	GKR
+20	Human Error, Safety and Systems Development
+20	IFIP TC-2 Special Working Conference on Data Base Description
+20	IFIP Working Conference Data Base Management
+20	Informatik in den Biowissenschaften
+20	KELSI
+20	Knowledge and Information Visualization
+20	Managing Information Technology's Organisational Impact
+20	Mathematical Studies of Information Processing
+20	MMB (Kurzbeiträge)
+20	MoCoMed
+20	Multimedia Information Analysis and Retrieval
+20	NLG
+20	NMELP
+20	PERFORM
+20	PMCCN
+20	Programming Languages and System Architectures
+20	QoSA/SOQUA
+20	Real-Time Database Systems
+20	SAB ABiALS
+20	SAVCBS
+20	Semantic Mining in Biomedicine
+20	Semantics in Databases
+20	Semantics of Concurrent Computation
+20	Software-Entwicklung
+20	SSC
+20	SSV
+20	Temporal Databases
+20	TEX, XML, and Digital Typography
+20	TRI-Ada Tutorials
+20	UDM
+20	UDMV
+20	Usability
+20	WELCOM
+20	WIESS
+20	Wissensarten und ihre Darstellung
+20	WORDS (Fall)
+20	Workshop on Parallel Lisp
+20	Workshop Software Reengineering
+19	3DPH
+19	Active Mining
+19	Adaptive Agents and Multi-Agent Systems
+19	Advanced Course: Net Theory and Applications
+19	AGDM
+19	ALGOL 68 Implementation
+19	ASIS SIG/CR Classification Research Workshop
+19	AUTOMATA & JAC
+19	BMI
+19	Constraint Databases
+19	COODBSE
+19	CSSW
+19	Datenschutz und Datensicherung
+19	Deterministic and Statistical Methods in Machine Learning
+19	EEXTT
+19	FinanceCom
+19	FKBI
+19	Hardware Specification, Verification and Synthesis
+19	History of Computing in Education
+19	HSB
+19	ICMCTA
+19	IEEE IA
+19	IFIP Working Conference on Modelling in Data Base Management Systems
+19	Industrialisierung des Software Management
+19	Informatikanwendungen im Umweltbereich
+19	Information Systems: The e-Business Challenge
+19	IntCAD
+19	Intelligent Narrative Technologies
+19	Intelligent Search on XML Data
+19	International Conference on Finite Fields and Applications
+19	ISDF
+19	ISMBS
+19	ITSL
+19	Logic Colloquium
+19	LOMAPS
+19	Modelle für Rechensysteme
+19	MUSCLE
+19	NATO ASI DPD
+19	NetGames
+19	New Information Technologies in Organizational Processes
+19	ODBIS
+19	On Conceptual Modelling (Intervale)
+19	Ontologie und Axiomatik der Wissensbasis von LILOG
+19	Programming Methodology
+19	Promise
+19	Repräsentation und Verarbeitung räumlichen Wissens
+19	RIDE-DOM
+19	Semantics of Data Types
+19	Semantics of Specification Languages
+19	Semantics of Systems of Concurrent Processes
+19	SenseCam
+19	Shape, Contour and Grouping in Computer Vision
+19	SNSC
+19	Speaker Classification (1)
+19	Sprachverarbeitung in Information und Dokumentation
+19	State of the Art in Applied Cryptography
+19	TDM
+19	TERENA Networking Conference
+19	The Art of Artificial Evolution
+19	The MeDoc Approach
+19	WDIA
+19	WIFT
+19	WMPI
+18	Advanced Course: Software Engineering
+18	Algorithmics of Large and Complex Networks
+18	ALP/HOA
+18	Assistive Technology and Artificial Intelligence
+18	Automata on Infinite Words
+18	BioSecure
+18	BlogTalk
+18	BNCOD Workshops
+18	CASFE
+18	CISM - Advances in Database Systems
+18	Constraint-Based Mining and Inductive Databases
+18	Contemporary Knowledge Engineering and Cognition
+18	CPSN
+18	Data Networks with Satellites
+18	DELOS Workshop: Personalisation and Recommender Systems in Digital Libraries
+18	Diffusing Software Products and Process Innovations
+18	DS-1
+18	DS-5
+18	EEMMAS
+18	Electronic Information and Communication in Mathematics
+18	Embedded Processor Design Challenges
+18	EPEW/UKPEW
+18	FASec
+18	FOPARA
+18	Formal Properties of Finite Automata and Applications
+18	GALOP
+18	Graph Theory and Algorithms
+18	Hardware für Software
+18	Herausforderung Telekooperation
+18	ICCNSM
+18	ICMAI
+18	ICWF
+18	Inference Control in Statistical Databases
+18	Information System Development Process
+18	Innovative Informations-Infrastrukturen
+18	Integrated Spatial Databases
+18	IWAP
+18	IWSG
+18	Learning Language in Logic
+18	MADNES
+18	MDIC
+18	MedAlg
+18	miproBIS
+18	MIRO
+18	MOBILWARE Workshops
+18	Objective Software Quality
+18	OBPDC
+18	ODR
+18	PROMS
+18	Reading and Learning
+18	SAG
+18	SPLST
+18	TEAR/PRET
+18	Temporal Logic in Specification
+18	The Impact of Computer Supported Technologies in Information Systems Development
+18	WBL
+18	Workshop Farbbildverarbeitung
+18	Xsym
+17	Advances in Exception Handling Techniques
+17	Artifical Intelligence for Human Computing
+17	Austrographics
+17	Automotive - Safety & Security
+17	BNCOD Posters
+17	Büroautomation
+17	CMMR/FRSM
+17	Collaboration between Human and Artificial Societies
+17	Combinatorial Optimization
+17	Component-Based Software Quality
+17	Computer Architecture
+17	Computer Security and Industrial Cryptography
+17	Conference on Analysis of Neural Network Applications
+17	Context Sensitive Decision Support Systems
+17	Coordination Technology for Collaborative Applications
+17	DDEP/PODDP
+17	EELC
+17	Electronic Voting in Europe
+17	EXPRESS/SOS
+17	Formal Concept Analysis
+17	FPLE
+17	Functional Programming, Concurrency, Simulation and Automated Reasoning
+17	Geometric Modeling
+17	HRPR
+17	IEEE MS
+17	IMMoA
+17	ISIM
+17	ISSSE
+17	IWCM
+17	Language Design and Programming Methodology
+17	Larch
+17	LASER Summer School
+17	Learning Classifier Systems
+17	LSFA
+17	Machine Intelligence 13
+17	Machine Intelligence 14
+17	Machine Learning: From Theory to Applications
+17	MDB/MOMPES
+17	NATO ASI OODBS
+17	Natural Language Understanding and Natural Language Understanding Workshop
+17	New Zealand Computer Science Research Students' Conference
+17	NF²
+17	PARBASE / Architectures
+17	PARBASE / Databases
+17	Pattern Detection and Discovery
+17	Programming Environments for Parallel Computing
+17	Programs as Data Objects
+17	RASTA
+17	Refine
+17	RIDE-NDS
+17	SecPerU
+17	SFCM
+17	SIGSAND
+17	SOFTEKS Workshop on Incompleteness and Uncertainty in Information Systems
+17	Software Agents and Soft Computing
+17	SOQUA/TECOS
+17	TAPD
+17	UK Workshop on Case-Based Reasoning
+17	Virtual Reality: Cognitive Foundations, Technological Issues & Philosophical Implications
+17	WALTD
+17	WebDB (Selected Papers)
+17	WEIHC
+17	WMP
+17	Workshop on Geometric Modeling
+17	ZiF Workshop
+16	Advanced Topics in Exception Handling Techniques
+16	ALaRT
+16	Algebraic Logic and Universal Algebra in Computer Science
+16	Algorithmic Languages and Calculi
+16	CIDE
+16	CitiSens
+16	Computer and Telecommunications Performance Engineering
+16	Computerlinguistik und ihre theoretischen Grundlagen
+16	CoreGRID Workshop on Grid Middleware
+16	CTIC
+16	Das PLAKON-Buch
+16	Database Support for Data Mining Applications
+16	Designing Effective and Usable Multimedia Systems
+16	Easter Conference on Model Theory
+16	eBISS
+16	EmNets
+16	Error Control, Cryptology, and Speech Compression
+16	ETVC
+16	European Educational Forum: School on Embedded Systems
+16	FIRB-Perf
+16	GANDALF
+16	German Workshop on Experience Management
+16	GI-BIFOA
+16	Graphik im Bürobereich
+16	History of Medical Informatics
+16	HWID
+16	IBM Symposium: Data Base Systems
+16	ICSH
+16	ICWUS
+16	ImViReLL
+16	InfoSecHiComNet
+16	Infrastructure for Mobile and Wireless Systems
+16	Intelligent Memory Systems
+16	Intelligente Systeme zur Entscheidungsunterstützung
+16	Interaktion im Web
+16	IWAC
+16	IWAI
+16	IWRIDL
+16	KDOOD/TDOOD
+16	Learning in School, Home and Community
+16	Lessons from Learning
+16	Lifelong Learning in the Digital Age
+16	Logic, Action, and Information
+16	MCPS
+16	Memory System Performance
+16	ModelAge Workshop
+16	Nachhaltiges Software Management
+16	NetSys
+16	New Trends in Constraints
+16	PADO
+16	Pictorial Information Systems
+16	Programming Languages and Their Definition
+16	PSSE
+16	QuaCon
+16	RAPIDO
+16	RIDE-DM
+16	Sequence Learning
+16	Software-Qualitätssicherung
+16	SOS
+16	Temporal Aspects in Information Systems
+16	Testen, Analysieren und Verifizieren von Software
+16	TEX for Scientific Documentation
+16	TMFCS
+16	VDMB
+16	Vom Projekt zum Produkt
+16	VVEIS
+16	Workstations for Experiments
+15	Advanced Course: Local Area Networks
+15	Artificial Neural Networks
+15	Aspekte der Selbstorganisation
+15	Beratung in der Softwareentwicklung
+15	BMSD
+15	CaLC
+15	Constraint Programming
+15	CSDM (Posters)
+15	DELOS Workshop: Digital Library Architectures - LNCS Volume
+15	Digital Earth Moving
+15	DMCS
+15	ESERNET
+15	European Summer School on Multi-AgentControl
+15	Facing the Multicore-Challenge
+15	FaVE
+15	FITraMEn
+15	Formale Modelle für Informationssysteme
+15	Foundations and Applications of Multi-Agent Systems
+15	Future Parallel Computers
+15	Geometric Reasoning for Perception and Action
+15	Graph Partitioning and Graph Clustering
+15	Grundlagen und Anwendungen mobiler Informationstechnologie
+15	HOT-P2P
+15	iNetSec
+15	Knowledge Representation and Organization in Machine Learning
+15	Language Hierarchies and Interfaces
+15	LeGE-WG 3
+15	Logic and Data Bases
+15	LSGRID
+15	Manufacturing in the Era of Concurrent Engineering
+15	MBMV (1)
+15	MDAFA
+15	Menschengerechte Groupware
+15	Method and tools for compiler construction
+15	MMGPS
+15	OMER
+15	Requirements Targeting Software and Systems Engineering
+15	RIMS Symposia on Software Science and Engineering
+15	RuleML America (2)
+15	Shaping the Future of ICT Research
+15	SIGBDP-SIGCPR
+15	Socionics
+15	Symposium on Operating Systems
+15	Term Rewriting
+15	TFAIS
+15	TJJCCGG
+15	Visualization of Large and Unstructured Data Sets
+15	Volviz
+15	Vorgehensmodelle
+15	W(C)LP
+15	Wivace
+15	WOPPLOT
+15	WSMDEIS
+15	XP1 Workshop on Database Theory
+14	25 Years GULP
+14	AIFIPP
+14	Analysis and Visualization Tools for Constraint Programming
+14	BMI Book
+14	Computer Supported Activity Coordination
+14	CSWWS
+14	Decision Support in Public Administration
+14	Formal Aspects of Cognitive Processes
+14	HDI
+14	HOPL Preprints
+14	IBM Symposium: Database Systems of the 90s
+14	ICOD-2 Workshop on New Applications of Data Bases
+14	IFMT
+14	Informationssysteme für das Hochschulmanagement
+14	International Workshop on Constraint Solving and Constraint Logic Programming
+14	Language Design for Reliable Software
+14	Logic at Work
+14	Methods and Associated Tools for the Information Systems Life Cycle
+14	MMICS
+14	MobIS Workshops
+14	NAPAW
+14	Network Security
+14	Objects and Databases
+14	OpenSHMEM
+14	PARBASE
+14	PDC (1)
+14	POMC
+14	PragWeb
+14	QDB/MUD
+14	ROCLING (Posters)
+14	S-BPM ONE Application Studies
+14	SelfMan
+14	SIGRAD
+14	SIGSAND-EUROPE
+14	SLSFS
+14	Summit on Computing Education in China
+14	The DARPA Urban Challenge
+14	The Logic of Theory Change
+14	Tweet-Norm@SEPLN
+14	VDOS+DO@ICBO
+14	VIEWS
+14	VISSAS
+14	WBDB
+14	Werkzeuge der Programmiertechnik
+14	WONTO
+14	Workshop on Intrusion Detection and Network Monitoring
+14	WSBI
+13	25 Years of Model Checking
+13	Advanced Course: Operating Systems
+13	Algorithmic and Quantitative Aspects of Real Algebraic Geometry in Mathematics and Computer Science
+13	APF
+13	CCGIDIS
+13	CIBIM
+13	CMCS
+13	Cognitive Systems
+13	Computerized Assistance During the Information Systems Life Cycle
+13	COST Action 291 Final Report
+13	Creating Personalities for Synthetic Actors
+13	CUBIST Workshop
+13	Datenbanken in Rechnernetzen mit Kleinrechnern
+13	DFRWS
+13	E2DC
+13	EISMC
+13	EPOS
+13	ESOA
+13	FMLDO - Selected Papers
+13	Formal Aspects of Measurement
+13	Formal Program Development
+13	FSFMA
+13	GCCB
+13	ICEC (Selected Papers)
+13	ITRS
+13	JOBIM
+13	Kommunikation in Verteilten Systemen (2)
+13	LAMAS
+13	Mobile Agents and Security
+13	MPRSS
+13	Natural Language and Logic
+13	NordiCloud
+13	ORDAL
+13	PERSUASIVE (Adjunct Proceedings)
+13	PODP
+13	Replication
+13	Research Results of the DICS Program
+13	SOFL+MSVL
+13	Software Process: Principles, Methodology, Technology
+13	Sorts and Types in Artificial Intelligence
+13	SQAMIA
+13	SR
+13	TADDS
+13	TELECARE
+13	The Data Parallel Programming Model
+13	The Disappearing Computer
+13	Trends in Computer Algebra
+13	Usability Symposium
+13	Validation of Stochastic Systems
+13	Virtuelle Maschinen
+13	WAIHCWS
+13	WiFlex
+13	WISER
+13	Workshop on Interface Definition Languages
+13	WOWS
+13	XSW
+12	15. WLP
+12	Accurate Scientific Computations
+12	AEGS
+12	BIRTE (Informal Proceedings)
+12	CAD Advanced Course
+12	CICAC
+12	CRW
+12	Cryptographic Algorithms and their Uses
+12	Database Mechanisms for Mobile Applications
+12	Datenbanktechnologie
+12	DIALM-PODC
+12	Dynamo
+12	E-Business - Integration industriellerERP-Architekturen
+12	E-LKR
+12	Entwicklungstendenzen wissenschaftlicher Rechenzentren
+12	ESSIR
+12	ESSLLI
+12	ESSPE
+12	EWMF/KDO
+12	Experiences with Distributed Systems
+12	Firmware Engineering
+12	Formal Methods and Testing
+12	FP7 FIRE/EULER
+12	German-Argentinian Workshop on Information Technology
+12	GPTP
+12	Graphik in Dokumenten
+12	HOPL
+12	IEEE Workshop on Detection and Recognition of Events in Video
+12	IFIP TC-2 Working Conference on Data Base Architecture
+12	IHIS
+12	Impacts of Artificial Intelligence
+12	INTENSIVE
+12	Intermediate Representations Workshop
+12	ISIPS
+12	Java Card Workshop
+12	KDECB
+12	KDXD
+12	KPDAYS
+12	LANSEC
+12	LID
+12	MAMUS
+12	MBMV (2)
+12	MBUI
+12	Memory System Performance and Correctness
+12	MLSB
+12	Objektbanken für Experten
+12	ODRL Workshop
+12	Personal Computing
+12	PGLDB
+12	PODDP
+12	Problems and Methodologies in Mathematical Software Production
+12	Prospects for Hardware Foundations
+12	Reflection and Software Engineering
+12	RIMS Symposium on Software Science and Engineering
+12	SADPI
+12	SCESM
+12	SCOR
+12	SEARIS
+12	SENSAPPEAL
+12	SNePS
+12	Software-Architektur
+12	TERMGRAPH
+12	TOSCA
+12	TSDM
+12	WCII
+12	Wireless Mobile Internet
+12	WRS
+11	ADIS
+11	Advanced Studies in Biometrics
+11	AKA
+11	AMET
+11	ANNs
+11	BNOD
+11	BSME
+11	CHItaly (Doctoral Consortium)
+11	CIR
+11	DAMAS
+11	Data Processing Clinic
+11	DMG
+11	EGCDMAS
+11	ETM
+11	European Educational Forum: School on Formal Methods and Performance Analysis
+11	Evolution and Biocomputation
+11	EVOLVE (III)
+11	EWMF
+11	Formal Methods in Databases and Software Engineering
+11	Graphik und KI
+11	HAS
+11	HotDep
+11	ICDL
+11	ICVW
+11	IMDM
+11	Implementierungssprachen für nichtsequentielle Programmsysteme
+11	Information Systems Design Methodologies: Improving the Practice
+11	Komplexität von Entscheidungsproblemen 1976
+11	Mathematical Methods for Protein Structure Analysis and Design
+11	MCTA
+11	MindTheGap@iConference
+11	MIXER
+11	Modelling with Words
+11	MOVEP
+11	MSEPT
+11	MTW
+11	NDDL/VVEIS
+11	NGCA
+11	NTII
+11	OAS
+11	PASA
+11	Portable Software
+11	ROCAI
+11	SCVMA
+11	Sichtsysteme
+11	Software Audit and Metrics
+11	Solving Combinatorial Optimization Problems in Parallel
+11	The New Technologies for Aquileia
+11	TNC
+11	Towards Evolvable Hardware
+11	ViC
+11	WADGMM
+11	WMAN
+11	Workshop on Design Issues in Anonymity and Unobservability
+11	Workshop on Formal Models
+10	AAA-IDEA
+10	AAL
+10	ACP4IS
+10	ANB
+10	B-Interface
+10	C&O:RR
+10	CAIVD
+10	CL&C
+10	CleanDB
+10	DBCrowd
+10	Die unendliche Bibliothek
+10	EFTS
+10	EWSP
+10	Feature Based Product Life-Cycle Modelling
+10	FMA
+10	Formal Syntax and Semantics of Java
+10	Formal Theories of Information
+10	Formal to Practical Security
+10	HLK
+10	ICABD
+10	ICETE (Invited Speakers)
+10	ILC
+10	IVEVA
+10	KRAMAS
+10	Lectures on Data Security
+10	LeGE-WG 1
+10	LightSec
+10	LINEARITY
+10	LOFT
+10	Methods of Programming
+10	MIRA
+10	NLP4DL/AT4DL
+10	Non-Standard Datenbanken für Anwendungen der Graphischen Datenverarbeitung
+10	Nonclassical Logics and Information Processing
+10	Parallel Computing in Science and Engineering
+10	PaRMa
+10	PersDB
+10	PSSS
+10	QFM
+10	Semantic Web Workshop
+10	SmartGridSec
+10	SOFL
+10	Systems Engineering in Public Administration
+10	TCQ
+10	Technologies for Collaborative Business Process Management
+10	UH
+10	WCFLP
+10	Wissenschaftliches Rechnen und Programmiersprachen
+10	Wissensrepräsentation in Expertensystemen
+10	WOW
+10	XMIDX
+9	AAIP
+9	Advanced Course: Microcomputer System Design
+9	Advanced Lectures on Machine Learning
+9	Algebraic and Coalgebraic Methods in the Mathematics of Program Construction
+9	Algorithmic Foundations of Geographic Information Systems
+9	AP-BPM
+9	APPSEM
+9	Automata Networks
+9	COEA
+9	Combinators and Functional Programming Languages
+9	Concurrency and Hardware Design
+9	Conference on Operating Systems
+9	Cooperative Environments for Distributed Systems Engineering
+9	Cross-Organisational Workflow Management and Co-ordination
+9	Data Base Design Techniques I
+9	DICE
+9	EFDBS
+9	Eiffel
+9	Embedded Systems
+9	Enterprise-wide and Cross-enterprise Workflow Management
+9	ESSLLI Logic & Cognition Workshop
+9	ExpDB
+9	Expressive
+9	FLACOS
+9	FMSB
+9	Foundations of Logic and Functional Programming
+9	GBPM
+9	HESSD
+9	HIP
+9	Instinctive Computing Workshop
+9	IWDE
+9	IWSG-Life
+9	LeGE-WG 4
+9	Lipari Summer School
+9	LoCoCo
+9	LPKR
+9	MDEIS
+9	MIAD
+9	MKWI (E-Business)
+9	Mobile Datenbanken und Informationssysteme
+9	Mobilität und Informationssysteme
+9	MRC
+9	MSPE
+9	MSSP
+9	Multiagent Systems and Software Architecture
+9	MUSEPAT
+9	Paraconsistent Computational Logic
+9	RTRTS
+9	RULE
+9	S-CUBE Book
+9	Shell Conference
+9	SPLAT
+9	Surveys in Combinatorics
+9	THedu
+9	WoMM
+9	WOODPECKER
+9	Workshop on Exception Handling
+8	ABICT
+8	ABP
+8	AiSoS
+8	CL-2000 Workshop on Computational Logic in Multi-Agent Systems
+8	COMPMOD
+8	CompMod
+8	COS
+8	Electronic Commerce
+8	FAVO
+8	FBTC
+8	ISDO
+8	IVM/FTMDD/RTSOABIS/MSVVEIS
+8	IW-SOSWE
+8	Knowledge-Driven Multimedia Information Extraction and Ontology Evolution
+8	LAFM
+8	LeGE-WG 2
+8	LSCS
+8	Machine Learning Summer School
+8	MARC@RWTH
+8	MSFP
+8	Networked Information Retrieval
+8	perspeGKtive
+8	Programierumgebungen
+8	QDB
+8	QPL
+8	S3
+8	SWDB-ODBIS
+8	WebMine
+8	WOD
+7	A Half-Century of Automata Theory
+7	Advanced Course: Fundamentals of Artificial Intelligence
+7	Advances in Computer Graphics Hardware (Machines)
+7	ATE
+7	Computational Combinatorial Optimization
+7	Conference on Network Administration
+7	Data Base Design Techniques II
+7	Descriptive Complexity and Finite Models
+7	Digital Image Processing Systems
+7	Electronic Dictionaries and Automata in Computational Linguistics
+7	ELSNET Summer School
+7	Enduser Systems and Their Human Factors
+7	FEWS
+7	Formal Hardware Verification
+7	Geospatial Semantics and the Semantic Web
+7	HIKM
+7	I3
+7	ILOG@BIR
+7	Intelligenztechnologie
+7	KAMC
+7	KIK@KI
+7	LBM (Short Papers)
+7	Mensch-Maschine-Dialog
+7	Natural Language at the Computer
+7	QofIS Final Report
+7	Referenzmodellierung
+7	ReTIeL
+7	Service Oriented Electronic Commerce
+7	SEWCN
+7	TEAR
+7	WCCI Causation and Prediction Challenge
+7	WCSI
+7	XP4.5 Workshop on Database Theory
+6	ACoTA
+6	AlMoDEP
+6	AMMSE
+6	CONTEXT Workshop on Safety and Context
+6	DMoLD
+6	DOSTA
+6	DSML
+6	FESCA
+6	KI Workshop on Reference Ontologies and Application Ontologies
+6	LerNet ALFA Summer School
+6	Mobile and Collaborative Business
+6	Natural Language Communication with Computers
+6	SSDGP
+6	TFPIE
+6	Towards a Formal Description of Ada
+6	TRI-Ada Tutorials (1)
+6	UNIX - Konzepte und Anwendungen
+6	WASH
+5	ACCAT
+5	AMCA-POP
+5	Artificial Intelligence in the Game Design Process
+5	Banff Higher Order Workshop
+5	Begründungsverwaltung
+5	DDoPS
+5	DSV-IS (2)
+5	FAInt
+5	Gaussian Processes in Practice
+5	HOR
+5	iWIGP
+5	PACO
+5	SAW
+5	SECCO
+5	Software Reliability Modelling and Identification
+5	SSGIP
+5	SYNT
+5	TRI-Ada Tutorials (2)
+5	TTATT
+5	UITP
+5	VMIL
+5	WS-FMDS
+4	Domain Modeling and the Duration Calculus
+4	Infinity
+4	IWIGP
+3	SecCo
+3	SYANCO
+2	DCDP
+1	IPSJ
+1	PDCS
+1	Proc. 11th Int. Symposium on Electromagnetic Compatibility (EMC'94)
+1	SIGBDP
+1	SWC

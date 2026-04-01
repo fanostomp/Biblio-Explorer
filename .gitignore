@@ -30,14 +30,15 @@ venv.bak/
 .env
 
 # Data and database files
-*.csv
 *.json
 *.sqlite3
-data/
-datasets/
+data/journal_ranking_data_raw
+data/iCore26_data
+data/dblp_data
 db.sqlite3
 *.db
 !data/.gitkeep
+data/backups/*
 
 # IDEs
 .idea/
@@ -48,3 +49,5 @@ db.sqlite3
 # OS
 .DS_Store
 Thumbs.db
+.tmp/
+

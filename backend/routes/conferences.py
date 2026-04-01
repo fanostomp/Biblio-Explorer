@@ -23,8 +23,8 @@ def get_lookups():
 @conferences_bp.route('/', methods=['GET'])
 def list_conferences():
     """List all mapped conferences with pagination."""
-    page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=50, type=int)
+    page = max(request.args.get('page', default=1, type=int), 1)
+    per_page = min(max(request.args.get('per_page', default=50, type=int), 1), 200)
     offset = (page - 1) * per_page
 
     conn = get_db_connection()
@@ -124,8 +124,8 @@ def search_conferences():
     q = request.args.get('q', '').strip()
     rank = request.args.get('rank', '').strip()
     category = request.args.get('category', '').strip()
-    page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=10, type=int)
+    page = max(request.args.get('page', default=1, type=int), 1)
+    per_page = min(max(request.args.get('per_page', default=10, type=int), 1), 100)
     offset = (page - 1) * per_page
 
     where_clauses = []
@@ -162,8 +162,10 @@ def search_conferences():
         where_clauses.append("primary_for = %s")
         params.append(short_cat)
 
+    # SAFETY: where_sql is built entirely from hardcoded column names;
+    # all user-supplied values go through parameterized %s placeholders.
     where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
-    
+
     conn = get_db_connection()
     try:
         # Get total for pagination
