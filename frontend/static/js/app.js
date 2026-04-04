@@ -299,6 +299,7 @@ function initConferencePage() {
     const input = document.getElementById('conferenceSearch');
     const rankSel = document.getElementById('filterRank');
     const catSel = document.getElementById('filterCategory');
+    const coverageOnly = document.getElementById('filterCoverageOnly');
 
     const handleSearch = () => {
         state.search.page = 1;
@@ -307,8 +308,10 @@ function initConferencePage() {
 
     if (searchBtn) searchBtn.addEventListener('click', handleSearch);
     if (input) input.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleSearch(); });
+    setupLiveSearch(input, handleSearch);
     if (rankSel) rankSel.addEventListener('change', handleSearch);
     if (catSel) catSel.addEventListener('change', handleSearch);
+    if (coverageOnly) coverageOnly.addEventListener('change', handleSearch);
 
     const clearBtn = document.getElementById('clearFiltersBtn');
     if (clearBtn) {
@@ -316,6 +319,7 @@ function initConferencePage() {
             input.value = '';
             rankSel.value = '';
             catSel.value = '';
+            if (coverageOnly) coverageOnly.checked = false;
             state.search.page = 1;
             document.getElementById('searchResults').style.display = 'none';
         });
@@ -357,6 +361,7 @@ function initConferencePage() {
             const cat = document.getElementById('filterCategory').value;
             if (rank) url += `&rank=${encodeURIComponent(rank)}`;
             if (cat) url += `&category=${encodeURIComponent(cat)}`;
+            if (isCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
 
             const res = await fetch(url);
             if (!res.ok) throw new Error(`Autocomplete fetch failed with status ${res.status}`);
@@ -405,6 +410,7 @@ async function performPaginatedSearch(type) {
         const cat = document.getElementById('filterCategory').value;
         if (rank) url += `&rank=${encodeURIComponent(rank)}`;
         if (cat) url += `&category=${encodeURIComponent(cat)}`;
+        if (isCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
     } else {
         const qtl = document.getElementById('filterQuartile').value;
         const area = document.getElementById('filterArea').value;
@@ -412,7 +418,7 @@ async function performPaginatedSearch(type) {
         if (qtl) url += `&quartile=${encodeURIComponent(qtl)}`;
         if (area) url += `&subject_area=${encodeURIComponent(area)}`;
         if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
-        if (isJournalCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
+        if (isCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
     }
 
     const resultsContainer = document.getElementById('searchResults');
@@ -462,12 +468,16 @@ function renderSearchResults(type, data) {
     results.forEach(item => {
         const tr = document.createElement('tr');
         if (type === 'conference') {
+            const coverageCell = document.createElement('td');
+            coverageCell.appendChild(createCoverageBadge(Boolean(item.has_dblp_coverage), 'search', 'conference'));
             tr.innerHTML = `
-                <td><b>${escapeHtml(item.acronym)}</b></td>
+                <td><b>${escapeHtml(item.acronym || '-')}</b></td>
                 <td>${escapeHtml(item.title)}</td>
                 <td><span class="badge rank-badge">${escapeHtml(item.rank)}</span></td>
+                <td class="coverage-cell"></td>
                 <td class="action-cell"></td>
             `;
+            tr.querySelector('.coverage-cell').appendChild(coverageCell.firstChild);
             const btn = document.createElement('button');
             btn.className = 'btn secondary-btn small';
             btn.textContent = 'View Profile';
@@ -503,23 +513,23 @@ function getQuartileColor(q) {
     return '#6b7280';
 }
 
-function isJournalCoverageFilterEnabled() {
+function isCoverageFilterEnabled() {
     const checkbox = document.getElementById('filterCoverageOnly');
     return Boolean(checkbox && checkbox.checked);
 }
 
-function createCoverageBadge(hasCoverage, variant = 'search') {
+function createCoverageBadge(hasCoverage, variant = 'search', entityLabel = 'journal') {
     const badge = document.createElement('span');
     badge.className = 'badge coverage-badge';
 
     if (hasCoverage) {
         badge.textContent = variant === 'profile' ? 'DBLP coverage available' : 'DBLP stats';
         badge.classList.add('coverage-badge-covered');
-        badge.title = 'DBLP-linked paper statistics are available for this journal.';
+        badge.title = `DBLP-linked paper statistics are available for this ${entityLabel}.`;
     } else {
         badge.textContent = 'Ranked only';
         badge.classList.add('coverage-badge-ranked-only');
-        badge.title = 'Ranking metadata is available, but DBLP-linked paper statistics are not.';
+        badge.title = `Ranking metadata is available, but DBLP-linked paper statistics are not for this ${entityLabel}.`;
     }
 
     if (variant === 'search') {
@@ -564,7 +574,7 @@ function renderTopAuthorsTable(authors) {
     });
 }
 
-function setupJournalLiveSearch(input, onSearch) {
+function setupLiveSearch(input, onSearch) {
     if (!input || typeof onSearch !== 'function') return;
 
     const debouncedSearch = debounce(() => {
@@ -707,8 +717,8 @@ function initJournalPage() {
 
     if (searchBtn) searchBtn.addEventListener('click', handleSearch);
     if (input) input.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleSearch(); });
-    setupJournalLiveSearch(input, handleSearch);
-    setupJournalLiveSearch(pubInput, handleSearch);
+    setupLiveSearch(input, handleSearch);
+    setupLiveSearch(pubInput, handleSearch);
     if (qtlSel) qtlSel.addEventListener('change', handleSearch);
     if (areaSel) areaSel.addEventListener('change', handleSearch);
     if (coverageOnly) coverageOnly.addEventListener('change', handleSearch);
@@ -766,7 +776,7 @@ function initJournalPage() {
             if (qtl) url += `&quartile=${encodeURIComponent(qtl)}`;
             if (area) url += `&subject_area=${encodeURIComponent(area)}`;
             if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
-            if (isJournalCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
+            if (isCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
 
             const res = await fetch(url);
             if (!res.ok) throw new Error(`Autocomplete fetch failed with status ${res.status}`);

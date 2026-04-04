@@ -206,17 +206,24 @@ svg {
     max-width: min(1180px, 100%);
 }
 
+.conference-search-section {
+    max-width: min(1120px, 100%);
+}
+
+.conference-title-search,
 .journal-title-search {
     position: relative;
     flex: 1 1 100%;
 }
 
+.conference-title-search #conferenceSearch,
 .journal-title-search #journalSearch {
     width: 100%;
 }
 
 .search-section input {
     width: 100%;
+    box-sizing: border-box;
     padding: 1rem 1.5rem;
     font-size: 1.1rem;
     border: 2px solid rgba(255, 255, 255, 0.1);
@@ -836,6 +843,7 @@ tr:hover td {
 }
 
 .filter-bar input, .filter-bar select {
+    box-sizing: border-box;
     padding: 0.75rem 1.25rem;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -870,10 +878,12 @@ tr:hover td {
     animation: fadeIn 0.3s ease-out;
 }
 
+.conference-search-results,
 .journal-search-results {
     width: 100%;
 }
 
+.conference-title-dropdown,
 .journal-title-dropdown {
     top: calc(100% + 0.5rem);
     left: 0;
@@ -914,16 +924,25 @@ tr:hover td {
 }
 
 .journal-results-table th,
-.journal-results-table td {
+.journal-results-table td,
+.conference-results-table th,
+.conference-results-table td {
     vertical-align: middle;
 }
 
+.conference-results-table .acronym-column {
+    width: 132px;
+}
+
+.conference-results-table .coverage-column,
+.conference-results-table .coverage-cell,
 .journal-results-table .coverage-column,
 .journal-results-table .coverage-cell {
     width: 132px;
     white-space: nowrap;
 }
 
+.conference-results-table td:nth-child(2),
 .journal-results-table td:first-child {
     min-width: 260px;
 }

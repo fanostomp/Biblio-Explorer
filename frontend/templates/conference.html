@@ -2,32 +2,39 @@
 {% block title %}Conferences — BiblioExplorer{% endblock %}
 {% block content %}
 <div class="profile-header">
-    <div class="search-section full-width">
+    <div class="search-section full-width conference-search-section">
         <div class="filter-bar">
-            <input type="text" id="conferenceSearch" placeholder="Search conference acronym or title..." autocomplete="off">
+            <div class="conference-title-search">
+                <input type="text" id="conferenceSearch" placeholder="Search conference acronym or title..." autocomplete="off">
+                <ul id="conferenceDropdown" class="autocomplete-list conference-title-dropdown" style="display: none;"></ul>
+            </div>
             <select id="filterRank">
                 <option value="">All Ranks</option>
             </select>
             <select id="filterCategory">
                 <option value="">All Categories</option>
             </select>
+            <label style="display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; font-size: 0.95rem;">
+                <input type="checkbox" id="filterCoverageOnly">
+                Only conferences with DBLP stats
+            </label>
             <button id="searchBtn" class="btn">Search</button>
             <button id="clearFiltersBtn" class="btn secondary-btn">Clear</button>
         </div>
-        <ul id="conferenceDropdown" class="autocomplete-list" style="display: none;"></ul>
-        
-        <div id="searchResults" class="search-results-container" style="display: none;">
+
+        <div id="searchResults" class="search-results-container conference-search-results" style="display: none;">
             <div class="results-header">
                 <h3>Search Results</h3>
                 <span id="resultsCount" class="text-muted"></span>
             </div>
             <div class="table-responsive">
-                <table id="resultsTable" class="interactive-table">
+                <table id="resultsTable" class="interactive-table conference-results-table">
                     <thead>
                         <tr>
-                            <th>Acronym</th>
+                            <th class="acronym-column">Acronym</th>
                             <th>Title</th>
                             <th>Rank</th>
+                            <th class="coverage-column">Coverage</th>
                             <th>Action</th>
                         </tr>
                     </thead>
