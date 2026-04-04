@@ -289,7 +289,7 @@ def test_conference_search_returns_dblp_coverage_flag(client, monkeypatch):
         if compact_query.startswith("SELECT COUNT(*) as total FROM conferences c"):
             return {"total": 2}
 
-        if "has_dblp_coverage" in compact_query and "LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id" in compact_query:
+        if "has_dblp_coverage" in compact_query and "EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in compact_query:
             return [
                 {
                     "conf_id": 1,
@@ -319,8 +319,8 @@ def test_conference_search_returns_dblp_coverage_flag(client, monkeypatch):
     assert response.status_code == 200
     assert payload["results"][0]["has_dblp_coverage"] is True
     assert payload["results"][1]["has_dblp_coverage"] is False
-    assert any("LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id" in query for query in seen_queries)
-    assert not any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id) AS has_dblp_coverage" in query for query in seen_queries)
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id) AS has_dblp_coverage" in query for query in seen_queries)
+    assert not any("LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id" in query for query in seen_queries)
 
 
 def test_conference_search_can_filter_to_dblp_coverage_only(client, monkeypatch):
@@ -335,7 +335,7 @@ def test_conference_search_can_filter_to_dblp_coverage_only(client, monkeypatch)
         if compact_query.startswith("SELECT COUNT(*) as total FROM conferences c"):
             return {"total": 1}
 
-        if "has_dblp_coverage" in compact_query and "LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id" in compact_query:
+        if "has_dblp_coverage" in compact_query and "EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in compact_query:
             return [
                 {
                     "conf_id": 1,
@@ -365,9 +365,26 @@ def test_conference_search_can_filter_to_dblp_coverage_only(client, monkeypatch)
             "has_dblp_coverage": True,
         }
     ]
-    assert any("pc.conf_id IS NOT NULL" in query for query in seen_queries)
-    assert any("LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id" in query for query in seen_queries)
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in query for query in seen_queries)
     assert not any("paper_coverage" in query for query in seen_queries)
+
+
+def test_conference_search_accepts_standard_truthy_values_for_dblp_filter(client, monkeypatch):
+    import routes.conferences as conferences
+
+    seen_queries = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+        seen_queries.append(compact_query)
+        return {"total": 0} if fetchone else []
+
+    monkeypatch.setattr(conferences, "execute_query", fake_execute_query)
+
+    response = client.get("/api/conference/search?with_dblp_coverage=1")
+
+    assert response.status_code == 200
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in query for query in seen_queries)
 
 
 def test_author_search_with_special_characters_does_not_crash(client):

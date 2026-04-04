@@ -124,14 +124,13 @@ def search_conferences():
     q = request.args.get('q', '').strip()
     rank = request.args.get('rank', '').strip()
     category = request.args.get('category', '').strip()
-    with_dblp_coverage = request.args.get('with_dblp_coverage', '').strip().lower() == 'true'
+    with_dblp_coverage = request.args.get('with_dblp_coverage', '').strip().lower() in {'1', 'true', 'yes', 'on'}
     page = max(request.args.get('page', default=1, type=int), 1)
     per_page = min(max(request.args.get('per_page', default=10, type=int), 1), 100)
     offset = (page - 1) * per_page
 
     where_clauses = []
     params = []
-    coverage_join = " LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id"
 
     if q:
         safe_q = re.sub(r'[^\w\s]', ' ', q).strip()
@@ -164,7 +163,7 @@ def search_conferences():
         where_clauses.append("primary_for = %s")
         params.append(short_cat)
     if with_dblp_coverage:
-        where_clauses.append("pc.conf_id IS NOT NULL")
+        where_clauses.append("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)")
 
     # SAFETY: where_sql is built entirely from hardcoded column names;
     # all user-supplied values go through parameterized %s placeholders.
@@ -173,7 +172,7 @@ def search_conferences():
     conn = get_db_connection()
     try:
         # Get total for pagination
-        count_sql = f"SELECT COUNT(*) as total FROM conferences c{coverage_join}{where_sql}"
+        count_sql = f"SELECT COUNT(*) as total FROM conferences c{where_sql}"
         count_res = execute_query(conn, count_sql, tuple(params), fetchone=True)
         total_records = count_res['total'] if count_res else 0
 
@@ -185,8 +184,8 @@ def search_conferences():
                 c.acronym,
                 c.`rank`,
                 c.primary_for,
-                (pc.conf_id IS NOT NULL) AS has_dblp_coverage
-            FROM conferences c{coverage_join}{where_sql}
+                EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id) AS has_dblp_coverage
+            FROM conferences c{where_sql}
             ORDER BY c.acronym
             LIMIT %s OFFSET %s
         """
