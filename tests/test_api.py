@@ -1,5 +1,6 @@
 import importlib
 from pathlib import Path
+import re
 import sys
 
 import pytest
@@ -276,6 +277,116 @@ def test_conference_search_with_only_special_characters_returns_empty_list(clien
     assert "pagination" in payload
 
 
+def test_conference_search_returns_dblp_coverage_flag(client, monkeypatch):
+    import routes.conferences as conferences
+
+    seen_queries = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+        seen_queries.append(compact_query)
+
+        if compact_query.startswith("SELECT COUNT(*) as total FROM conferences c"):
+            return {"total": 2}
+
+        if "has_dblp_coverage" in compact_query and "EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in compact_query:
+            return [
+                {
+                    "conf_id": 1,
+                    "title": "Covered Conference",
+                    "acronym": "CC",
+                    "rank": "A*",
+                    "primary_for": "4602",
+                    "has_dblp_coverage": True,
+                },
+                {
+                    "conf_id": 2,
+                    "title": "Ranked Only Conference",
+                    "acronym": "ROC",
+                    "rank": "A",
+                    "primary_for": "4603",
+                    "has_dblp_coverage": False,
+                },
+            ]
+
+        return None if fetchone else []
+
+    monkeypatch.setattr(conferences, "execute_query", fake_execute_query)
+
+    response = client.get("/api/conference/search?q=conference")
+    payload = response.get_json()
+
+    assert response.status_code == 200
+    assert payload["results"][0]["has_dblp_coverage"] is True
+    assert payload["results"][1]["has_dblp_coverage"] is False
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id) AS has_dblp_coverage" in query for query in seen_queries)
+    assert not any("LEFT JOIN (SELECT DISTINCT conf_id FROM papers) pc ON pc.conf_id = c.conf_id" in query for query in seen_queries)
+
+
+def test_conference_search_can_filter_to_dblp_coverage_only(client, monkeypatch):
+    import routes.conferences as conferences
+
+    seen_queries = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+        seen_queries.append(compact_query)
+
+        if compact_query.startswith("SELECT COUNT(*) as total FROM conferences c"):
+            return {"total": 1}
+
+        if "has_dblp_coverage" in compact_query and "EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in compact_query:
+            return [
+                {
+                    "conf_id": 1,
+                    "title": "Covered Conference",
+                    "acronym": "CC",
+                    "rank": "A*",
+                    "primary_for": "4602",
+                    "has_dblp_coverage": True,
+                }
+            ]
+
+        return None if fetchone else []
+
+    monkeypatch.setattr(conferences, "execute_query", fake_execute_query)
+
+    response = client.get("/api/conference/search?with_dblp_coverage=true")
+    payload = response.get_json()
+
+    assert response.status_code == 200
+    assert payload["results"] == [
+        {
+            "conf_id": 1,
+            "title": "Covered Conference",
+            "acronym": "CC",
+            "rank": "A*",
+            "primary_for": "4602",
+            "has_dblp_coverage": True,
+        }
+    ]
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in query for query in seen_queries)
+    assert not any("paper_coverage" in query for query in seen_queries)
+
+
+def test_conference_search_accepts_standard_truthy_values_for_dblp_filter(client, monkeypatch):
+    import routes.conferences as conferences
+
+    seen_queries = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+        seen_queries.append(compact_query)
+        return {"total": 0} if fetchone else []
+
+    monkeypatch.setattr(conferences, "execute_query", fake_execute_query)
+
+    response = client.get("/api/conference/search?with_dblp_coverage=1")
+
+    assert response.status_code == 200
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.conf_id = c.conf_id)" in query for query in seen_queries)
+
+
 def test_author_search_with_special_characters_does_not_crash(client):
     response = client.get("/api/author/search?q=Ada++&&")
     payload = response.get_json()
@@ -372,13 +483,51 @@ def test_journal_page_includes_coverage_ui_and_top_authors_section(client):
     assert "charts, article tables, and top-author stats require DBLP-linked papers" in html
 
 
+def test_conference_page_includes_live_search_and_coverage_filter_ui(client):
+    response = client.get("/conference")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'class="search-section full-width conference-search-section"' in html
+    assert 'class="conference-title-search"' in html
+    assert 'class="autocomplete-list conference-title-dropdown"' in html
+    assert 'id="filterCoverageOnly"' in html
+    assert "Only conferences with DBLP stats" in html
+    assert 'class="search-results-container conference-search-results"' in html
+    assert 'class="interactive-table conference-results-table"' in html
+
+
 def test_journal_page_script_wires_live_search_for_both_text_inputs():
     script_path = Path(__file__).resolve().parents[1] / "frontend" / "static" / "js" / "app.js"
     script = script_path.read_text(encoding="utf-8")
 
-    assert "setupJournalLiveSearch" in script
-    assert "setupJournalLiveSearch(input, handleSearch);" in script
-    assert "setupJournalLiveSearch(pubInput, handleSearch);" in script
+    assert "setupLiveSearch" in script
+    assert "setupLiveSearch(input, handleSearch);" in script
+    assert "setupLiveSearch(pubInput, handleSearch);" in script
+
+
+def test_conference_page_script_wires_live_search_and_coverage_filter():
+    script_path = Path(__file__).resolve().parents[1] / "frontend" / "static" / "js" / "app.js"
+    script = script_path.read_text(encoding="utf-8")
+
+    assert "setupLiveSearch" in script
+    assert "setupLiveSearch(input, handleSearch);" in script
+    assert "if (coverageOnly) coverageOnly.addEventListener('change', handleSearch);" in script
+    assert "if (isCoverageFilterEnabled()) url += '&with_dblp_coverage=true';" in script
+    assert "β€”" not in script
+
+
+def test_search_filter_css_uses_border_box_for_search_bar_layout():
+    css_path = Path(__file__).resolve().parents[1] / "frontend" / "static" / "css" / "style.css"
+    css = css_path.read_text(encoding="utf-8")
+
+    search_input_block = re.search(r"\.search-section input \{([^}]*)\}", css, re.DOTALL)
+    filter_bar_block = re.search(r"\.filter-bar input, \.filter-bar select \{([^}]*)\}", css, re.DOTALL)
+
+    assert search_input_block is not None
+    assert filter_bar_block is not None
+    assert "box-sizing: border-box;" in search_input_block.group(1)
+    assert "box-sizing: border-box;" in filter_bar_block.group(1)
 
 
 def test_missing_year_profile_returns_404(client):
