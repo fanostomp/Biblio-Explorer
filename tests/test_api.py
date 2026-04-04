@@ -147,7 +147,7 @@ def test_journal_search_returns_dblp_coverage_flag(client, monkeypatch):
         if compact_query.startswith("SELECT COUNT(*) as total FROM journals j"):
             return {"total": 2}
 
-        if "CASE WHEN paper_coverage.journal_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_dblp_coverage" in compact_query:
+        if "has_dblp_coverage" in compact_query and "EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id)" in compact_query:
             return [
                 {
                     "journal_id": 1,
@@ -191,7 +191,7 @@ def test_journal_search_can_filter_to_dblp_coverage_only(client, monkeypatch):
         if compact_query.startswith("SELECT COUNT(*) as total FROM journals j"):
             return {"total": 1}
 
-        if "CASE WHEN paper_coverage.journal_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_dblp_coverage" in compact_query:
+        if "has_dblp_coverage" in compact_query and "EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id)" in compact_query:
             return [
                 {
                     "journal_id": 1,
@@ -221,7 +221,8 @@ def test_journal_search_can_filter_to_dblp_coverage_only(client, monkeypatch):
             "has_dblp_coverage": True,
         }
     ]
-    assert any("paper_coverage.journal_id IS NOT NULL" in query for query in seen_queries)
+    assert any("EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id)" in query for query in seen_queries)
+    assert not any("paper_coverage" in query for query in seen_queries)
 
 
 def test_journal_profile_includes_dblp_coverage_flag(client, monkeypatch):
@@ -314,6 +315,42 @@ def test_journal_top_authors_endpoint_returns_expected_shape(client, monkeypatch
         {"author_id": 3, "name": "Ada Lovelace", "paper_count": 4},
         {"author_id": 4, "name": "Grace Hopper", "paper_count": 2},
     ]
+
+
+def test_journal_top_authors_endpoint_bounds_limit(client, monkeypatch):
+    import routes.journals as journals
+    seen_params = []
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        compact_query = " ".join(query.split())
+
+        if "FROM authors a JOIN paper_authors pa ON a.author_id = pa.author_id JOIN papers p ON pa.paper_id = p.paper_id WHERE p.journal_id = %s GROUP BY a.author_id, a.name ORDER BY paper_count DESC LIMIT %s" in compact_query:
+            seen_params.append(params)
+            return []
+
+        return None if fetchone else []
+
+    monkeypatch.setattr(journals, "execute_query", fake_execute_query)
+
+    response = client.get("/api/journal/9/top_authors?limit=1000")
+
+    assert response.status_code == 200
+    assert response.get_json() == []
+    assert seen_params == [(9, 100)]
+
+
+def test_journal_top_authors_endpoint_hides_internal_errors(client, monkeypatch):
+    import routes.journals as journals
+
+    def fake_execute_query(conn, query, params=(), fetchone=False):
+        raise RuntimeError("sensitive schema details")
+
+    monkeypatch.setattr(journals, "execute_query", fake_execute_query)
+
+    response = client.get("/api/journal/7/top_authors")
+
+    assert response.status_code == 500
+    assert response.get_json() == {"error": "Internal server error"}
 
 
 def test_journal_page_includes_coverage_ui_and_top_authors_section(client):

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from db import get_db_connection, execute_query
 import re
 
@@ -166,19 +166,12 @@ def search_journals():
         where_clauses.append("j.publisher LIKE %s")
         params.append(f"%{publisher}%")
     if with_dblp_coverage:
-        where_clauses.append("paper_coverage.journal_id IS NOT NULL")
+        where_clauses.append("EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id)")
 
     # SAFETY: where_sql is built entirely from hardcoded column names;
     # all user-supplied values go through parameterized %s placeholders.
     where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
-    from_sql = """
-        FROM journals j
-        LEFT JOIN (
-            SELECT DISTINCT journal_id
-            FROM papers
-            WHERE journal_id IS NOT NULL
-        ) paper_coverage ON paper_coverage.journal_id = j.journal_id
-    """
+    from_sql = "FROM journals j"
 
     conn = get_db_connection()
     try:
@@ -195,7 +188,7 @@ def search_journals():
                 j.publisher,
                 j.best_quartile,
                 j.sjr_index,
-                CASE WHEN paper_coverage.journal_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_dblp_coverage
+                EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id) AS has_dblp_coverage
             {from_sql}
             {where_sql}
             ORDER BY has_dblp_coverage DESC, j.title ASC
@@ -220,7 +213,7 @@ def search_journals():
 
 @journals_bp.route('/<int:journal_id>/top_authors', methods=['GET'])
 def get_top_authors(journal_id):
-    limit = request.args.get('limit', default=10, type=int)
+    limit = min(max(request.args.get('limit', default=10, type=int), 1), 100)
     conn = get_db_connection()
     try:
         query = """
@@ -236,6 +229,7 @@ def get_top_authors(journal_id):
         results = execute_query(conn, query, (journal_id, limit))
         return jsonify(results)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to fetch top authors for journal_id=%s", journal_id)
+        return jsonify({'error': 'Internal server error'}), 500
     finally:
         conn.close()
