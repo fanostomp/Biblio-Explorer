@@ -412,6 +412,7 @@ async function performPaginatedSearch(type) {
         if (qtl) url += `&quartile=${encodeURIComponent(qtl)}`;
         if (area) url += `&subject_area=${encodeURIComponent(area)}`;
         if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
+        if (isJournalCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
     }
 
     const resultsContainer = document.getElementById('searchResults');
@@ -425,6 +426,10 @@ async function performPaginatedSearch(type) {
     if (grid) grid.style.display = 'none';
     const filters = document.getElementById('filtersSection');
     if (filters) filters.style.display = 'none';
+    if (type === 'journal') {
+        const noCoverage = document.getElementById('journalNoCoverage');
+        if (noCoverage) noCoverage.style.display = 'none';
+    }
 
     try {
         const res = await fetch(url);
@@ -469,13 +474,17 @@ function renderSearchResults(type, data) {
             btn.addEventListener('click', () => loadConferenceProfile(item.conf_id));
             tr.querySelector('.action-cell').appendChild(btn);
         } else {
+            const coverageCell = document.createElement('td');
+            coverageCell.appendChild(createCoverageBadge(Boolean(item.has_dblp_coverage), 'search'));
             tr.innerHTML = `
                 <td><b>${escapeHtml(item.title)}</b></td>
                 <td>${escapeHtml(item.publisher)}</td>
                 <td><span class="badge rank-badge" style="background: ${getQuartileColor(item.best_quartile)}">${escapeHtml(item.best_quartile)}</span></td>
-                <td>${item.sjr_index || '0.0'}</td>
+                <td class="coverage-cell"></td>
+                <td>${item.sjr_index ?? '0.0'}</td>
                 <td class="action-cell"></td>
             `;
+            tr.querySelector('.coverage-cell').appendChild(coverageCell.firstChild);
             const btn = document.createElement('button');
             btn.className = 'btn secondary-btn small';
             btn.textContent = 'View Profile';
@@ -492,6 +501,79 @@ function getQuartileColor(q) {
     if (q === 'Q3') return '#f97316';
     if (q === 'Q4') return '#ef4444';
     return '#6b7280';
+}
+
+function isJournalCoverageFilterEnabled() {
+    const checkbox = document.getElementById('filterCoverageOnly');
+    return Boolean(checkbox && checkbox.checked);
+}
+
+function createCoverageBadge(hasCoverage, variant = 'search') {
+    const badge = document.createElement('span');
+    badge.className = 'badge coverage-badge';
+
+    if (hasCoverage) {
+        badge.textContent = variant === 'profile' ? 'DBLP coverage available' : 'DBLP stats';
+        badge.classList.add('coverage-badge-covered');
+        badge.title = 'DBLP-linked paper statistics are available for this journal.';
+    } else {
+        badge.textContent = 'Ranked only';
+        badge.classList.add('coverage-badge-ranked-only');
+        badge.title = 'Ranking metadata is available, but DBLP-linked paper statistics are not.';
+    }
+
+    if (variant === 'search') {
+        badge.classList.add('coverage-badge-search');
+    }
+
+    return badge;
+}
+
+function renderTopAuthorsTable(authors) {
+    const tbody = document.querySelector('#topAuthorsTable tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if (!Array.isArray(authors) || authors.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--text-muted);">No authors found</td></tr>';
+        return;
+    }
+
+    authors.forEach((author, index) => {
+        const tr = document.createElement('tr');
+
+        const tdRank = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = 'badge rank-badge';
+        badge.textContent = `#${index + 1}`;
+        tdRank.appendChild(badge);
+
+        const tdName = document.createElement('td');
+        tdName.textContent = author.name;
+        tdName.style.fontWeight = 'bold';
+
+        const tdCount = document.createElement('td');
+        tdCount.textContent = author.paper_count;
+
+        const tdAction = document.createElement('td');
+        tdAction.innerHTML = '<span style="font-size: 0.85rem; color: var(--text-muted);">Search in Authors tab</span>';
+
+        tr.append(tdRank, tdName, tdCount, tdAction);
+        tbody.appendChild(tr);
+    });
+}
+
+function setupJournalLiveSearch(input, onSearch) {
+    if (!input || typeof onSearch !== 'function') return;
+
+    const debouncedSearch = debounce(() => {
+        onSearch();
+    }, 250);
+
+    input.addEventListener('input', () => {
+        debouncedSearch();
+    });
 }
 
 async function loadConferenceProfile(id) {
@@ -599,37 +681,7 @@ async function loadConferenceTopAuthors(id) {
         const res = await fetch(`/api/conference/${id}/top_authors?limit=10`);
         if (!res.ok) throw new Error(`Top authors fetch failed with status ${res.status}`);
         const data = await res.json();
-        const tbody = document.querySelector('#topAuthorsTable tbody');
-        if(!tbody) return;
-        tbody.innerHTML = '';
-
-        if(data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--text-muted);">No authors found</td></tr>';
-            return;
-        }
-
-        data.forEach((author, index) => {
-            const tr = document.createElement('tr');
-            
-            const tdRank = document.createElement('td');
-            const badge = document.createElement('span');
-            badge.className = 'badge rank-badge';
-            badge.textContent = `#${index + 1}`;
-            tdRank.appendChild(badge);
-            
-            const tdName = document.createElement('td');
-            tdName.textContent = author.name;
-            tdName.style.fontWeight = 'bold';
-            
-            const tdCount = document.createElement('td');
-            tdCount.textContent = author.paper_count;
-            
-            const tdAction = document.createElement('td');
-            tdAction.innerHTML = `<span style="font-size: 0.85rem; color: var(--text-muted);">Search in Authors tab</span>`;
-            
-            tr.append(tdRank, tdName, tdCount, tdAction);
-            tbody.appendChild(tr);
-        });
+        renderTopAuthorsTable(data);
     } catch(err) {
         console.error(err);
     }
@@ -643,8 +695,10 @@ function initJournalPage() {
 
     const searchBtn = document.getElementById('searchBtn');
     const input = document.getElementById('journalSearch');
+    const pubInput = document.getElementById('filterPublisher');
     const qtlSel = document.getElementById('filterQuartile');
     const areaSel = document.getElementById('filterArea');
+    const coverageOnly = document.getElementById('filterCoverageOnly');
 
     const handleSearch = () => {
         state.search.page = 1;
@@ -653,8 +707,11 @@ function initJournalPage() {
 
     if (searchBtn) searchBtn.addEventListener('click', handleSearch);
     if (input) input.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleSearch(); });
+    setupJournalLiveSearch(input, handleSearch);
+    setupJournalLiveSearch(pubInput, handleSearch);
     if (qtlSel) qtlSel.addEventListener('change', handleSearch);
     if (areaSel) areaSel.addEventListener('change', handleSearch);
+    if (coverageOnly) coverageOnly.addEventListener('change', handleSearch);
 
     const clearBtn = document.getElementById('clearFiltersBtn');
     if (clearBtn) {
@@ -662,8 +719,8 @@ function initJournalPage() {
             input.value = '';
             qtlSel.value = '';
             areaSel.value = '';
-            const pubInput = document.getElementById('filterPublisher');
             if (pubInput) pubInput.value = '';
+            if (coverageOnly) coverageOnly.checked = false;
             state.search.page = 1;
             document.getElementById('searchResults').style.display = 'none';
         });
@@ -675,6 +732,8 @@ function initJournalPage() {
             document.getElementById('journalDetails').style.display = 'none';
             document.getElementById('filtersSection').style.display = 'none';
             document.getElementById('dashboardGrid').style.display = 'none';
+            const noCoverage = document.getElementById('journalNoCoverage');
+            if (noCoverage) noCoverage.style.display = 'none';
             document.getElementById('searchResults').style.display = 'block';
         });
     }
@@ -707,6 +766,7 @@ function initJournalPage() {
             if (qtl) url += `&quartile=${encodeURIComponent(qtl)}`;
             if (area) url += `&subject_area=${encodeURIComponent(area)}`;
             if (pub) url += `&publisher=${encodeURIComponent(pub)}`;
+            if (isJournalCoverageFilterEnabled()) url += '&with_dblp_coverage=true';
 
             const res = await fetch(url);
             if (!res.ok) throw new Error(`Autocomplete fetch failed with status ${res.status}`);
@@ -738,6 +798,7 @@ async function loadJournalProfile(id) {
         const p = data.profile;
         document.getElementById('journalTitle').textContent = p.title || 'Unknown Title';
         const rankEl = document.getElementById('journalRank');
+        const coverageBadge = document.getElementById('journalCoverageBadge');
         rankEl.textContent = `Quartile: ${p.best_quartile || 'N/A'}`;
         // Color coding for Quartiles (Fix #13)
         if (p.best_quartile === 'Q1') rankEl.style.background = '#10b981';
@@ -761,6 +822,11 @@ async function loadJournalProfile(id) {
         const filtersSection = document.getElementById('filtersSection');
         const dashboardGrid = document.getElementById('dashboardGrid');
         const noCoverage = document.getElementById('journalNoCoverage');
+        if (coverageBadge) {
+            const updatedCoverageBadge = createCoverageBadge(hasCoverage, 'profile');
+            updatedCoverageBadge.id = 'journalCoverageBadge';
+            coverageBadge.replaceWith(updatedCoverageBadge);
+        }
         clearYearFilterInputs();
         state.journalYearlyStats = Array.isArray(data.yearly_stats) ? data.yearly_stats : [];
 
@@ -776,10 +842,12 @@ async function loadJournalProfile(id) {
 
         if (hasCoverage) {
             loadJournalPapers(id);
+            loadJournalTopAuthors(id);
         } else {
             const papersChart = document.getElementById('papersChart');
             const authorsChart = document.getElementById('authorsChart');
             const tbody = document.querySelector('#papersTable tbody');
+            renderTopAuthorsTable([]);
             if (papersChart) papersChart.innerHTML = '';
             if (authorsChart) authorsChart.innerHTML = '';
             if (tbody) tbody.innerHTML = '';
@@ -830,6 +898,17 @@ async function loadJournalPapers(id) {
             tr.append(tdYear, tdTitle, tdVol, tdPages, tdLinks);
             tbody.appendChild(tr);
         });
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+async function loadJournalTopAuthors(id) {
+    try {
+        const res = await fetch(`/api/journal/${id}/top_authors?limit=10`);
+        if (!res.ok) throw new Error(`Top authors fetch failed with status ${res.status}`);
+        const data = await res.json();
+        renderTopAuthorsTable(data);
     } catch(err) {
         console.error(err);
     }

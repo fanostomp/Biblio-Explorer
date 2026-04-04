@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from db import get_db_connection, execute_query
 import re
 
@@ -127,6 +127,7 @@ def search_journals():
     quartile = request.args.get('quartile', '').strip()
     area_id = request.args.get('subject_area', '').strip()
     publisher = request.args.get('publisher', '').strip()
+    with_dblp_coverage = request.args.get('with_dblp_coverage', '').strip().lower() in {'1', 'true', 'yes', 'on'}
     page = max(request.args.get('page', default=1, type=int), 1)
     per_page = min(max(request.args.get('per_page', default=10, type=int), 1), 100)
     offset = (page - 1) * per_page
@@ -148,36 +149,51 @@ def search_journals():
             })
             
         if len(safe_q) <= 3:
-            where_clauses.append("title LIKE %s")
+            where_clauses.append("j.title LIKE %s")
             params.append(f"%{safe_q}%")
         else:
-            where_clauses.append("MATCH(title) AGAINST(%s IN BOOLEAN MODE)")
+            where_clauses.append("MATCH(j.title) AGAINST(%s IN BOOLEAN MODE)")
             terms = [f"+{term}*" for term in safe_q.split() if term]
             params.append(" ".join(terms))
     
     if quartile:
-        where_clauses.append("best_quartile = %s")
+        where_clauses.append("j.best_quartile = %s")
         params.append(quartile)
     if area_id:
-        where_clauses.append("best_subject_area = %s")
+        where_clauses.append("j.best_subject_area = %s")
         params.append(area_id)
     if publisher:
-        where_clauses.append("publisher LIKE %s")
+        where_clauses.append("j.publisher LIKE %s")
         params.append(f"%{publisher}%")
+    if with_dblp_coverage:
+        where_clauses.append("EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id)")
 
     # SAFETY: where_sql is built entirely from hardcoded column names;
     # all user-supplied values go through parameterized %s placeholders.
     where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+    from_sql = "FROM journals j"
 
     conn = get_db_connection()
     try:
         # Get total for pagination
-        count_sql = f"SELECT COUNT(*) as total FROM journals{where_sql}"
+        count_sql = f"SELECT COUNT(*) as total {from_sql}{where_sql}"
         count_res = execute_query(conn, count_sql, tuple(params), fetchone=True)
         total_records = count_res['total'] if count_res else 0
 
         # Get results
-        query_sql = f"SELECT journal_id, title, publisher, best_quartile, sjr_index FROM journals{where_sql} ORDER BY title LIMIT %s OFFSET %s"
+        query_sql = f"""
+            SELECT
+                j.journal_id,
+                j.title,
+                j.publisher,
+                j.best_quartile,
+                j.sjr_index,
+                EXISTS (SELECT 1 FROM papers p WHERE p.journal_id = j.journal_id) AS has_dblp_coverage
+            {from_sql}
+            {where_sql}
+            ORDER BY has_dblp_coverage DESC, j.title ASC
+            LIMIT %s OFFSET %s
+        """
         results = execute_query(conn, query_sql, tuple(params + [per_page, offset]))
 
         return jsonify({
@@ -191,5 +207,29 @@ def search_journals():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+
+@journals_bp.route('/<int:journal_id>/top_authors', methods=['GET'])
+def get_top_authors(journal_id):
+    limit = min(max(request.args.get('limit', default=10, type=int), 1), 100)
+    conn = get_db_connection()
+    try:
+        query = """
+            SELECT a.author_id, a.name, COUNT(pa.paper_id) as paper_count
+            FROM authors a
+            JOIN paper_authors pa ON a.author_id = pa.author_id
+            JOIN papers p ON pa.paper_id = p.paper_id
+            WHERE p.journal_id = %s
+            GROUP BY a.author_id, a.name
+            ORDER BY paper_count DESC
+            LIMIT %s
+        """
+        results = execute_query(conn, query, (journal_id, limit))
+        return jsonify(results)
+    except Exception as e:
+        current_app.logger.exception("Failed to fetch top authors for journal_id=%s", journal_id)
+        return jsonify({'error': 'Internal server error'}), 500
     finally:
         conn.close()
