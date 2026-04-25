@@ -210,15 +210,62 @@ svg {
     max-width: min(1120px, 100%);
 }
 
+.paper-search-section {
+    max-width: min(1180px, 100%);
+}
+
 .conference-title-search,
 .journal-title-search {
     position: relative;
     flex: 1 1 100%;
 }
 
+/* M-5: papers title search stays on the same row as the other filters */
+.paper-title-search {
+    position: relative;
+    flex: 2 1 200px;
+}
+
 .conference-title-search #conferenceSearch,
-.journal-title-search #journalSearch {
+.journal-title-search #journalSearch,
+.paper-title-search #paperSearch {
     width: 100%;
+}
+
+/* M-5: papers-page utility classes */
+.paper-venue-select  { min-width: 170px; }
+.paper-year-input    { width: 110px; }
+
+.papers-page-heading {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 1.2rem 0;
+    color: var(--text-color);
+}
+
+.papers-empty-hint {
+    text-align: center;
+    padding: 3rem 1rem;
+    margin-top: 1.5rem;
+}
+
+.papers-empty-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+}
+
+/* L-1: EE / DBLP link styling used in papers table */
+.table-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--accent-color);
+    text-decoration: none;
+    margin-right: 0.3rem;
+}
+
+.table-link:hover {
+    text-decoration: underline;
 }
 
 .search-section input {
@@ -879,7 +926,8 @@ tr:hover td {
 }
 
 .conference-search-results,
-.journal-search-results {
+.journal-search-results,
+.paper-search-results {
     width: 100%;
 }
 
@@ -943,8 +991,14 @@ tr:hover td {
 }
 
 .conference-results-table td:nth-child(2),
-.journal-results-table td:first-child {
+.journal-results-table td:first-child,
+.paper-results-table td:nth-child(2) {
     min-width: 260px;
+}
+
+.paper-results-table th,
+.paper-results-table td {
+    vertical-align: middle;
 }
 
 .btn.small {

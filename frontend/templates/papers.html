@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Papers Search — BiblioExplorer{% endblock %}
+{% block content %}
+
+<div class="profile-header">
+    <div class="search-section full-width paper-search-section">
+
+        <!-- L-2: page heading for SEO / accessibility -->
+        <h1 class="papers-page-heading">Search Papers &amp; Articles</h1>
+
+        <div class="filter-bar" id="paperFilterBar">
+            <!-- M-5: no inline flex/position — handled by .paper-title-search in CSS -->
+            <div class="paper-title-search">
+                <input type="text" id="paperSearch"
+                       placeholder="Search by paper / article title…"
+                       autocomplete="off">
+            </div>
+
+            <!-- M-5: width handled by .paper-venue-select in CSS -->
+            <select id="filterVenueType" class="paper-venue-select">
+                <option value="">All Venues</option>
+                <option value="conference">Conferences only</option>
+                <option value="journal">Journals only</option>
+            </select>
+
+            <!-- M-5: width handled by .paper-year-input in CSS -->
+            <input type="number" id="paperStartYear" placeholder="From year"
+                   min="1950" class="paper-year-input">
+            <input type="number" id="paperEndYear" placeholder="To year"
+                   min="1950" class="paper-year-input">
+
+            <button id="paperSearchBtn" class="btn">Search</button>
+            <button id="paperClearBtn"  class="btn secondary-btn">Clear</button>
+        </div>
+
+        <!-- Results panel -->
+        <div id="paperResults" class="search-results-container paper-search-results" style="display: none;">
+            <div class="results-header">
+                <h3>Results</h3>
+                <span id="paperResultsCount" class="text-muted"></span>
+            </div>
+
+            <div class="table-responsive">
+                <table id="paperResultsTable" class="interactive-table paper-results-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">Year</th>
+                            <th>Title</th>
+                            <th style="width: 110px;">Venue Type</th>
+                            <th>Venue</th>
+                            <th style="width: 70px;">Pages</th>
+                            <th style="width: 90px;">Links</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="paperPagination" class="pagination-controls">
+                <button id="paperPrevPage" class="btn secondary-btn" disabled>Previous</button>
+                <span id="paperPageInfo">Page 1 of 1</span>
+                <button id="paperNextPage" class="btn secondary-btn" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Empty-state hint -->
+        <div id="paperEmptyHint" class="chart-container papers-empty-hint">
+            <p class="papers-empty-icon">🔍</p>
+            <p class="text-muted">
+                Type a keyword to search across all conference papers and journal articles.
+            </p>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
