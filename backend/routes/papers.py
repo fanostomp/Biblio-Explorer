@@ -29,6 +29,15 @@ def search_papers():
     per_page = min(max(request.args.get('per_page', default=15, type=int), 1), 100)
     offset   = (page - 1) * per_page
 
+    if not any([q, venue_type, start_year, end_year]):
+        return jsonify({
+            'results': [],
+            'pagination': {
+                'page': page, 'per_page': per_page,
+                'total_records': 0, 'total_pages': 0
+            }
+        })
+
     where_clauses = []
     params        = []
 
@@ -53,9 +62,9 @@ def search_papers():
 
     # --- Venue-type filter ---
     if venue_type == 'conference':
-        where_clauses.append("p.conf_id IS NOT NULL")
+        where_clauses.append("p.type = 'conference'")
     elif venue_type == 'journal':
-        where_clauses.append("p.journal_id IS NOT NULL")
+        where_clauses.append("p.type = 'journal'")
 
     # --- Year range filter ---
     if start_year:
@@ -85,11 +94,7 @@ def search_papers():
                 p.url,
                 p.volume,
                 p.number,
-                CASE
-                    WHEN p.conf_id    IS NOT NULL THEN 'conference'
-                    WHEN p.journal_id IS NOT NULL THEN 'journal'
-                    ELSE 'unknown'
-                END AS venue_type,
+                p.type AS venue_type,
                 COALESCE(c.acronym, c.title, j.title) AS venue_name,
                 c.conf_id    AS conf_id,
                 j.journal_id AS journal_id
@@ -97,7 +102,7 @@ def search_papers():
             LEFT JOIN conferences c ON p.conf_id    = c.conf_id
             LEFT JOIN journals    j ON p.journal_id = j.journal_id
             {where_sql}
-            ORDER BY p.year DESC, p.title ASC
+            ORDER BY p.year DESC, p.title ASC, p.paper_id ASC
             LIMIT %s OFFSET %s
         """
         results = execute_query(conn, query_sql, tuple(params + [per_page, offset]))

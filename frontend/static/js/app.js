@@ -1807,8 +1807,16 @@ function renderPaperResults(data) {
         // Venue-type badge
         const tdType    = document.createElement('td');
         const typeBadge = document.createElement('span');
-        typeBadge.className   = 'badge ' + (p.venue_type === 'conference' ? 'rank-badge' : 'coverage-badge coverage-badge-covered');
-        typeBadge.textContent = p.venue_type === 'conference' ? 'Conference' : 'Journal';
+        if (p.venue_type === 'conference') {
+            typeBadge.className = 'badge rank-badge';
+            typeBadge.textContent = 'Conference';
+        } else if (p.venue_type === 'journal') {
+            typeBadge.className = 'badge coverage-badge coverage-badge-covered';
+            typeBadge.textContent = 'Journal';
+        } else {
+            typeBadge.className = 'badge';
+            typeBadge.textContent = 'Unknown';
+        }
         tdType.appendChild(typeBadge);
 
         // Venue name — clickable deep-link to the profile page
