@@ -12,6 +12,7 @@ from routes.journals import journals_bp
 from routes.authors import authors_bp
 from routes.years import years_bp
 from routes.charts import charts_bp, stats_bp
+from routes.papers import papers_bp
 
 def create_app():
     # Point Flask to our structured frontend/ folders
@@ -38,6 +39,7 @@ def create_app():
     app.register_blueprint(years_bp, url_prefix='/api/year')
     app.register_blueprint(charts_bp, url_prefix='/api/charts')
     app.register_blueprint(stats_bp, url_prefix='/api/stats')
+    app.register_blueprint(papers_bp, url_prefix='/api/paper')
 
     # Frontend routes
     @app.route('/')
@@ -67,6 +69,10 @@ def create_app():
     @app.route('/trends')
     def trends_page():
         return render_template('trends.html')
+
+    @app.route('/papers')
+    def papers_page():
+        return render_template('papers.html')
 
     @app.route('/health')
     def health():

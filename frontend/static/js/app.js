@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (path === '/year') initYearPage();
     if (path === '/charts') initChartsPage();
     if (path === '/trends') initTrendsPage();
+    if (path === '/papers') initPapersPage();
     
     // Dashboard real chart on index page
     if (path === '/' && document.getElementById('chart')) {
@@ -377,6 +378,13 @@ function initConferencePage() {
         yearlyStatsStateKey: 'conferenceYearlyStats',
         loadPapersFn: loadConferencePapers
     });
+
+    // Deep-link: auto-open a conference profile when navigated from Papers page
+    const autoConfId = sessionStorage.getItem('autoLoadConf');
+    if (autoConfId) {
+        sessionStorage.removeItem('autoLoadConf');
+        loadConferenceProfile(Number(autoConfId));
+    }
 }
 
 async function loadSearchLookups(type) {
@@ -792,6 +800,13 @@ function initJournalPage() {
         yearlyStatsStateKey: 'journalYearlyStats',
         loadPapersFn: loadJournalPapers
     });
+
+    // Deep-link: auto-open a journal profile when navigated from Papers page
+    const autoJournalId = sessionStorage.getItem('autoLoadJournal');
+    if (autoJournalId) {
+        sessionStorage.removeItem('autoLoadJournal');
+        loadJournalProfile(Number(autoJournalId));
+    }
 }
 
 async function loadJournalProfile(id) {
@@ -1630,9 +1645,233 @@ async function loadCategoryChartData() {
    window.drawMultiLineChart('#categoryTrendsChart', multiSeriesData, 'year', 'count');
    // Papers chart
    window.drawMultiLineChart('#categoryPapersChart', multiSeriesData, 'year', 'papers');
-  }
+ }
  } catch (err) {
   console.error('Failed to load category chart data:', err);
   if (spinner) spinner.style.display = 'none';
  }
 }
+
+// ==========================================
+// PAPERS SEARCH PAGE
+// ==========================================
+
+// M-1: page + totalPages stored together; both reset on every init call
+const paperState = { page: 1, totalPages: 1 };
+
+// L-3: DOM refs cached once during init — never re-queried per search call
+const paperEls = {};
+
+function initPapersPage() {
+    // M-1: reset on every init so stale page from a previous visit can't linger
+    paperState.page       = 1;
+    paperState.totalPages = 1;
+
+    // L-3: populate cache once
+    paperEls.input     = document.getElementById('paperSearch');
+    paperEls.venueType = document.getElementById('filterVenueType');
+    paperEls.startYear = document.getElementById('paperStartYear');
+    paperEls.endYear   = document.getElementById('paperEndYear');
+    paperEls.prevBtn   = document.getElementById('paperPrevPage');
+    paperEls.nextBtn   = document.getElementById('paperNextPage');
+    paperEls.results   = document.getElementById('paperResults');
+    paperEls.hint      = document.getElementById('paperEmptyHint');
+    paperEls.tbody     = document.querySelector('#paperResultsTable tbody');
+    paperEls.countEl   = document.getElementById('paperResultsCount');
+    paperEls.pageInfo  = document.getElementById('paperPageInfo');
+
+    const runSearch = () => {
+        paperState.page = 1;
+        executePaperSearch();
+    };
+
+    const searchBtn = document.getElementById('paperSearchBtn');
+    const clearBtn  = document.getElementById('paperClearBtn');
+
+    if (searchBtn)          searchBtn.addEventListener('click', runSearch);
+    if (paperEls.input)     paperEls.input.addEventListener('keyup', (e) => { if (e.key === 'Enter') runSearch(); });
+    if (paperEls.venueType) paperEls.venueType.addEventListener('change', runSearch);
+    if (paperEls.startYear) paperEls.startYear.addEventListener('change', runSearch);
+    if (paperEls.endYear)   paperEls.endYear.addEventListener('change', runSearch);
+
+    // Debounced live search on title input
+    const debouncedSearch = debounce(runSearch, 300);
+    if (paperEls.input) paperEls.input.addEventListener('input', debouncedSearch);
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (paperEls.input)     paperEls.input.value     = '';
+            if (paperEls.venueType) paperEls.venueType.value = '';
+            if (paperEls.startYear) paperEls.startYear.value = '';
+            if (paperEls.endYear)   paperEls.endYear.value   = '';
+            paperState.page       = 1;
+            paperState.totalPages = 1;
+            if (paperEls.results) paperEls.results.style.display = 'none';
+            if (paperEls.hint)    paperEls.hint.style.display    = 'block';
+        });
+    }
+
+    if (paperEls.prevBtn) {
+        paperEls.prevBtn.addEventListener('click', () => {
+            if (paperState.page > 1) {
+                paperState.page--;
+                executePaperSearch();
+            }
+        });
+    }
+    if (paperEls.nextBtn) {
+        // H-3: guard against over-increment — compare against stored totalPages
+        paperEls.nextBtn.addEventListener('click', () => {
+            if (paperState.page < paperState.totalPages) {
+                paperState.page++;
+                executePaperSearch();
+            }
+        });
+    }
+}
+
+async function executePaperSearch() {
+    // L-3: read from cached refs — no getElementById calls here
+    const q  = paperEls.input     ? paperEls.input.value.trim() : '';
+    const vt = paperEls.venueType ? paperEls.venueType.value    : '';
+    const sy = paperEls.startYear ? paperEls.startYear.value    : '';
+    const ey = paperEls.endYear   ? paperEls.endYear.value      : '';
+
+    // Require at least one filter
+    if (!q && !vt && !sy && !ey) {
+        if (paperEls.results) paperEls.results.style.display = 'none';
+        if (paperEls.hint)    paperEls.hint.style.display    = 'block';
+        return;
+    }
+
+    let url = `/api/paper/search?page=${paperState.page}&per_page=15`;
+    if (q)  url += `&q=${encodeURIComponent(q)}`;
+    if (vt) url += `&venue_type=${encodeURIComponent(vt)}`;
+    if (sy) url += `&start_year=${encodeURIComponent(sy)}`;
+    if (ey) url += `&end_year=${encodeURIComponent(ey)}`;
+
+    if (paperEls.hint)    paperEls.hint.style.display    = 'none';
+    if (paperEls.results) paperEls.results.style.display = 'block';
+    showSpinner('paperResults');
+
+    try {
+        const res  = await fetch(url);
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+        const data = await res.json();
+        renderPaperResults(data);
+    } catch (err) {
+        console.error('Paper search failed:', err);
+        // M-2: show user-visible error row instead of silent failure
+        if (paperEls.tbody) {
+            paperEls.tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#f87171;">Search failed. Please try again.</td></tr>';
+        }
+        if (paperEls.countEl)  paperEls.countEl.textContent  = '';
+        if (paperEls.pageInfo) paperEls.pageInfo.textContent = '';
+    } finally {
+        hideSpinner('paperResults');
+    }
+}
+
+function renderPaperResults(data) {
+    if (!paperEls.tbody) return;
+
+    const results = data.results    || [];
+    const pag     = data.pagination || {};
+
+    // H-3: store totalPages so nextBtn guard in initPapersPage can read it
+    paperState.totalPages = pag.total_pages || 1;
+
+    paperEls.tbody.innerHTML = '';
+    if (paperEls.countEl)  paperEls.countEl.textContent  = `Found ${(pag.total_records || 0).toLocaleString()} paper${pag.total_records !== 1 ? 's' : ''}`;
+    if (paperEls.pageInfo) paperEls.pageInfo.textContent = `Page ${pag.page || 1} of ${pag.total_pages || 1}`;
+    if (paperEls.prevBtn)  paperEls.prevBtn.disabled     = (pag.page || 1) <= 1;
+    if (paperEls.nextBtn)  paperEls.nextBtn.disabled     = (pag.page || 1) >= (pag.total_pages || 1);
+
+    if (results.length === 0) {
+        paperEls.tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">No papers found for this query.</td></tr>';
+        return;
+    }
+
+    results.forEach(p => {
+        const tr = document.createElement('tr');
+
+        // Year
+        const tdYear = document.createElement('td');
+        tdYear.textContent = p.year || '-';
+
+        // Title
+        const tdTitle = document.createElement('td');
+        tdTitle.style.fontWeight = '500';
+        tdTitle.textContent = p.title || '-';
+
+        // Venue-type badge
+        const tdType    = document.createElement('td');
+        const typeBadge = document.createElement('span');
+        typeBadge.className   = 'badge ' + (p.venue_type === 'conference' ? 'rank-badge' : 'coverage-badge coverage-badge-covered');
+        typeBadge.textContent = p.venue_type === 'conference' ? 'Conference' : 'Journal';
+        tdType.appendChild(typeBadge);
+
+        // Venue name — clickable deep-link to the profile page
+        const tdVenue = document.createElement('td');
+        if (p.venue_name) {
+            const a = document.createElement('a');
+            a.textContent = p.venue_name;
+            a.style.cursor = 'pointer';
+            a.style.color  = 'var(--accent-color)';
+            if (p.venue_type === 'conference' && p.conf_id) {
+                a.href = '/conference';
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    sessionStorage.setItem('autoLoadConf', p.conf_id);
+                    window.location.href = '/conference';
+                });
+            } else if (p.venue_type === 'journal' && p.journal_id) {
+                a.href = '/journal';
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    sessionStorage.setItem('autoLoadJournal', p.journal_id);
+                    window.location.href = '/journal';
+                });
+            } else {
+                a.removeAttribute('href');
+            }
+            tdVenue.appendChild(a);
+        } else {
+            tdVenue.textContent = '-';
+        }
+
+        // Pages
+        const tdPages = document.createElement('td');
+        tdPages.textContent = p.pages || '-';
+
+        // Links  (L-1: .table-link now has matching CSS rule)
+        const tdLinks = document.createElement('td');
+        if (p.ee) {
+            const a    = document.createElement('a');
+            a.href     = p.ee;
+            a.target   = '_blank';
+            a.rel      = 'noopener noreferrer';
+            a.textContent = 'EE';
+            a.className   = 'table-link';
+            tdLinks.appendChild(a);
+        }
+        if (p.url) {
+            const dblpUrl = p.url.startsWith('http://') || p.url.startsWith('https://')
+                ? p.url
+                : `https://dblp.org/${p.url.replace(/^\/+/, '')}`;
+            const a    = document.createElement('a');
+            a.href     = dblpUrl;
+            a.target   = '_blank';
+            a.rel      = 'noopener noreferrer';
+            a.textContent = 'DBLP';
+            a.className   = 'table-link';
+            if (tdLinks.hasChildNodes()) tdLinks.appendChild(document.createTextNode(' '));
+            tdLinks.appendChild(a);
+        }
+        if (!p.ee && !p.url) tdLinks.textContent = '-';
+
+        tr.append(tdYear, tdTitle, tdType, tdVenue, tdPages, tdLinks);
+        paperEls.tbody.appendChild(tr);
+    });
+}
+
