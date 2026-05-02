@@ -2,15 +2,15 @@ import os
 from flask import Flask, jsonify, render_template
 from flask_caching import Cache
 if __package__:
-    from .config import DB_CONFIG, CACHE_CONFIG, FLASK_DEBUG
-    from .db import get_db_connection, init_pool
-    from .extensions import cache
-    from .routes.conferences import conferences_bp
-    from .routes.journals import journals_bp
-    from .routes.authors import authors_bp
-    from .routes.years import years_bp
-    from .routes.charts import charts_bp, stats_bp
-    from .routes.papers import papers_bp
+    from backend.config import DB_CONFIG, CACHE_CONFIG, FLASK_DEBUG
+    from backend.db import get_db_connection, init_pool
+    from backend.extensions import cache
+    from backend.routes.conferences import conferences_bp
+    from backend.routes.journals import journals_bp
+    from backend.routes.authors import authors_bp
+    from backend.routes.years import years_bp
+    from backend.routes.charts import charts_bp, stats_bp
+    from backend.routes.papers import papers_bp
 else:
     from config import DB_CONFIG, CACHE_CONFIG, FLASK_DEBUG
     from db import get_db_connection, init_pool

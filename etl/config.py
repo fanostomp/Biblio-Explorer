@@ -1,14 +1,17 @@
 import os
-import importlib.util
+import sys
 from pathlib import Path
 
-_ROOT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.py"
-_spec = importlib.util.spec_from_file_location("project_root_config", _ROOT_CONFIG_PATH)
-_root_config = importlib.util.module_from_spec(_spec)
-assert _spec.loader is not None
-_spec.loader.exec_module(_root_config)
+try:
+    from project_config import DB_CONFIG as ROOT_DB_CONFIG
+except ModuleNotFoundError:
+    ROOT_DIR = Path(__file__).resolve().parent.parent
+    root_path = str(ROOT_DIR)
+    if root_path not in sys.path:
+        sys.path.insert(0, root_path)
+    from project_config import DB_CONFIG as ROOT_DB_CONFIG
 
-DB_CONFIG = dict(_root_config.DB_CONFIG)
+DB_CONFIG = dict(ROOT_DB_CONFIG)
 DB_CONFIG["charset"] = "utf8mb4"
 # Absolute paths to source data files
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")

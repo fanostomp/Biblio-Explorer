@@ -1,14 +1,14 @@
-import importlib.util
+import sys
 from pathlib import Path
 
-_ROOT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.py"
-_spec = importlib.util.spec_from_file_location("project_root_config", _ROOT_CONFIG_PATH)
-_root_config = importlib.util.module_from_spec(_spec)
-assert _spec.loader is not None
-_spec.loader.exec_module(_root_config)
-
-DB_CONFIG = _root_config.DB_CONFIG
-FLASK_DEBUG = _root_config.FLASK_DEBUG
+try:
+    from project_config import DB_CONFIG, FLASK_DEBUG
+except ModuleNotFoundError:
+    ROOT_DIR = Path(__file__).resolve().parent.parent
+    root_path = str(ROOT_DIR)
+    if root_path not in sys.path:
+        sys.path.insert(0, root_path)
+    from project_config import DB_CONFIG, FLASK_DEBUG
 
 CACHE_CONFIG = {
     "DEBUG": True,          # some Flask-Caching versions use this
