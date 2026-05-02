@@ -1,6 +1,11 @@
 from flask import Blueprint, jsonify, request
-from db import get_db_connection, execute_query
-from extensions import cache
+
+if __package__ and __package__.startswith("backend."):
+    from ..db import get_db_connection, execute_query
+    from ..extensions import cache
+else:
+    from db import get_db_connection, execute_query
+    from extensions import cache
 
 charts_bp = Blueprint('charts', __name__)
 stats_bp = Blueprint('stats', __name__)

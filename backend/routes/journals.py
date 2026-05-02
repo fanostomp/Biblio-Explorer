@@ -1,6 +1,10 @@
 from flask import Blueprint, current_app, jsonify, request
-from db import get_db_connection, execute_query
 import re
+
+if __package__ and __package__.startswith("backend."):
+    from ..db import get_db_connection, execute_query
+else:
+    from db import get_db_connection, execute_query
 
 journals_bp = Blueprint('journals', __name__)
 

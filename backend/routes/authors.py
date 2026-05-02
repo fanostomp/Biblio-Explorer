@@ -1,6 +1,10 @@
 from flask import Blueprint, jsonify, request
-from db import get_db_connection, execute_query
 import re
+
+if __package__ and __package__.startswith("backend."):
+    from ..db import get_db_connection, execute_query
+else:
+    from db import get_db_connection, execute_query
 
 authors_bp = Blueprint('authors', __name__)
 

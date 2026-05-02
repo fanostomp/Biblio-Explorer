@@ -3,3 +3,4 @@ openpyxl>=3.1.2
 flask>=3.0.0
 flask-caching>=2.1.0
 pytest>=8.0.0
+python-dotenv>=1.0.1

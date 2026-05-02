@@ -1,16 +1,15 @@
 import os
+import importlib.util
+from pathlib import Path
 
-# ETL Configuration
-# Edit DB_PASSWORD before running any ETL scripts.
+_ROOT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.py"
+_spec = importlib.util.spec_from_file_location("project_root_config", _ROOT_CONFIG_PATH)
+_root_config = importlib.util.module_from_spec(_spec)
+assert _spec.loader is not None
+_spec.loader.exec_module(_root_config)
 
-DB_CONFIG = {
-    "host":     "localhost",
-    "port":     3307,
-    "user":     "root",
-    "password": "",
-    "database": "biblio_db",
-    "charset":  "utf8mb4",
-}
+DB_CONFIG = dict(_root_config.DB_CONFIG)
+DB_CONFIG["charset"] = "utf8mb4"
 # Absolute paths to source data files
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 

@@ -1,6 +1,10 @@
 from flask import Blueprint, jsonify, request
-from db import get_db_connection, execute_query
 import re
+
+if __package__ and __package__.startswith("backend."):
+    from ..db import get_db_connection, execute_query
+else:
+    from db import get_db_connection, execute_query
 
 conferences_bp = Blueprint('conferences', __name__)
 

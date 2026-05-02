@@ -1,18 +1,26 @@
 import os
 from flask import Flask, jsonify, render_template
 from flask_caching import Cache
-from config import DB_CONFIG, CACHE_CONFIG
-from db import get_db_connection, init_pool
-
-from extensions import cache
-
-# Import blueprints
-from routes.conferences import conferences_bp
-from routes.journals import journals_bp
-from routes.authors import authors_bp
-from routes.years import years_bp
-from routes.charts import charts_bp, stats_bp
-from routes.papers import papers_bp
+if __package__:
+    from .config import DB_CONFIG, CACHE_CONFIG, FLASK_DEBUG
+    from .db import get_db_connection, init_pool
+    from .extensions import cache
+    from .routes.conferences import conferences_bp
+    from .routes.journals import journals_bp
+    from .routes.authors import authors_bp
+    from .routes.years import years_bp
+    from .routes.charts import charts_bp, stats_bp
+    from .routes.papers import papers_bp
+else:
+    from config import DB_CONFIG, CACHE_CONFIG, FLASK_DEBUG
+    from db import get_db_connection, init_pool
+    from extensions import cache
+    from routes.conferences import conferences_bp
+    from routes.journals import journals_bp
+    from routes.authors import authors_bp
+    from routes.years import years_bp
+    from routes.charts import charts_bp, stats_bp
+    from routes.papers import papers_bp
 
 def create_app():
     # Point Flask to our structured frontend/ folders
@@ -95,4 +103,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(debug=FLASK_DEBUG, port=5000)
