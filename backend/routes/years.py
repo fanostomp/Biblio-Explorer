@@ -1,5 +1,9 @@
 from flask import Blueprint, jsonify, request
-from db import get_db_connection, execute_query
+
+if __package__ and __package__.startswith("backend."):
+    from ..db import get_db_connection, execute_query
+else:
+    from db import get_db_connection, execute_query
 
 years_bp = Blueprint('years', __name__)
 

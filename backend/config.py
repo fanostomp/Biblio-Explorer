@@ -1,12 +1,14 @@
-import os
+import sys
+from pathlib import Path
 
-DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'localhost'),
-    'port': int(os.environ.get('DB_PORT', 3307)),
-    'user': os.environ.get('DB_USER', 'root'),
-    'password': os.environ.get('DB_PASSWORD', ''),
-    'database': os.environ.get('DB_NAME', 'biblio_db')
-}
+try:
+    from project_config import DB_CONFIG, FLASK_DEBUG
+except ModuleNotFoundError:
+    ROOT_DIR = Path(__file__).resolve().parent.parent
+    root_path = str(ROOT_DIR)
+    if root_path not in sys.path:
+        sys.path.insert(0, root_path)
+    from project_config import DB_CONFIG, FLASK_DEBUG
 
 CACHE_CONFIG = {
     "DEBUG": True,          # some Flask-Caching versions use this

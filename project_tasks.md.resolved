@@ -499,8 +499,8 @@ Repo cleanup task. In the current repo state, one-off diagnostic scripts were al
 DB config is duplicated in [backend/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/config.py) and [etl/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py). Should have a single source of truth.
 
 ### Acceptance Criteria
-- [ ] Install `python-dotenv`, add to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
-- [ ] Create `.env.example` in project root:
+- [x] Install `python-dotenv`, add to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
+- [x] Create `.env.example` in project root:
 ```env
 DB_HOST=localhost
 DB_PORT=3307
@@ -509,9 +509,9 @@ DB_PASSWORD=
 DB_NAME=biblio_db
 FLASK_DEBUG=true
 ```
-- [ ] Create shared [config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py) in project root that both `backend/` and `etl/` import
-- [ ] Or: make [etl/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py) import from [backend/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/config.py) via relative path
-- [ ] Verify ETL scripts and Flask app both work with the unified config
+- [x] Create shared [config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/config.py) in project root that both `backend/` and `etl/` import
+- [x] Or: make [etl/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/etl/config.py) import from [backend/config.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/config.py) via relative path
+- [x] Verify ETL scripts and Flask app both work with the unified config
 
 ---
 
@@ -658,7 +658,7 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ✅ Done |
 | C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ✅ Done |
 | C-03 | Repo Cleanup | 🟠 C | 🔴 P0 | 2h | ✅ Done |
-| C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
+| C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ✅ Done |
 | C-05 | Logging Framework | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
 | C-06 | Report & Deliverables | 🟠 C | 🔴 P0 | 6h | ⬜ Not Started |
 | C-07 | Journal Matching Curation Pass | 🟠 C | 🟡 P1 | 4h | ✅ Done |
