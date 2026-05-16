@@ -21,6 +21,7 @@ Run AFTER: 02, 03, 04, 05, 06
 Run: python 07_load_papers.py
 """
 
+import logging
 import csv
 import os
 import sys
@@ -29,6 +30,8 @@ import mysql.connector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG
+
+logger = logging.getLogger(__name__)
 
 CLEANED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "cleaned")
 MATCHED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "matched")
@@ -46,7 +49,7 @@ def load_mapping(path, key_col, val_col):
     """Load a CSV mapping into a dict. val is int or None."""
     mapping = {}
     if not os.path.exists(path):
-        print(f"  WARNING: mapping file not found: {path}")
+        logger.warning(f"  WARNING: mapping file not found: {path}")
         return mapping
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -236,7 +239,7 @@ def process_papers(
             if len(paper_rows) >= BATCH:
                 _flush_papers(cur, conn, paper_rows)
                 processed += len(paper_rows)
-                print(f"  [{paper_type}] {processed:,} processed...", flush=True)
+                logger.info(f"  [{paper_type}] {processed:,} processed...")
                 paper_rows = []
 
     if paper_rows:
@@ -245,13 +248,13 @@ def process_papers(
 
     cur.execute("SELECT COUNT(*) FROM papers WHERE type = %s", (paper_type,))
     current_total = cur.fetchone()[0]
-    print(
+    logger.info(
         f"  [{paper_type}] papers done: {processed:,} processed, "
         f"{skipped:,} skipped, {current_total:,} rows now present, "
         f"{matched_venue_rows:,} venue-matched, {unmatched_venue_rows:,} venue-unmatched"
     )
 
-    print(f"  [{paper_type}] fetching IDs to build author mapping...")
+    logger.info(f"  [{paper_type}] fetching IDs to build author mapping...")
     cur.execute(
         "SELECT raw_id, paper_id FROM papers WHERE type = %s AND raw_id IS NOT NULL",
         (paper_type,),
@@ -286,14 +289,14 @@ def process_papers(
                 conn.commit()
                 auth_written += len(auth_rows)
                 auth_rows = []
-                print(f"  [{paper_type}] {auth_written:,} author links written...", flush=True)
+                logger.info(f"  [{paper_type}] {auth_written:,} author links written...")
 
     if auth_rows:
         insert_authors_batch(cur, auth_rows)
         conn.commit()
         auth_written += len(auth_rows)
 
-    print(f"  [{paper_type}] author links done: {auth_written:,}")
+    logger.info(f"  [{paper_type}] author links done: {auth_written:,}")
     cur.close()
 
 
@@ -303,13 +306,20 @@ def _flush_papers(cur, conn, rows):
     conn.commit()
 
 
+LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+
+def configure_logging(level=logging.INFO):
+    logging.basicConfig(level=level, format=LOG_FORMAT)
+
+
 def main():
     conn = mysql.connector.connect(**DB_CONFIG)
     conn.autocommit = False
 
     validate_paper_identity_guard(conn)
 
-    print("Loading venue mappings...")
+    logger.info("Loading venue mappings...")
     conf_map = load_mapping(CONF_MAP_CSV, "booktitle", "conf_id")
     journal_map = load_mapping(JOUR_MAP_CSV, "dblp_journal_name", "journal_id")
     if not conf_map:
@@ -325,11 +335,11 @@ def main():
             "or verify that journal_name_to_id.csv exists and is non-empty."
         )
 
-    print("Loading author name->id map...")
+    logger.info("Loading author name->id map...")
     author_map = load_author_map(conn)
-    print(f"  {len(author_map):,} authors in DB")
+    logger.info(f"  {len(author_map):,} authors in DB")
 
-    print("\nLoading conference papers...")
+    logger.info("\nLoading conference papers...")
     process_papers(
         conn,
         INPROC_CSV,
@@ -340,7 +350,7 @@ def main():
         author_name_to_id=author_map,
     )
 
-    print("\nLoading journal articles...")
+    logger.info("\nLoading journal articles...")
     process_papers(
         conn,
         ARTICLES_CSV,
@@ -352,8 +362,9 @@ def main():
     )
 
     conn.close()
-    print("\nAll papers and author links loaded.")
+    logger.info("\nAll papers and author links loaded.")
 
 
 if __name__ == "__main__":
+    configure_logging()
     main()

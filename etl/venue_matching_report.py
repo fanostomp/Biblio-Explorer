@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import argparse
 import csv
 import os
@@ -14,6 +15,8 @@ import mysql.connector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG
+
+logger = logging.getLogger(__name__)
 from venue_matching import classify_match_stage, compute_mapping_metrics, detect_dblp_csv_inputs
 
 
@@ -885,12 +888,20 @@ def render_report(args) -> str:
     return "\n".join(lines)
 
 
+LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+
+def configure_logging(level=logging.INFO):
+    logging.basicConfig(level=level, format=LOG_FORMAT)
+
+
 def main():
     args = parse_args()
     report = render_report(args)
     args.output.write_text(report, encoding="utf-8")
-    print(f"Wrote {args.output}")
+    logger.info(f"Wrote {args.output}")
 
 
 if __name__ == "__main__":
+    configure_logging()
     main()

@@ -9,6 +9,7 @@ cleans it, and writes two output files ready for loading:
 Run: python 03_clean_articles.py
 """
 
+import logging
 import csv
 import os
 import sys
@@ -16,6 +17,8 @@ import re
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import ARTICLES_CSV
+
+logger = logging.getLogger(__name__)
 
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "cleaned")
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -39,6 +42,13 @@ def split_authors(author_str):
     if not author_str:
         return []
     return [a.strip() for a in author_str.split("|") if a.strip()]
+
+LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+
+def configure_logging(level=logging.INFO):
+    logging.basicConfig(level=level, format=LOG_FORMAT)
+
 
 def main():
     skipped = 0
@@ -89,12 +99,13 @@ def main():
 
             written += 1
             if written % 50_000 == 0:
-                print(f"  [articles] {written:,} rows processed...", flush=True)
+                logger.info(f"  [articles] {written:,} rows processed...")
 
-    print(f"\nDone. Written: {written:,} | Skipped: {skipped:,}")
-    print(f"Output: {OUT_PAPERS}")
-    print(f"Output: {OUT_AUTHORS}")
+    logger.info(f"\nDone. Written: {written:,} | Skipped: {skipped:,}")
+    logger.info(f"Output: {OUT_PAPERS}")
+    logger.info(f"Output: {OUT_AUTHORS}")
 
 if __name__ == "__main__":
-    print("Cleaning articles (journal papers)...")
+    configure_logging()
+    logger.info("Cleaning articles (journal papers)...")
     main()

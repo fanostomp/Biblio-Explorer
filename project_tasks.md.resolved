@@ -372,10 +372,10 @@ Two issues:
 **Branch:** `feat/security-hardening`
 
 ### Acceptance Criteria
-- [ ] Install `Flask-Limiter` and add to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
-- [ ] Apply rate limits: `30/minute` on search endpoints, `100/minute` globally
-- [ ] Change `app.run(debug=True)` to `app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')`
-- [ ] Add `.env.example` with all required env vars documented
+- [x] Install `Flask-Limiter` and add to [requirements.txt](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/requirements.txt)
+- [x] Apply rate limits: `30/minute` on search endpoints, `100/minute` globally
+- [x] Change `app.run(debug=True)` to `app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')`
+- [x] Add `.env.example` with all required env vars documented
 
 ---
 
@@ -525,10 +525,10 @@ FLASK_DEBUG=true
 Replace all `print()` calls with the `logging` module.
 
 ### Acceptance Criteria
-- [ ] Configure `logging` in [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py) and ETL scripts
-- [ ] Levels: `INFO` for startup messages, `WARNING` for fallbacks, `ERROR` for exceptions
-- [ ] Replace `print()` in: [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py), [db.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/verify_db.py), all ETL scripts
-- [ ] Add request logging middleware (Flask `before_request` / `after_request`)
+- [X] Configure `logging` in [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py) and ETL scripts
+- [X] Levels: `INFO` for startup messages, `WARNING` for fallbacks, `ERROR` for exceptions
+- [X] Replace `print()` in: [app.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/backend/app.py), [db.py](file:///c:/Users/public.LAPTOP-17PSCTIQ/Desktop/MATHIMATA/proxorimena/project/verify_db.py), all ETL scripts
+- [X] Add request logging middleware (Flask `before_request` / `after_request`)
 
 ---
 
@@ -542,7 +542,7 @@ Replace all `print()` calls with the `logging` module.
 The `deliverables/` folder is empty. The final submission requires a PDF report and a video link.
 
 ### Acceptance Criteria
-- [ ] Create `deliverables/4855_5381_projectReport.md` (or `.tex`) with this structure:
+- [x] Create `deliverables/4855_5381_projectReport.md` (or `.tex`) with this structure:
   1. Team members & AM numbers
   2. Database schema design & trade-offs (include ER diagram)
   3. ETL process description & transformation diagram
@@ -550,10 +550,10 @@ The `deliverables/` folder is empty. The final submission requires a PDF report 
   5. Features & screenshots
   6. Challenges & solutions
   7. Conclusions
-- [ ] Generate ER diagram using MySQL Workbench or Mermaid
-- [ ] Create `deliverables/VIDEO_LINK.md` placeholder
-- [ ] Verify `data/backups/` contains a recent DB dump
-- [ ] Update `README.md` to reflect current Phase III status
+- [x] Generate ER diagram using MySQL Workbench or Mermaid
+- [x] Create `deliverables/VIDEO_LINK.md` placeholder
+- [x] Verify `data/backups/` contains a recent DB dump
+- [x] Update `README.md` to reflect current Phase III status
 
 ---
 
@@ -654,13 +654,13 @@ Every task must satisfy ALL of the following before it can be marked complete:
 | B-03 | Journal Bug Fixes | 🟢 B | 🔴 P0 | 2h | ✅ Done |
 | B-04 | Stats + Year Page | 🟢 B | 🟡 P1 | 5h | ✅ Done |
 | B-05 | Headers + Search Fix | 🟢 B | 🟡 P1 | 2h | ✅ Done |
-| B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ⬜ Not Started |
+| B-06 | Security Hardening | 🟢 B | 🟢 P2 | 3h | ✅ Done |
 | C-01 | Matching Guards | 🟠 C | 🔴 P0 | 4h | ✅ Done |
 | C-02 | Unit Tests | 🟠 C | 🔴 P0 | 8h | ✅ Done |
 | C-03 | Repo Cleanup | 🟠 C | 🔴 P0 | 2h | ✅ Done |
 | C-04 | Config Unification | 🟠 C | 🟡 P1 | 3h | ✅ Done |
 | C-05 | Logging Framework | 🟠 C | 🟡 P1 | 3h | ⬜ Not Started |
-| C-06 | Report & Deliverables | 🟠 C | 🔴 P0 | 6h | ⬜ Not Started |
+| C-06 | Report & Deliverables | 🟠 C | 🔴 P0 | 6h | ✅ Done |
 | C-07 | Journal Matching Curation Pass | 🟠 C | 🟡 P1 | 4h | ✅ Done |
 | | | | **Total** | **79h** | |
 

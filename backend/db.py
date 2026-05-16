@@ -1,6 +1,9 @@
+import logging
 from contextlib import contextmanager
 import mysql.connector
 from mysql.connector import pooling
+
+logger = logging.getLogger(__name__)
 
 # Global pool object
 connection_pool = None
@@ -18,7 +21,7 @@ def init_pool(config, pool_name="mypool", pool_size=5):
         pool_reset_session=True,
         **dbconfig
     )
-    print(f"MySQL Connection Pool '{pool_name}' initialized with {pool_size} connections.")
+    logger.info("MySQL Connection Pool '%s' initialized with %s connections.", pool_name, pool_size)
 
 def get_db_connection():
     """Get a connection from the global pool."""

@@ -192,7 +192,7 @@ def test_load_manual_aliases_preserves_batch_3_manual_review_metadata():
         alias_file.unlink(missing_ok=True)
 
 
-def test_load_manual_aliases_ignores_non_csv_placeholder_files(capsys):
+def test_load_manual_aliases_ignores_non_csv_placeholder_files(caplog):
     alias_file = Path(".tmp") / f"journal_manual_aliases_{uuid4().hex}.csv"
     alias_file.parent.mkdir(parents=True, exist_ok=True)
     alias_file.write_text(
@@ -208,15 +208,16 @@ def test_load_manual_aliases_ignores_non_csv_placeholder_files(capsys):
     )
 
     try:
-        aliases = load_manual_aliases({11956}, manual_alias_csv=alias_file)
+        with caplog.at_level("WARNING"):
+            aliases = load_manual_aliases({11956}, manual_alias_csv=alias_file)
 
         assert aliases == {}
-        assert "WARNING: skipping manual alias file" in capsys.readouterr().out
+        assert "WARNING: skipping manual alias file" in caplog.text
     finally:
         alias_file.unlink(missing_ok=True)
 
 
-def test_conference_manual_overrides_ignore_non_csv_placeholder_files(monkeypatch, capsys):
+def test_conference_manual_overrides_ignore_non_csv_placeholder_files(monkeypatch, caplog):
     module = load_local_module("conference_match_for_test", "etl/05_match_conferences.py")
     alias_file = Path(".tmp") / f"conference_manual_aliases_{uuid4().hex}.csv"
     alias_file.parent.mkdir(parents=True, exist_ok=True)
@@ -235,10 +236,11 @@ def test_conference_manual_overrides_ignore_non_csv_placeholder_files(monkeypatc
     try:
         monkeypatch.setattr(module, "MANUAL_ALIAS_CSV", str(alias_file))
 
-        overrides = module.load_manual_overrides(set(), {}, {})
+        with caplog.at_level("WARNING"):
+            overrides = module.load_manual_overrides(set(), {}, {})
 
         assert overrides == {}
-        assert "WARNING: skipping manual alias file" in capsys.readouterr().out
+        assert "WARNING: skipping manual alias file" in caplog.text
     finally:
         alias_file.unlink(missing_ok=True)
 

@@ -2,7 +2,7 @@
 
 This project handles the integration, schema modeling, processing, and visualization of academic bibliographic data originating from DBLP, iCORE26, and Kaggle. It extracts heavily denormalized data, performs matching and transformation, and builds an optimized MySQL database over which a Flask/D3.js dashboard is built.
 
-**Team**: AM 4855 & AM 5381  
+**Team**: Theofanis Toompolis AM 4855 , Athanasios Fytilis AM 5381 , Marinos Aristidou AM 5397
 **Course**: MYE030 / PLE045 — Proxorimena Themata Texnologias Logismikou
 
 ---
@@ -43,6 +43,13 @@ This project handles the integration, schema modeling, processing, and visualiza
   - Detailed Conference, Journal, Author, and Year profile views displaying specialized rankings (H-index, SJR, Quartile, active years, distinct counts).
   - Scrollable data tables for published papers linking to external DBLP and EE URLs.
   - **Note on Coverage**: Activity statistics (paper counts, active years, authors) reflect the DBLP dataset (`input_article.csv`). Some journals present in the Kaggle ranking database (e.g. non-CS journals like "California Management Review") may have 0 papers simply because they are not covered by DBLP. In such cases, only their base metrics (Quartile, H-Index) are displayed.
+
+### Phase III Status (2026-05-13)
+
+- Core frontend/backend deliverables for profile/search/charts are complete.
+- Security hardening now includes API rate limiting (`100/min` global and `30/min` on search endpoints).
+- Flask runtime debug mode is now environment-driven via `FLASK_DEBUG`.
+- Submission scaffold files now exist under `deliverables/` (`4855_5381_projectReport.md`, `VIDEO_LINK.md`).
 
 ---
 

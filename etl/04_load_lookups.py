@@ -21,6 +21,7 @@ Examples:
   python etl/04_load_lookups.py --only conferences --dry-run
 """
 
+import logging
 import argparse
 import csv
 import os
@@ -33,6 +34,8 @@ import openpyxl
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG, ICORE_CSV, ICORE_RAW_DIR, ICORE_CATS_XLSX, JOURNAL_RANK_CSV, BEST_AREA_CSV
+
+logger = logging.getLogger(__name__)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 CLEANED_DIR = os.path.join(DATA_DIR, "cleaned")
@@ -394,7 +397,7 @@ def write_conference_conflict_report(conflicts):
 
 
 def load_primary_for(cursor):
-    print("Loading primary_for...")
+    logger.info("Loading primary_for...")
     before_count = get_table_row_count(cursor, "primary_for")
     wb = openpyxl.load_workbook(ICORE_CATS_XLSX, read_only=True, data_only=True)
     ws = wb.active
@@ -419,15 +422,15 @@ def load_primary_for(cursor):
     wb.close()
     final_count = get_table_row_count(cursor, "primary_for")
     ignored_rows = valid_rows - inserted
-    print(f"  valid source rows: {valid_rows:,}")
-    print(f"  skipped malformed rows: {skipped_rows:,}")
-    print(f"  inserted rows: {inserted:,}")
-    print(f"  ignored as duplicates/already present: {ignored_rows:,}")
-    print(f"  final primary_for rows: {final_count:,} (was {before_count:,})")
+    logger.info(f"  valid source rows: {valid_rows:,}")
+    logger.info(f"  skipped malformed rows: {skipped_rows:,}")
+    logger.info(f"  inserted rows: {inserted:,}")
+    logger.info(f"  ignored as duplicates/already present: {ignored_rows:,}")
+    logger.info(f"  final primary_for rows: {final_count:,} (was {before_count:,})")
 
 
 def load_best_subject_area(cursor):
-    print("Loading best_subject_area...")
+    logger.info("Loading best_subject_area...")
     before_count = get_table_row_count(cursor, "best_subject_area")
     inserted = 0
     valid_rows = 0
@@ -448,15 +451,15 @@ def load_best_subject_area(cursor):
             inserted += cursor.rowcount
     final_count = get_table_row_count(cursor, "best_subject_area")
     ignored_rows = valid_rows - inserted
-    print(f"  valid source rows: {valid_rows:,}")
-    print(f"  skipped malformed rows: {skipped_rows:,}")
-    print(f"  inserted rows: {inserted:,}")
-    print(f"  ignored as duplicates/already present: {ignored_rows:,}")
-    print(f"  final best_subject_area rows: {final_count:,} (was {before_count:,})")
+    logger.info(f"  valid source rows: {valid_rows:,}")
+    logger.info(f"  skipped malformed rows: {skipped_rows:,}")
+    logger.info(f"  inserted rows: {inserted:,}")
+    logger.info(f"  ignored as duplicates/already present: {ignored_rows:,}")
+    logger.info(f"  final best_subject_area rows: {final_count:,} (was {before_count:,})")
 
 
 def load_conferences(cursor, dry_run=False):
-    print("Syncing conferences...")
+    logger.info("Syncing conferences...")
     before_count = get_table_row_count(cursor, "conferences")
 
     cursor.execute("SELECT for_code FROM primary_for")
@@ -534,41 +537,41 @@ def load_conferences(cursor, dry_run=False):
     missing_unambiguous = sorted(insertable_acronyms - final_db_acronyms)
 
     verb = "would insert" if dry_run else "inserted"
-    print(
+    logger.info(
         "  merged source rows: "
         f"{len(source_rows):,} "
         f"(flat rows read: {source_stats['flat_rows_read']:,}, "
         f"raw rows read: {source_stats['raw_rows_read']:,}, "
         f"skipped blanks: {source_stats['source_rows_skipped']:,})"
     )
-    print(f"  merged rows present in both flat + raw sources: {source_stats['both_source_rows']:,}")
-    print(f"  raw-only source rows added: {source_stats['raw_only_rows']:,}")
-    print(f"  flat-only source rows retained: {source_stats['flat_only_rows']:,}")
-    print(f"  distinct source acronyms: {len(source_acronyms):,}")
-    print(f"  single-row acronym groups: {single_row_acronyms:,}")
-    print(f"  repeated acronym groups: {repeated_acronym_groups:,}")
-    print(f"  exact duplicate rows collapsed: {exact_duplicate_rows:,}")
-    print(f"  exact duplicate groups: {exact_duplicate_groups:,}")
-    print(f"  same-normalized-title variant groups collapsed: {same_normalized_title_variant_groups:,}")
-    print(f"  ambiguous acronym groups skipped intentionally: {len(ambiguous_acronyms):,}")
-    print(f"  rows with invalid PrimaryFoR cleared to NULL: {source_stats['invalid_primary_for_rows']:,}")
-    print(f"  existing conference acronyms before sync: {len(existing_acronyms):,}")
-    print(f"  {verb}: {inserted_rows:,}")
-    print(f"  final conference rows after sync: {final_count:,} (was {before_count:,})")
-    print(f"  source acronyms still missing after sync: {len(missing_after_sync):,}")
-    print(f"  unambiguous source acronyms still missing: {len(missing_unambiguous):,}")
-    print(
+    logger.info(f"  merged rows present in both flat + raw sources: {source_stats['both_source_rows']:,}")
+    logger.info(f"  raw-only source rows added: {source_stats['raw_only_rows']:,}")
+    logger.info(f"  flat-only source rows retained: {source_stats['flat_only_rows']:,}")
+    logger.info(f"  distinct source acronyms: {len(source_acronyms):,}")
+    logger.info(f"  single-row acronym groups: {single_row_acronyms:,}")
+    logger.info(f"  repeated acronym groups: {repeated_acronym_groups:,}")
+    logger.info(f"  exact duplicate rows collapsed: {exact_duplicate_rows:,}")
+    logger.info(f"  exact duplicate groups: {exact_duplicate_groups:,}")
+    logger.info(f"  same-normalized-title variant groups collapsed: {same_normalized_title_variant_groups:,}")
+    logger.info(f"  ambiguous acronym groups skipped intentionally: {len(ambiguous_acronyms):,}")
+    logger.info(f"  rows with invalid PrimaryFoR cleared to NULL: {source_stats['invalid_primary_for_rows']:,}")
+    logger.info(f"  existing conference acronyms before sync: {len(existing_acronyms):,}")
+    logger.info(f"  {verb}: {inserted_rows:,}")
+    logger.info(f"  final conference rows after sync: {final_count:,} (was {before_count:,})")
+    logger.info(f"  source acronyms still missing after sync: {len(missing_after_sync):,}")
+    logger.info(f"  unambiguous source acronyms still missing: {len(missing_unambiguous):,}")
+    logger.info(
         "  conflict report: "
         f"{CONFERENCE_CONFLICTS_CSV} (ambiguous acronym collisions intentionally not auto-merged)"
     )
 
     if missing_unambiguous:
         sample = ", ".join(missing_unambiguous[:10])
-        print(f"  WARNING: unambiguous source acronyms still missing: {sample}")
+        logger.warning(f"  WARNING: unambiguous source acronyms still missing: {sample}")
 
 
 def load_journals(cursor, area_name_to_id):
-    print("Loading journals...")
+    logger.info("Loading journals...")
     before_count = get_table_row_count(cursor, "journals")
     inserted = 0
     skipped = 0
@@ -650,15 +653,15 @@ def load_journals(cursor, area_name_to_id):
 
     final_count = get_table_row_count(cursor, "journals")
     ignored_rows = valid_rows - inserted
-    print(f"  valid source rows: {valid_rows:,}")
-    print(f"  skipped malformed rows: {skipped:,}")
-    print(f"  inserted rows: {inserted:,}")
-    print(f"  ignored as duplicates/already present: {ignored_rows:,}")
-    print(f"  final journal rows: {final_count:,} (was {before_count:,})")
+    logger.info(f"  valid source rows: {valid_rows:,}")
+    logger.info(f"  skipped malformed rows: {skipped:,}")
+    logger.info(f"  inserted rows: {inserted:,}")
+    logger.info(f"  ignored as duplicates/already present: {ignored_rows:,}")
+    logger.info(f"  final journal rows: {final_count:,} (was {before_count:,})")
 
 
 def load_authors(cursor):
-    print("Loading authors...")
+    logger.info("Loading authors...")
     before_count = get_table_row_count(cursor, "authors")
     author_files = [
         os.path.join(CLEANED_DIR, "cleaned_inproceedings_authors.csv"),
@@ -670,7 +673,7 @@ def load_authors(cursor):
     blank_name_rows = 0
     for path in author_files:
         if not os.path.exists(path):
-            print(f"  WARNING: {path} not found; run 02 and 03 first")
+            logger.warning(f"  WARNING: {path} not found; run 02 and 03 first")
             continue
         with open(path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -695,7 +698,7 @@ def load_authors(cursor):
             )
             inserted_rows += cursor.rowcount
         except mysql.connector.Error as batch_exc:
-            print(f"  WARNING: batch insert failed ({batch_exc}), retrying row-by-row...")
+            logger.warning(f"  WARNING: batch insert failed ({batch_exc}), retrying row-by-row...")
             for row in rows:
                 try:
                     cursor.execute(
@@ -705,21 +708,28 @@ def load_authors(cursor):
                     inserted_rows += cursor.rowcount
                 except mysql.connector.Error as exc:
                     insert_error_rows += 1
-                    print(f"  WARNING: skipped author {row[0]!r} ({exc})")
+                    logger.warning(f"  WARNING: skipped author {row[0]!r} ({exc})")
         if i % 100_000 == 0 and i > 0:
-            print(f"  authors: {i:,} distinct names processed so far...", flush=True)
+            logger.info(f"  authors: {i:,} distinct names processed so far...")
 
     final_count = get_table_row_count(cursor, "authors")
     duplicate_suppressed = len(unique_names) - inserted_rows - insert_error_rows
-    print(f"  source author rows scanned: {rows_scanned:,}")
-    print(f"  skipped blank/malformed author rows: {blank_name_rows:,}")
-    print(f"  distinct source names prepared: {len(unique_names):,}")
-    print(f"  duplicate source rows collapsed before load: {rows_scanned - blank_name_rows - len(unique_names):,}")
-    print(f"  inserted rows: {inserted_rows:,}")
-    print(f"  ignored as duplicates/already present: {duplicate_suppressed:,}")
+    logger.info(f"  source author rows scanned: {rows_scanned:,}")
+    logger.info(f"  skipped blank/malformed author rows: {blank_name_rows:,}")
+    logger.info(f"  distinct source names prepared: {len(unique_names):,}")
+    logger.info(f"  duplicate source rows collapsed before load: {rows_scanned - blank_name_rows - len(unique_names):,}")
+    logger.info(f"  inserted rows: {inserted_rows:,}")
+    logger.info(f"  ignored as duplicates/already present: {duplicate_suppressed:,}")
     if insert_error_rows:
-        print(f"  skipped insert-error rows: {insert_error_rows:,}")
-    print(f"  final authors rows: {final_count:,} (was {before_count:,})")
+        logger.warning(f"  skipped insert-error rows: {insert_error_rows:,}")
+    logger.info(f"  final authors rows: {final_count:,} (was {before_count:,})")
+
+
+LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+
+def configure_logging(level=logging.INFO):
+    logging.basicConfig(level=level, format=LOG_FORMAT)
 
 
 def main():
@@ -732,7 +742,7 @@ def main():
     cursor.execute("USE biblio_db")
 
     if args.dry_run:
-        print("DRY RUN: database changes will be rolled back before exit.")
+        logger.info("DRY RUN: database changes will be rolled back before exit.")
 
     try:
         if "primary_for" in selected:
@@ -764,13 +774,14 @@ def main():
 
         if args.dry_run:
             conn.rollback()
-            print("\nDry-run complete. Rolled back DB changes.")
+            logger.info("\nDry-run complete. Rolled back DB changes.")
         else:
-            print("\nSelected lookup stages loaded successfully.")
+            logger.info("\nSelected lookup stages loaded successfully.")
     finally:
         cursor.close()
         conn.close()
 
 
 if __name__ == "__main__":
+    configure_logging()
     main()

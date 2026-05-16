@@ -3,12 +3,15 @@ import re
 
 if __package__ and __package__.startswith("backend."):
     from ..db import get_db_connection, execute_query
+    from ..extensions import limiter
 else:
     from db import get_db_connection, execute_query
+    from extensions import limiter
 
 authors_bp = Blueprint('authors', __name__)
 
 @authors_bp.route('/search', methods=['GET'])
+@limiter.limit("30 per minute")
 def search_authors():
     """Server-side search for authors (needed because there are 1.4M+ authors) with input sanitization."""
     q = request.args.get('q', '').strip()
