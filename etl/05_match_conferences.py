@@ -19,6 +19,7 @@ Run: python etl/05_match_conferences.py
 
 from __future__ import annotations
 
+import logging
 import csv
 import json
 import os
@@ -30,6 +31,8 @@ import mysql.connector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG
+
+logger = logging.getLogger(__name__)
 from venue_matching import (
     MatchCandidate,
     MatchResult,
@@ -331,7 +334,7 @@ def load_manual_overrides(valid_conf_ids, by_acronym, by_title):
     with open(MANUAL_ALIAS_CSV, "r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         if not reader.fieldnames or "booktitle" not in reader.fieldnames:
-            print(
+            logger.warning(
                 f"WARNING: skipping manual alias file {MANUAL_ALIAS_CSV}: "
                 "missing required column booktitle"
             )
@@ -344,12 +347,12 @@ def load_manual_overrides(valid_conf_ids, by_acronym, by_title):
 
             action = (row.get("action") or "match").strip().casefold()
             if action not in {"match", "skip", "non_venue", "unmatch"}:
-                print(f"WARNING: ignoring unknown conference action at line {line_no}: {row!r}")
+                logger.warning(f"WARNING: ignoring unknown conference action at line {line_no}: {row!r}")
                 continue
 
             conf_id = resolve_manual_conf_id(row, valid_conf_ids, by_acronym, by_title)
             if action == "match" and conf_id is None:
-                print(
+                logger.warning(
                     f"WARNING: ignoring unresolved conference manual match at line {line_no}: {row!r}"
                 )
                 continue
@@ -821,6 +824,13 @@ def infer_series_mappings_from_registry(matcher, series_to_conf_id, series_regis
     return inferred
 
 
+LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+
+def configure_logging(level=logging.INFO):
+    logging.basicConfig(level=level, format=LOG_FORMAT)
+
+
 def main():
     local_dblp_index = load_local_dblp_csv_index()
     seed_review_metadata = load_seed_review_metadata()
@@ -895,20 +905,20 @@ def main():
     booktitles = sorted(booktitle_counts, key=lambda title: (-booktitle_counts[title], title.casefold()))
     total_rows = sum(booktitle_counts.values())
 
-    print(f"Distinct booktitles to match: {len(booktitles):,}")
-    print(f"Conference paper rows to classify: {total_rows:,}")
-    print(f"Manual conference overrides loaded: {len(manual_overrides):,}")
-    print(f"Seed conference rows inserted this run: {inserted_seed_rows:,}")
-    print(
+    logger.info(f"Distinct booktitles to match: {len(booktitles):,}")
+    logger.info(f"Conference paper rows to classify: {total_rows:,}")
+    logger.info(f"Manual conference overrides loaded: {len(manual_overrides):,}")
+    logger.info(f"Seed conference rows inserted this run: {inserted_seed_rows:,}")
+    logger.info(
         f"Local DBLP conference CSV: {local_dblp_index.get('inputs', {}).get('inproceedings', {}).get('path', '')}"
     )
-    print(
+    logger.info(
         "Local DBLP conference columns: "
         + ", ".join(local_dblp_index.get("inputs", {}).get("inproceedings", {}).get("columns", []))
     )
-    print(f"DBLP series mappings available after registry load: {len(series_to_conf_id):,}")
-    print(f"DBLP series mappings corrected from local evidence: {len(corrected_series_to_conf_id):,}")
-    print(f"DBLP series mappings inferred from local CSV registry: {len(inferred_series_to_conf_id):,}")
+    logger.info(f"DBLP series mappings available after registry load: {len(series_to_conf_id):,}")
+    logger.info(f"DBLP series mappings corrected from local evidence: {len(corrected_series_to_conf_id):,}")
+    logger.info(f"DBLP series mappings inferred from local CSV registry: {len(inferred_series_to_conf_id):,}")
 
     matched_distinct = 0
     matched_rows = 0
@@ -1081,48 +1091,49 @@ def main():
     pct_distinct = (matched_distinct / len(booktitles) * 100) if booktitles else 0.0
     pct_rows = (matched_rows / total_rows * 100) if total_rows else 0.0
 
-    print(
+    logger.info(
         f"Matched distinct booktitles: {matched_distinct:,} / {len(booktitles):,} ({pct_distinct:.1f}%)"
     )
-    print(
+    logger.info(
         f"Matched conference rows: {matched_rows:,} / {total_rows:,} ({pct_rows:.1f}%)"
     )
-    print(f"Unresolved distinct booktitles: {len(unresolved_titles):,}")
-    print(f"Unresolved conference rows: {unresolved_rows:,}")
-    print(f"Skipped/non-venue booktitles: {len(skipped_titles):,}")
-    print(f"Conference rows backfilled with DBLP series keys: {updated_series_rows:,}")
-    print(f"Conference rows corrected for stale DBLP series keys: {corrected_series_rows:,}")
-    print("Breakdown by match outcome:")
+    logger.info(f"Unresolved distinct booktitles: {len(unresolved_titles):,}")
+    logger.info(f"Unresolved conference rows: {unresolved_rows:,}")
+    logger.info(f"Skipped/non-venue booktitles: {len(skipped_titles):,}")
+    logger.info(f"Conference rows backfilled with DBLP series keys: {updated_series_rows:,}")
+    logger.info(f"Conference rows corrected for stale DBLP series keys: {corrected_series_rows:,}")
+    logger.info("Breakdown by match outcome:")
     for key in sorted(match_counts):
-        print(f"  {key}: {match_counts[key]:,} distinct / {match_rows[key]:,} rows")
-    print("Breakdown by match stage:")
+        logger.info(f"  {key}: {match_counts[key]:,} distinct / {match_rows[key]:,} rows")
+    logger.info("Breakdown by match stage:")
     for key in sorted(stage_counts):
-        print(f"  {key}: {stage_counts[key]:,} distinct / {stage_rows[key]:,} rows")
+        logger.info(f"  {key}: {stage_counts[key]:,} distinct / {stage_rows[key]:,} rows")
 
-    print("Top unresolved booktitles by row count:")
+    logger.info("Top unresolved booktitles by row count:")
     for title, rows in sorted(
         ((title, booktitle_counts[title]) for title in unresolved_titles),
         key=lambda item: (-item[1], item[0].casefold()),
     )[:20]:
-        print(console_safe(f"  {rows:,}  {title}"))
+        logger.info(console_safe(f"  {rows:,}  {title}"))
 
-    print(f"Mapping:            {OUT_MAPPING}")
-    print(f"Unresolved:         {OUT_UNMATCHED}")
-    print(f"Unresolved by rows: {OUT_UNMATCHED_BY_ROWS}")
-    print(f"Review CSV:         {OUT_REVIEW}")
-    print(f"Proposal CSV:       {OUT_PROPOSALS}")
-    print(f"Approve CSV:        {OUT_APPROVE_CANDIDATES}")
-    print(f"Enrichment CSV:     {OUT_LOOKUP_ENRICHMENT}")
-    print(f"Collision CSV:      {OUT_COLLISION_REVIEW_ONLY}")
-    print(f"Generated registry: {OUT_GENERATED_REGISTRY}")
-    print(f"Review memory:      {OUT_ALIAS_REVIEW}")
-    print(f"Alias memory:       {OUT_ALIAS_MEMORY}")
-    print(f"Approval sync rows: {synced_approved_rows:,}")
-    print(f"Resolved sync rows: {synced_resolved_rows:,}")
-    print(f"Match audit:        {OUT_MATCH_AUDIT}")
-    print(f"Manual aliases:     {MANUAL_ALIAS_CSV}")
+    logger.info(f"Mapping:            {OUT_MAPPING}")
+    logger.info(f"Unresolved:         {OUT_UNMATCHED}")
+    logger.info(f"Unresolved by rows: {OUT_UNMATCHED_BY_ROWS}")
+    logger.info(f"Review CSV:         {OUT_REVIEW}")
+    logger.info(f"Proposal CSV:       {OUT_PROPOSALS}")
+    logger.info(f"Approve CSV:        {OUT_APPROVE_CANDIDATES}")
+    logger.info(f"Enrichment CSV:     {OUT_LOOKUP_ENRICHMENT}")
+    logger.info(f"Collision CSV:      {OUT_COLLISION_REVIEW_ONLY}")
+    logger.info(f"Generated registry: {OUT_GENERATED_REGISTRY}")
+    logger.info(f"Review memory:      {OUT_ALIAS_REVIEW}")
+    logger.info(f"Alias memory:       {OUT_ALIAS_MEMORY}")
+    logger.info(f"Approval sync rows: {synced_approved_rows:,}")
+    logger.info(f"Resolved sync rows: {synced_resolved_rows:,}")
+    logger.info(f"Match audit:        {OUT_MATCH_AUDIT}")
+    logger.info(f"Manual aliases:     {MANUAL_ALIAS_CSV}")
 
 
 if __name__ == "__main__":
-    print("Matching DBLP booktitles to conferences table...")
+    configure_logging()
+    logger.info("Matching DBLP booktitles to conferences table...")
     main()

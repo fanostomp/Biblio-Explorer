@@ -32,6 +32,7 @@ def client(monkeypatch):
         "routes.authors",
         "routes.years",
         "routes.charts",
+        "routes.papers",
     ):
         sys.modules.pop(module_name, None)
 
@@ -41,6 +42,7 @@ def client(monkeypatch):
     authors = importlib.import_module("routes.authors")
     years = importlib.import_module("routes.years")
     charts = importlib.import_module("routes.charts")
+    papers = importlib.import_module("routes.papers")
 
     def fake_init_pool(config, pool_name="mypool", pool_size=5):
         return None
@@ -102,7 +104,7 @@ def client(monkeypatch):
     monkeypatch.setattr(backend_app, "init_pool", fake_init_pool)
     monkeypatch.setattr(backend_app, "get_db_connection", fake_get_db_connection)
 
-    for module in (conferences, journals, authors, years, charts):
+    for module in (conferences, journals, authors, years, charts, papers):
         monkeypatch.setattr(module, "get_db_connection", fake_get_db_connection)
         monkeypatch.setattr(module, "execute_query", fake_execute_query)
 
@@ -121,6 +123,20 @@ def test_health_endpoint_returns_ok(client):
     assert response.headers["Expires"] == "0"
 
 
+def test_health_endpoint_hides_internal_errors(client, monkeypatch):
+    import app as backend_app
+
+    def fake_get_db_connection():
+        raise RuntimeError("db host localhost:3307 leaked")
+
+    monkeypatch.setattr(backend_app, "get_db_connection", fake_get_db_connection)
+
+    response = client.get("/health")
+
+    assert response.status_code == 500
+    assert response.get_json() == {"status": "error", "message": "Internal server error"}
+
+
 def test_conference_list_endpoint_returns_json_shape(client):
     response = client.get("/api/conference/?page=1&per_page=1")
     payload = response.get_json()
@@ -128,6 +144,16 @@ def test_conference_list_endpoint_returns_json_shape(client):
     assert response.status_code == 200
     assert "conferences" in payload
     assert "pagination" in payload
+
+
+def test_paper_search_is_rate_limited_to_thirty_requests_per_minute(client):
+    for _ in range(30):
+        response = client.get("/api/paper/search?q=graph")
+        assert response.status_code == 200
+
+    response = client.get("/api/paper/search?q=graph")
+
+    assert response.status_code == 429
 
 
 def test_journal_search_with_special_characters_does_not_crash(client):

@@ -29,6 +29,7 @@ Run: python etl/06_match_journals.py
 
 from __future__ import annotations
 
+import logging
 import csv
 import json
 import os
@@ -41,6 +42,8 @@ import mysql.connector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DB_CONFIG
+
+logger = logging.getLogger(__name__)
 from venue_matching import (
     COMPILED_JOURNAL_ABBREVIATIONS,
     ExternalSourceCandidate,
@@ -238,7 +241,7 @@ def load_manual_aliases(valid_journal_ids, manual_alias_csv=MANUAL_ALIAS_CSV, by
         reader = csv.DictReader(handle)
         required = {"dblp_journal_name", "action"}
         if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
-            print(
+            logger.warning(
                 f"WARNING: skipping manual alias file {manual_alias_csv}: "
                 "missing required columns dblp_journal_name, action"
             )
@@ -253,7 +256,7 @@ def load_manual_aliases(valid_journal_ids, manual_alias_csv=MANUAL_ALIAS_CSV, by
             if not dblp_name and not journal_id_raw and not action:
                 continue
             if not dblp_name or action not in {"match", "unmatch", "skip", "non_venue"}:
-                print(
+                logger.warning(
                     f"WARNING: ignoring invalid manual alias at line {line_no}: "
                     f"{row!r}"
                 )
@@ -265,7 +268,7 @@ def load_manual_aliases(valid_journal_ids, manual_alias_csv=MANUAL_ALIAS_CSV, by
                     try:
                         journal_id = int(journal_id_raw)
                     except ValueError:
-                        print(
+                        logger.warning(
                             f"WARNING: ignoring manual alias with non-integer journal_id "
                             f"at line {line_no}: {journal_id_raw!r}"
                         )
@@ -274,7 +277,7 @@ def load_manual_aliases(valid_journal_ids, manual_alias_csv=MANUAL_ALIAS_CSV, by
                     journal_id = by_title.get(journal_title)
 
                 if journal_id not in valid_journal_ids:
-                    print(
+                    logger.warning(
                         f"WARNING: ignoring manual alias with unknown journal_id at "
                         f"line {line_no}: {journal_id!r}"
                     )
@@ -1295,6 +1298,13 @@ def external_candidate_supports_record(candidate, record):
     return bool(candidate_issn & record_issn)
 
 
+LOG_FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+
+def configure_logging(level=logging.INFO):
+    logging.basicConfig(level=level, format=LOG_FORMAT)
+
+
 def main():
     local_dblp_index = get_local_dblp_csv_index()
     conn = mysql.connector.connect(**DB_CONFIG)
@@ -1349,12 +1359,12 @@ def main():
                 "manual",
             )
 
-    print(f"Distinct DBLP journal names to match: {len(journal_names):,}")
-    print(f"Manual journal alias entries loaded: {len(manual_aliases):,}")
-    print(
+    logger.info(f"Distinct DBLP journal names to match: {len(journal_names):,}")
+    logger.info(f"Manual journal alias entries loaded: {len(manual_aliases):,}")
+    logger.info(
         f"Local DBLP article CSV: {local_dblp_index.get('inputs', {}).get('article', {}).get('path', '')}"
     )
-    print(
+    logger.info(
         "Local DBLP article columns: "
         + ", ".join(local_dblp_index.get("inputs", {}).get("article", {}).get("columns", []))
     )
@@ -1634,33 +1644,34 @@ def main():
     write_match_audit_rows(OUT_MATCH_AUDIT, audit_rows)
 
     pct = matched / len(journal_names) * 100 if journal_names else 0.0
-    print(f"Matched: {matched:,} / {len(journal_names):,} ({pct:.1f}%)")
-    print(f"Unresolved journal names: {len(unresolved):,}")
-    print(f"Skipped/non-venue journal names: {len(skipped):,}")
-    print("Breakdown by match stage:")
+    logger.info(f"Matched: {matched:,} / {len(journal_names):,} ({pct:.1f}%)")
+    logger.info(f"Unresolved journal names: {len(unresolved):,}")
+    logger.info(f"Skipped/non-venue journal names: {len(skipped):,}")
+    logger.info("Breakdown by match stage:")
     for key in sorted(stage_counts):
-        print(f"  {key}: {stage_counts[key]:,} distinct / {stage_rows[key]:,} rows")
-    print("Top low-confidence journal matches for review:")
+        logger.info(f"  {key}: {stage_counts[key]:,} distinct / {stage_rows[key]:,} rows")
+    logger.info("Top low-confidence journal matches for review:")
     for score, journal_name, journal_id, title in sorted(
         low_confidence_matches,
         key=lambda item: (item[0], item[1].casefold()),
     )[:LOW_CONFIDENCE_LIMIT]:
-        print(console_safe(f"  {score:.2f} | {journal_name} -> [{journal_id}] {title}"))
-    print(f"Mapping: {OUT_MAPPING}")
-    print(f"Unresolved: {OUT_UNMATCHED}")
-    print(f"Review CSV: {OUT_REVIEW}")
-    print(f"Proposal CSV: {OUT_PROPOSALS}")
-    print(f"Approve CSV: {OUT_APPROVE_CANDIDATES}")
-    print(f"Intentional-null candidates: {OUT_INTENTIONAL_NULL_CANDIDATES}")
-    print(f"Intentional-null audit: {OUT_INTENTIONAL_NULL_AUDIT}")
-    print(f"Variant cache: {OUT_VARIANT_CACHE}")
-    print(f"Review memory: {OUT_ALIAS_REVIEW}")
-    print(f"Alias memory: {OUT_ALIAS_MEMORY}")
-    print(f"Approval sync rows: {synced_approved_rows}")
-    print(f"Resolved sync rows: {synced_resolved_rows}")
-    print(f"Match audit: {OUT_MATCH_AUDIT}")
+        logger.info(console_safe(f"  {score:.2f} | {journal_name} -> [{journal_id}] {title}"))
+    logger.info(f"Mapping: {OUT_MAPPING}")
+    logger.info(f"Unresolved: {OUT_UNMATCHED}")
+    logger.info(f"Review CSV: {OUT_REVIEW}")
+    logger.info(f"Proposal CSV: {OUT_PROPOSALS}")
+    logger.info(f"Approve CSV: {OUT_APPROVE_CANDIDATES}")
+    logger.info(f"Intentional-null candidates: {OUT_INTENTIONAL_NULL_CANDIDATES}")
+    logger.info(f"Intentional-null audit: {OUT_INTENTIONAL_NULL_AUDIT}")
+    logger.info(f"Variant cache: {OUT_VARIANT_CACHE}")
+    logger.info(f"Review memory: {OUT_ALIAS_REVIEW}")
+    logger.info(f"Alias memory: {OUT_ALIAS_MEMORY}")
+    logger.info(f"Approval sync rows: {synced_approved_rows}")
+    logger.info(f"Resolved sync rows: {synced_resolved_rows}")
+    logger.info(f"Match audit: {OUT_MATCH_AUDIT}")
 
 
 if __name__ == "__main__":
-    print("Matching DBLP journal names to journals table...")
+    configure_logging()
+    logger.info("Matching DBLP journal names to journals table...")
     main()

@@ -3,8 +3,10 @@ import re
 
 if __package__ and __package__.startswith("backend."):
     from ..db import get_db_connection, execute_query
+    from ..extensions import limiter
 else:
     from db import get_db_connection, execute_query
+    from extensions import limiter
 
 conferences_bp = Blueprint('conferences', __name__)
 
@@ -123,6 +125,7 @@ def get_papers(conf_id):
         conn.close()
 
 @conferences_bp.route('/search', methods=['GET'])
+@limiter.limit("30 per minute")
 def search_conferences():
     """Server-side search for conferences with filters and pagination."""
     q = request.args.get('q', '').strip()
