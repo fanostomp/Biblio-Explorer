@@ -105,9 +105,9 @@ def create_app():
             conn.ping(reconnect=True)
             conn.close()
             return jsonify({'status': 'ok', 'db': 'connected'}), 200
-        except Exception as e:
+        except Exception:
             logger.exception("Health check failed")
-            return jsonify({'status': 'error', 'message': str(e)}), 500
+            return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
     @app.before_request
     def log_request_start():

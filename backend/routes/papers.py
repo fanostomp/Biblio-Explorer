@@ -3,8 +3,10 @@ import re
 
 if __package__ and __package__.startswith("backend."):
     from ..db import get_db_connection, execute_query
+    from ..extensions import limiter
 else:
     from db import get_db_connection, execute_query
+    from extensions import limiter
 
 papers_bp = Blueprint('papers', __name__)
 
@@ -13,6 +15,7 @@ _VALID_VENUE_TYPES = {'', 'conference', 'journal'}
 
 
 @papers_bp.route('/search', methods=['GET'])
+@limiter.limit("30 per minute")
 def search_papers():
     """Cross-venue paper/article title search with optional filters."""
     q = request.args.get('q', '').strip()
