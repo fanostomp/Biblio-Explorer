@@ -49,7 +49,7 @@ This project handles the integration, schema modeling, processing, and visualiza
 - Core frontend/backend deliverables for profile/search/charts are complete.
 - Security hardening now includes API rate limiting (`100/min` global and `30/min` on search endpoints).
 - Flask runtime debug mode is now environment-driven via `FLASK_DEBUG`.
-- Submission scaffold files now exist under `deliverables/` (`4855_5381_projectReport.md`, `VIDEO_LINK.md`).
+- Submission scaffold files now exist under `deliverables/`.
 
 ---
 
