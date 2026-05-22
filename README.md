@@ -1,5 +1,7 @@
 # Bibliographic Data Integration & Visualization
 
+[Ελληνική έκδοση](README_EL.md)
+
 This project handles the integration, schema modeling, processing, and visualization of academic bibliographic data originating from DBLP, iCORE26, and Kaggle. It extracts heavily denormalized data, performs matching and transformation, and builds an optimized MySQL database over which a Flask/D3.js dashboard is built.
 
 **Team**: Theofanis Tompolis AM 4855 , Athanasios Fytilis AM 5381 , Marinos Aristidou AM 5397
